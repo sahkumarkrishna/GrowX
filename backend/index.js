@@ -25,7 +25,7 @@ app.get("*", (req,res)=>{
 })
 
 app.use(cors({
-  origin: "  http://localhost:5173", // ✅ your frontend URL
+  origin: "https://job-portal-okc2.onrender.com", // ✅ your frontend URL
   credentials: true
 }));
 

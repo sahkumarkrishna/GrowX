@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setAllApplicants } from '@/redux/applicationSlice';
 
 // ✅ Accessing .env variable
-const APPLICATION_API = import.meta.env.VITE_APPLICATION_API_END_POINT;
+const APPLICATION_API = import.meta.env.VITE_APPLICATION_API;
 
 const Applicants = () => {
   const params = useParams();

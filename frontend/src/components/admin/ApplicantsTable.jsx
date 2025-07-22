@@ -18,7 +18,7 @@ import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 
 import axios from 'axios';
-const APPLICATION_API = import.meta.env.VITE_APPLICATION_API_END_POINT;
+const APPLICATION_API = import.meta.env.VITE_APPLICATION;
 const shortlistingStatus = ["Accepted", "Rejected"];
 
 const ApplicantsTable = () => {

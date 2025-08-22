@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import Company from "./Company";
 import FeedbackSection from "./FeedbackSection";
 import ResumeCheck from "./ResumeCheck";
+import JobPortalStats from "./JobPortalStats";    
 
 const Home = () => {
   useGetAllJobs();
@@ -26,6 +27,7 @@ const Home = () => {
       <Navbar />
       <HeroSection />
       <About />
+      <JobPortalStats/>
       <Company />
       <CategoryCarousel />
       <ResumeCheck />

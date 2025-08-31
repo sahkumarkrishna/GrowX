@@ -8,10 +8,14 @@ import companyRoute from "./routes/company.route.js";
 import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js";
 import path from "path";
+import { fileURLToPath } from "url";
 
 dotenv.config();
 
-const __dirname = path.resolve();
+// ✅ Fix __dirname in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
 // ✅ Middleware
@@ -22,7 +26,7 @@ app.use(cookieParser());
 // ✅ CORS setup
 app.use(
   cors({
-    origin:  "https://growx.onrender.com",
+    origin: "https://growx.onrender.com",
     credentials: true,
   })
 );
@@ -34,7 +38,7 @@ app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 
 // ✅ Serve frontend (after routes)
-app.use(express.static(path.join(__dirname, "/frontend/dist")));
+app.use(express.static(path.join(__dirname, "frontend", "dist")));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));

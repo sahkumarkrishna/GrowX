@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../shared/Navbar';
+
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { RadioGroup } from '../ui/radio-group';
@@ -27,16 +27,20 @@ const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // handle text input
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
 
+  // handle file input
   const changeFileHandler = (e) => {
     setInput({ ...input, file: e.target.files?.[0] });
   };
 
+  // handle form submit
   const submitHandler = async (e) => {
     e.preventDefault();
+
     const formData = new FormData();
     formData.append('fullname', input.fullname);
     formData.append('email', input.email);
@@ -53,18 +57,22 @@ const Signup = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true
       });
+
       if (res.data.success) {
-        navigate('/login');
         toast.success(res.data.message);
+        navigate('/login');
+      } else {
+        toast.error(res.data.message || 'Signup failed.');
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
       toast.error(error.response?.data?.message || 'Something went wrong.');
     } finally {
       dispatch(setLoading(false));
     }
   };
 
+  // if user already logged in, redirect
   useEffect(() => {
     if (user) {
       navigate('/');
@@ -73,7 +81,7 @@ const Signup = () => {
 
   return (
     <>
-      <Navbar />
+ 
       <div className="flex items-center justify-center px-4 py-10">
         <form
           onSubmit={submitHandler}
@@ -90,6 +98,7 @@ const Signup = () => {
                 value={input.fullname}
                 onChange={changeEventHandler}
                 placeholder="John Doe"
+                required
               />
             </div>
 
@@ -101,6 +110,7 @@ const Signup = () => {
                 value={input.email}
                 onChange={changeEventHandler}
                 placeholder="abc@example.com"
+                required
               />
             </div>
 
@@ -112,6 +122,7 @@ const Signup = () => {
                 value={input.phoneNumber}
                 onChange={changeEventHandler}
                 placeholder="9876543210"
+                required
               />
             </div>
 
@@ -123,10 +134,12 @@ const Signup = () => {
                 value={input.password}
                 onChange={changeEventHandler}
                 placeholder="••••••••"
+                required
               />
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
+              {/* Role Selection */}
               <RadioGroup className="flex items-center gap-4">
                 <div className="flex items-center gap-2">
                   <Input
@@ -150,6 +163,7 @@ const Signup = () => {
                 </div>
               </RadioGroup>
 
+              {/* File Upload */}
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                 <Label>Profile Image</Label>
                 <Input
@@ -161,16 +175,17 @@ const Signup = () => {
               </div>
             </div>
 
-            {loading ? (
-              <Button className="w-full mt-6" disabled>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Please wait...
-              </Button>
-            ) : (
-              <Button type="submit" className="w-full mt-6">
-                Sign Up
-              </Button>
-            )}
+            {/* Signup Button with loading state */}
+            <Button type="submit" className="w-full mt-6" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Please wait...
+                </>
+              ) : (
+                'Sign Up'
+              )}
+            </Button>
 
             <p className="text-sm text-center text-gray-600">
               Already have an account?{' '}

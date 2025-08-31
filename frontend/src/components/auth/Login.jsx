@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../shared/Navbar';
+
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
@@ -38,6 +38,7 @@ const Login = () => {
 
     try {
       dispatch(setLoading(true));
+      console.log('Sending login request to:', `${USER_API_END_POINT}/login`, input);
 
       const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
         headers: {
@@ -46,25 +47,34 @@ const Login = () => {
         withCredentials: true,
       });
 
+      console.log('Login response:', res.data);
+
       if (res.data.success) {
         dispatch(setUser(res.data.user));
-        navigate('/');
         toast.success(res.data.message);
+        navigate('/');
+      } else {
+        toast.error(res.data.message || 'Login failed!');
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast.error(error?.response?.data?.message || 'Login failed!');
     } finally {
       dispatch(setLoading(false));
+      console.log('Loading state reset to false');
     }
   };
 
   useEffect(() => {
-    if (user) navigate('/');
+    if (user) {
+      console.log('User already logged in, redirecting...');
+      navigate('/');
+    }
   }, [user, navigate]);
 
   return (
     <div>
-      <Navbar />
+     
       <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50">
         <div className="w-full max-w-md space-y-8 bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
           <h2 className="text-center text-2xl font-bold text-gray-800">Login to your account</h2>
@@ -96,7 +106,6 @@ const Login = () => {
               />
             </div>
 
-            {/* Correct RadioGroup */}
             <div>
               <Label>Role</Label>
               <RadioGroup
@@ -115,6 +124,7 @@ const Login = () => {
               </RadioGroup>
             </div>
 
+            {/* Login button with loading state */}
             <Button type="submit" className="w-full mt-4" disabled={loading}>
               {loading ? (
                 <>

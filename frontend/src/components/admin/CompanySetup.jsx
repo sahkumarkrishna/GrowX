@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../shared/Navbar';
+
 import { Button } from '../ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Label } from '../ui/label';
@@ -76,7 +76,7 @@ const CompanySetup = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+  
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 my-10">
         <form onSubmit={submitHandler}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">

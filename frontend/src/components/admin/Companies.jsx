@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import Navbar from '../shared/Navbar'
+
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 import CompaniesTable from './CompaniesTable'
@@ -20,7 +20,7 @@ const Companies = () => {
 
     return (
         <div className="min-h-screen bg-white">
-            <Navbar />
+            
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
                 {/* Filter & Button */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">

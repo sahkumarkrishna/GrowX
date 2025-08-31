@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import Navbar from "./shared/Navbar";
+
 import HeroSection from "./HeroSection";
 import CategoryCarousel from "./CategoryCarousel";
 import LatestJobs from "./LatestJobs";
@@ -11,9 +11,9 @@ import { useNavigate } from "react-router-dom";
 import Company from "./Company";
 import FeedbackSection from "./FeedbackSection";
 import ResumeCheck from "./ResumeCheck";
-import JobPortalStats from "./JobPortalStats";    
+import JobPortalStats from "./JobPortalStats";
 
-const Home = () => {
+const JobHome = () => {
   useGetAllJobs();
   const { user } = useSelector((store) => store.auth);
   const navigate = useNavigate();
@@ -24,10 +24,11 @@ const Home = () => {
   }, []);
   return (
     <div>
-      <Navbar />
+
+
       <HeroSection />
       <About />
-      <JobPortalStats/>
+      <JobPortalStats />
       <Company />
       <CategoryCarousel />
       <ResumeCheck />
@@ -40,4 +41,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default JobHome;

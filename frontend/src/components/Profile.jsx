@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar from './shared/Navbar';
+
 import { Avatar, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Contact, Mail, Pen } from 'lucide-react';
@@ -17,7 +17,7 @@ const Profile = () => {
 
   return (
     <div>
-      <Navbar />
+      
 
       <div className="max-w-4xl mx-auto bg-white border border-gray-200 rounded-2xl my-5 p-8">
         {/* Top Profile Section */}

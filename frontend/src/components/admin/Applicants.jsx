@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import Navbar from '../shared/Navbar';
+
 import ApplicantsTable from './ApplicantsTable';
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
@@ -31,7 +31,7 @@ const Applicants = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <h1 className="font-bold text-2xl sm:text-3xl mb-6">
           Applicants ({applicants?.applications?.length || 0})

@@ -1,57 +1,57 @@
-import React from 'react';
-import { FaFacebookF, FaTwitter, FaLinkedinIn, FaInstagram } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Top Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-          {/* Logo & About */}
-          <div>
-            <h2 className="text-2xl font-bold mb-3">JobHunt</h2>
-            <p className="text-gray-400 text-sm">
-              Find your next opportunity with the most trusted job portal for students and professionals.
-            </p>
-          </div>
-
-          {/* Quick Links */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-gray-400 text-sm">
-              <li><Link to="/" className="hover:text-white">Home</Link></li>
-              <li><Link to="/browse" className="hover:text-white">Browse Jobs</Link></li>
-          
-              <li><Link to="/login" className="hover:text-white">Login</Link></li>
-              <li><Link to="/signup" className="hover:text-white">Signup</Link></li>
-            </ul>
-          </div>
-
-          {/* Contact & Social */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Connect with us</h3>
-            <div className="flex space-x-4">
-              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-500 transition">
-                <FaFacebookF size={20} />
-              </a>
-              <a href="https://twitter.com" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-400 transition">
-                <FaTwitter size={20} />
-              </a>
-              <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-blue-600 transition">
-                <FaLinkedinIn size={20} />
-              </a>
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-pink-500 transition">
-                <FaInstagram size={20} />
-              </a>
-            </div>
+    <footer className="bg-white text-black pt-12">
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Logo & Description */}
+        <div>
+          <h2 className="text-3xl font-bold mb-3">
+            Job<span className="text-[#F83002]">Portal</span>
+          </h2>
+          <p className="text-gray-700 mb-4">
+            Connecting talent with opportunities. Find your dream job or hire the best talent.
+          </p>
+          <div className="flex gap-3 mt-2">
+            <a href="#" className="hover:text-[#F83002] transition-colors"><FaFacebook size={22} /></a>
+            <a href="#" className="hover:text-[#F83002] transition-colors"><FaTwitter size={22} /></a>
+            <a href="#" className="hover:text-[#F83002] transition-colors"><FaLinkedin size={22} /></a>
+            <a href="#" className="hover:text-[#F83002] transition-colors"><FaInstagram size={22} /></a>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-gray-700 pt-6 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} JobHunt. All rights reserved.
+        {/* Job Links */}
+        <div>
+          <h3 className="font-semibold mb-3 text-lg">Jobs</h3>
+          <ul className="space-y-2">
+            <li><Link to="/learning" className="hover:text-[#F83002] transition-colors">Learning</Link></li>
+            <li><Link to="/internship" className="hover:text-[#F83002] transition-colors">Internship</Link></li>
+            <li><Link to="/onlineCoding" className="hover:text-[#F83002] transition-colors">Online Coding</Link></li>
+            <li><Link to="/job" className="hover:text-[#F83002] transition-colors">Job</Link></li>
+          </ul>
         </div>
+
+        {/* Newsletter / Subscribe */}
+        <div>
+          <h3 className="font-semibold mb-3 text-lg">Subscribe</h3>
+          <p className="text-gray-700 mb-4">Get the latest job updates directly to your inbox.</p>
+          <div className="flex gap-2">
+            <input
+              type="email"
+              placeholder="Your email"
+              className="flex-grow px-3 py-2 rounded-md text-black border border-gray-300 focus:outline-none"
+            />
+            <button className="bg-[#F83002] hover:bg-red-600 text-white px-4 py-2 rounded-md font-semibold transition-colors">
+              Subscribe
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom copyright */}
+      <div className="mt-12 border-t border-gray-300 pt-6 text-center text-gray-600 text-sm">
+        &copy; {new Date().getFullYear()} JobPortal. All rights reserved.
       </div>
     </footer>
   );

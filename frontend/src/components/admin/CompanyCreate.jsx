@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import Navbar from '../shared/Navbar'
+
 import { Label } from '../ui/label'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
@@ -39,7 +39,7 @@ const CompanyCreate = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+   
       <div className='max-w-4xl mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='my-10'>
           <h1 className='font-bold text-2xl sm:text-3xl'>Your Company Name</h1>

@@ -12,39 +12,39 @@ import { fileURLToPath } from "url";
 
 dotenv.config();
 
-// ✅ Fix __dirname in ES module
+// Fix __dirname in ES module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// ✅ Middleware
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ✅ CORS setup
+// CORS setup
 app.use(
   cors({
-    origin: "https://growx.onrender.com",
+    origin: "https://growx.onrender.com", // Frontend URL
     credentials: true,
   })
 );
 
-// ✅ API Routes
+// API Routes
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 
-// ✅ Serve frontend (after routes)
-app.use(express.static(path.join(__dirname, "frontend", "dist")));
+// Serve frontend (after API routes)
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
 });
 
-// ✅ Start server
+// Start server
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, async () => {

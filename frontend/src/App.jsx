@@ -1,7 +1,7 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
-import Home from './components/JobHome';
+
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
 import Jobs from './components/Jobs';
@@ -19,10 +19,11 @@ import NotFound from './components/PageNot';
 import ResumeCheck from './components/ResumeCheck';
 import Layout from './MainLayout/Layout';
 import Internship from './pages/Internship';
-import Apply from './pages/Intership/Apply';
+import Apply from './pages/Internship/Apply';
 import LearningHome from './pages/LearningHome';
 import StudyRoadmap from './pages/Learning/VideoDashboard';
 import ProblemSlove from './pages/ProblemSlove';
+import JobHome from './components/JobHome';
 
 const RedirectRoot = () => {
   const { user } = useSelector((state) => state.auth);
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
   // ❌ Login & Signup OUTSIDE layout
   { path: 'login', element: <Login /> },
   { path: 'signup', element: <Signup /> },
+  { path: '*', element: <NotFound /> },
 
   // ✅ All other pages inside Layout
   {
@@ -41,7 +43,7 @@ const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { path: '/', element: <RedirectRoot /> },
-      { path: '/Job', element: <Home /> },
+      { path: '/Job', element: <JobHome /> },
       { path: 'joball', element: <Jobs /> },
       { path: 'description/:id', element: <JobDescription /> },
       { path: 'browse', element: <Browse /> },
@@ -62,7 +64,7 @@ const router = createBrowserRouter([
       { path: 'admin/jobs/:id/applicants', element: <ProtectedRoute><Applicants /></ProtectedRoute> },
 
       // Catch-all
-      { path: '*', element: <NotFound /> },
+      
     ],
   },
 ]);

@@ -98,7 +98,7 @@ export default function Apply() {
   
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white p-12 mt-14">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white p-12 ">
       <h1 className="text-5xl font-extrabold text-center text-indigo-900 mb-14 tracking-wide drop-shadow-md">
         Internship Apply
       </h1>

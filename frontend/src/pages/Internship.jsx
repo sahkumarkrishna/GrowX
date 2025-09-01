@@ -1,12 +1,17 @@
 
-import HeroSection from './Intership/HeroSection';
-import About from './Intership/About';
-import StatsSection from './Intership/StatsSection';
-import ConnectivitySection from './Intership/ConnectivitySection';
-import Features from './Intership/Features';
-import WhyChooseInternship from './Intership/WhyChooseUs';
-import FeedbackSection from './Intership/Feedback';
-import Certificate from './Intership/Certificate';
+import HeroSection from './Internship/HeroSection';
+import About from './Internship/About';
+import StatsSection from './Internship/StatsSection';
+import ConnectivitySection from './Internship/ConnectivitySection';
+import Features from './Internship/Features';
+import WhyChooseInternship from './Internship/WhyChooseUs';
+
+import Certificate from './Internship/Certificate';
+import FAQSection from './Learning/FAQSection';
+
+
+
+
 
 
 
@@ -20,7 +25,7 @@ const Internship = () => {
             <StatsSection />
             <Features />
             < WhyChooseInternship />
-            <FeedbackSection />
+            <FAQSection />
             <Certificate />
 
 

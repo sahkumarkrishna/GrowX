@@ -1,7 +1,8 @@
-import Features from "./Intership/Features";
+
 import About from "./Learning/About";
 import Certificate from "./Learning/Certificate";
 import FAQSection from "./Learning/FAQSection";
+import Features from "./Learning/Features";
 import FeedbackSection from "./Learning/Feedback";
 import HeroSection from "./Learning/Herosection";
 import StatsSection from "./Learning/StatsSection";

@@ -9,15 +9,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { setUser } from '@/redux/authSlice';
 import { toast } from 'sonner';
-import logo from "../../assets/logo.jpg";
+
+import GrowXLogo from './GrowXLogo';
 
 const USER_API_END_POINT = import.meta.env.VITE_USER_API;
 
 const navLinks = [
-  { path: '/learning', label: 'Learning' },
+  { path: '/', label: 'Learning' },
   { path: '/onlineCoding', label: 'OnlineCoding' },
   { path: '/internship', label: 'Internship' },
-
 ];
 
 const Navbar = () => {
@@ -52,9 +52,6 @@ const Navbar = () => {
     } else {
       return (
         <>
-
-
-          {/* ✅ Then navLinks → Learning, Internship, OnlineCoding */}
           {navLinks.map(link => (
             <li key={link.path}>
               <NavLink
@@ -66,7 +63,6 @@ const Navbar = () => {
             </li>
           ))}
 
-          {/* ✅ Jobportal at the end */}
           <li className="relative">
             <button
               onClick={() => setJobportalOpen(!jobportalOpen)}
@@ -93,14 +89,11 @@ const Navbar = () => {
     }
   };
 
-
   return (
     <div className="bg-white shadow-sm sticky top-0 z-50">
       <div className="flex items-center justify-between mx-auto max-w-7xl px-4 h-16">
         {/* Logo */}
-        <div className="flex items-center">
-          <img src={logo} alt="Logo" className="h-[120px] w-[120px] rounded-full object-cover" />
-        </div>
+        <GrowXLogo size={40} />
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-6">
@@ -155,31 +148,18 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Nav */}
-      {/* Mobile Nav */}
       <div
-        className={`md:hidden px-4 py-3 bg-white shadow-md transition-all duration-300 overflow-hidden ${menuOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
+        className={`md:hidden fixed top-16 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-xl transition-all duration-300 overflow-hidden z-50 w-[90%] max-w-sm ${menuOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0"
           }`}
       >
-        <ul className="flex flex-col gap-3 font-medium">
-          <li>
-            <Link
-              to="/"
-              onClick={() => setMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg hover:bg-gray-100"
-            >
-              Home
-            </Link>
-          </li>
-
-          {/* Loop through navLinks */}
+        <ul className="flex flex-col gap-3 font-medium p-4">
           {navLinks.map((link) => (
             <li key={link.path}>
               <NavLink
                 to={link.path}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
-                  `block px-3 py-2 rounded-lg ${isActive ? "text-[#F83002]" : "text-gray-700"
-                  } hover:bg-gray-100`
+                  `block px-3 py-2 rounded-lg ${isActive ? "text-[#F83002]" : "text-gray-700"} hover:bg-gray-100`
                 }
               >
                 {link.label}
@@ -196,7 +176,7 @@ const Navbar = () => {
               Jobportal {jobportalOpen ? <FiChevronUp /> : <FiChevronDown />}
             </button>
             {jobportalOpen && (
-              <ul className="ml-4 mt-2 flex flex-col gap-2 border-l-2 border-gray-200 pl-3 animate-slideDown">
+              <ul className="ml-4 mt-2 flex flex-col gap-2 border-l-2 border-gray-200 pl-3">
                 <li>
                   <NavLink
                     to="/job"
@@ -231,7 +211,7 @@ const Navbar = () => {
 
         {/* Mobile Auth / Profile */}
         {!user ? (
-          <div className="flex flex-col gap-2 mt-3">
+          <div className="flex flex-col gap-2 p-4">
             <Link to="/login" onClick={() => setMenuOpen(false)}>
               <Button variant="outline" className="w-full">
                 Login
@@ -242,7 +222,7 @@ const Navbar = () => {
             </Link>
           </div>
         ) : (
-          <div className="flex flex-col gap-3 mt-3">
+          <div className="flex flex-col gap-3 p-4">
             {user?.role !== "recruiter" && (
               <Link
                 to="/profile"
@@ -261,7 +241,6 @@ const Navbar = () => {
           </div>
         )}
       </div>
-
     </div>
   );
 };

@@ -126,9 +126,8 @@ const Navbar = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    {user?.role !== 'recruiter' && (
-                      <Link to="/profile" className="flex items-center gap-2 hover:text-[#F83002]"><User2 /> View Profile</Link>
-                    )}
+                    {/* Show View Profile for all users including recruiters */}
+                    <Link to="/profile" className="flex items-center gap-2 hover:text-[#F83002]"><User2 /> View Profile</Link>
                     <button onClick={logoutHandler} className="flex items-center gap-2 hover:text-[#F83002]">
                       <LogOut /> Logout
                     </button>
@@ -153,60 +152,74 @@ const Navbar = () => {
           }`}
       >
         <ul className="flex flex-col gap-3 font-medium p-4">
-          {navLinks.map((link) => (
-            <li key={link.path}>
-              <NavLink
-                to={link.path}
-                onClick={() => setMenuOpen(false)}
-                className={({ isActive }) =>
-                  `block px-3 py-2 rounded-lg ${isActive ? "text-[#F83002]" : "text-gray-700"} hover:bg-gray-100`
-                }
-              >
-                {link.label}
-              </NavLink>
-            </li>
-          ))}
+          {/* For mobile, render links same as desktop */}
+          {user?.role === 'recruiter' ? (
+            <>
+              <li>
+                <Link to="/admin/companies" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-[#F83002]">Companies</Link>
+              </li>
+              <li>
+                <Link to="/admin/jobs" onClick={() => setMenuOpen(false)} className="block px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-[#F83002]">Jobs</Link>
+              </li>
+            </>
+          ) : (
+            <>
+              {navLinks.map((link) => (
+                <li key={link.path}>
+                  <NavLink
+                    to={link.path}
+                    onClick={() => setMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `block px-3 py-2 rounded-lg ${isActive ? "text-[#F83002]" : "text-gray-700"} hover:bg-gray-100`
+                    }
+                  >
+                    {link.label}
+                  </NavLink>
+                </li>
+              ))}
 
-          {/* Jobportal Dropdown */}
-          <li>
-            <button
-              onClick={() => setJobportalOpen(!jobportalOpen)}
-              className="flex justify-between items-center w-full px-3 py-2 rounded-lg hover:bg-gray-100"
-            >
-              Jobportal {jobportalOpen ? <FiChevronUp /> : <FiChevronDown />}
-            </button>
-            {jobportalOpen && (
-              <ul className="ml-4 mt-2 flex flex-col gap-2 border-l-2 border-gray-200 pl-3">
-                <li>
-                  <NavLink
-                    to="/job"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md hover:bg-gray-50"
-                  >
-                    Job
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink
-                    to="/joball"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md hover:bg-gray-50"
-                  >
-                    JobAll
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink
-                    to="/browse"
-                    onClick={() => setMenuOpen(false)}
-                    className="block px-3 py-2 rounded-md hover:bg-gray-50"
-                  >
-                    Browse
-                  </NavLink>
-                </li>
-              </ul>
-            )}
-          </li>
+              {/* Jobportal Dropdown */}
+              <li>
+                <button
+                  onClick={() => setJobportalOpen(!jobportalOpen)}
+                  className="flex justify-between items-center w-full px-3 py-2 rounded-lg hover:bg-gray-100"
+                >
+                  Jobportal {jobportalOpen ? <FiChevronUp /> : <FiChevronDown />}
+                </button>
+                {jobportalOpen && (
+                  <ul className="ml-4 mt-2 flex flex-col gap-2 border-l-2 border-gray-200 pl-3">
+                    <li>
+                      <NavLink
+                        to="/job"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-3 py-2 rounded-md hover:bg-gray-50"
+                      >
+                        Job
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/joball"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-3 py-2 rounded-md hover:bg-gray-50"
+                      >
+                        JobAll
+                      </NavLink>
+                    </li>
+                    <li>
+                      <NavLink
+                        to="/browse"
+                        onClick={() => setMenuOpen(false)}
+                        className="block px-3 py-2 rounded-md hover:bg-gray-50"
+                      >
+                        Browse
+                      </NavLink>
+                    </li>
+                  </ul>
+                )}
+              </li>
+            </>
+          )}
         </ul>
 
         {/* Mobile Auth / Profile */}
@@ -223,15 +236,14 @@ const Navbar = () => {
           </div>
         ) : (
           <div className="flex flex-col gap-3 p-4">
-            {user?.role !== "recruiter" && (
-              <Link
-                to="/profile"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-2 text-gray-700 hover:text-[#F83002]"
-              >
-                <User2 size={18} /> View Profile
-              </Link>
-            )}
+            {/* Show View Profile for all users */}
+            <Link
+              to="/profile"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 text-gray-700 hover:text-[#F83002]"
+            >
+              <User2 size={18} /> View Profile
+            </Link>
             <button
               onClick={logoutHandler}
               className="flex items-center gap-2 text-gray-700 hover:text-[#F83002]"

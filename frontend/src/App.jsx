@@ -19,12 +19,13 @@ import NotFound from './components/PageNot';
 import ResumeCheck from './components/ResumeCheck';
 
 import Internship from './pages/Internship';
-import Apply from './pages/Internship/Apply';
+
 import LearningHome from './pages/LearningHome';
 import StudyRoadmap from './pages/Learning/VideoDashboard';
 import ProblemSlove from './pages/ProblemSlove';
 import JobHome from './components/JobHome';
 import MainLayout from './Layout/MainLayout';
+import Category from './pages/Internship/Category';
 
 const RedirectRoot = () => {
   const { user } = useSelector((state) => state.auth);
@@ -53,7 +54,7 @@ const router = createBrowserRouter([
       { path: 'learning', element: <LearningHome /> },
       { path: 'learningVideo', element: <StudyRoadmap /> },
       { path: 'internship', element: <Internship /> },
-      { path: 'internshipApply', element: <Apply /> },
+      { path: 'category', element: <Category /> },
       { path: "onlineCoding", element:<ProblemSlove/> },
 
       // Admin routes

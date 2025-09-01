@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import HeroSection from "./HeroSection";
 import CategoryCarousel from "./CategoryCarousel";
 import LatestJobs from "./LatestJobs";
-import Footer from "./shared/Footer";
+
 import About from "./About";
 import useGetAllJobs from "@/hooks/useGetAllJobs";
 import { useSelector } from "react-redux";
@@ -36,7 +36,7 @@ const JobHome = () => {
       <LatestJobs />
       <FeedbackSection />
 
-      <Footer />
+      
     </div>
   );
 };

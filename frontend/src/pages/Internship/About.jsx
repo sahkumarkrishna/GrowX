@@ -6,7 +6,7 @@ export default function About() {
     const navigate = useNavigate();
 
     const handleApply = () => {
-        navigate("/internshipApply");
+        navigate("/category");
     };
 
     return (
@@ -39,7 +39,7 @@ export default function About() {
                                 onClick={handleApply}
                                 className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition mt-0 md:mt-4"
                             >
-                                Go to internships
+                                Internship Categories
                             </button>
                         </div>
                     </div>

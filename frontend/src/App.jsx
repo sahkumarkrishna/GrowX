@@ -17,13 +17,14 @@ import Applicants from './components/admin/Applicants';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import NotFound from './components/PageNot';
 import ResumeCheck from './components/ResumeCheck';
-import Layout from './MainLayout/Layout';
+
 import Internship from './pages/Internship';
 import Apply from './pages/Internship/Apply';
 import LearningHome from './pages/LearningHome';
 import StudyRoadmap from './pages/Learning/VideoDashboard';
 import ProblemSlove from './pages/ProblemSlove';
 import JobHome from './components/JobHome';
+import MainLayout from './Layout/MainLayout';
 
 const RedirectRoot = () => {
   const { user } = useSelector((state) => state.auth);
@@ -40,7 +41,7 @@ const router = createBrowserRouter([
   // ✅ All other pages inside Layout
   {
     path: '/',
-    element: <Layout />,
+    element: <MainLayout />,
     children: [
       { path: '/', element: <RedirectRoot /> },
       { path: '/Job', element: <JobHome /> },

@@ -7,13 +7,7 @@ import Features from './Internship/Features';
 import WhyChooseInternship from './Internship/WhyChooseUs';
 
 import Certificate from './Internship/Certificate';
-import FAQSection from './Learning/FAQSection';
-
-
-
-
-
-
+import FAQSection from './Internship/FAQSection';
 
 
 const Internship = () => {

@@ -17,9 +17,7 @@ import Applicants from './components/admin/Applicants';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 import NotFound from './components/PageNot';
 import ResumeCheck from './components/ResumeCheck';
-
 import Internship from './pages/Internship';
-
 import LearningHome from './pages/LearningHome';
 import StudyRoadmap from './pages/Learning/VideoDashboard';
 import ProblemSlove from './pages/ProblemSlove';
@@ -56,6 +54,22 @@ const router = createBrowserRouter([
       { path: 'internship', element: <Internship /> },
 
       { path: "onlineCoding", element: <ProblemSlove /> },
+      {
+        path: "learningVideo",
+        element: (
+
+          <StudyRoadmap />
+
+        ),
+      },
+      {
+        path: "category",
+        element: (
+
+          <Category />
+
+        ),
+      },
 
       // Admin routes
       { path: 'admin/companies', element: <ProtectedRoute><Companies /></ProtectedRoute> },
@@ -64,8 +78,7 @@ const router = createBrowserRouter([
       { path: 'admin/jobs', element: <ProtectedRoute><AdminJobs /></ProtectedRoute> },
       { path: 'admin/jobs/create', element: <ProtectedRoute><PostJob /></ProtectedRoute> },
       { path: 'admin/jobs/:id/applicants', element: <ProtectedRoute><Applicants /></ProtectedRoute> },
-      { path: 'learningVideo', element: <ProtectedRoute> <StudyRoadmap /></ProtectedRoute> },
-      { path: 'category', element: <ProtectedRoute> <Category /> </ProtectedRoute> },
+
 
 
       // Catch-all

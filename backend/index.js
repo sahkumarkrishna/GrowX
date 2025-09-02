@@ -27,7 +27,7 @@ app.use(cookieParser());
 // CORS setup
 app.use(
   cors({
-    origin: "http://localhost:5173", // Frontend URL
+    origin: "https://growx.onrender.com", // Frontend URL
     credentials: true,
   })
 );

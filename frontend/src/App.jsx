@@ -52,10 +52,10 @@ const router = createBrowserRouter([
       { path: 'profile', element: <Profile /> },
       { path: 'resumeCheck', element: <ResumeCheck /> },
       { path: 'learning', element: <LearningHome /> },
-      { path: 'learningVideo', element: <StudyRoadmap /> },
+
       { path: 'internship', element: <Internship /> },
-      { path: 'category', element: <Category /> },
-      { path: "onlineCoding", element:<ProblemSlove/> },
+
+      { path: "onlineCoding", element: <ProblemSlove /> },
 
       // Admin routes
       { path: 'admin/companies', element: <ProtectedRoute><Companies /></ProtectedRoute> },
@@ -64,9 +64,12 @@ const router = createBrowserRouter([
       { path: 'admin/jobs', element: <ProtectedRoute><AdminJobs /></ProtectedRoute> },
       { path: 'admin/jobs/create', element: <ProtectedRoute><PostJob /></ProtectedRoute> },
       { path: 'admin/jobs/:id/applicants', element: <ProtectedRoute><Applicants /></ProtectedRoute> },
+      { path: 'learningVideo', element: <ProtectedRoute> <StudyRoadmap /></ProtectedRoute> },
+      { path: 'category', element: <ProtectedRoute> <Category /> </ProtectedRoute> },
+
 
       // Catch-all
-      
+
     ],
   },
 ]);

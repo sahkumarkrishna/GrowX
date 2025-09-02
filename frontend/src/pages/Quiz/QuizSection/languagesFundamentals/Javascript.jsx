@@ -133,7 +133,7 @@ export default function JSQuiz () {
     setScore(0);
     setSelected("");
     setAnswers([]);
-    setTimeLeft(300);
+    setTimeLeft(600);
   };
 
   const handleReset = () => {

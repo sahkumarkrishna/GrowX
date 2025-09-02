@@ -1,6 +1,6 @@
 
 import About from "./Learning/About";
-import Certificate from "./Learning/Certificate";
+
 import FAQSection from "./Learning/FAQSection";
 import Features from "./Learning/Features";
 import FeedbackSection from "./Learning/Feedback";
@@ -21,7 +21,7 @@ const LearningHome = () => {
             <WhyChooseLearning />
             <FeedbackSection />
             <FAQSection />
-            <Certificate />
+           
         </div>
     );
 }

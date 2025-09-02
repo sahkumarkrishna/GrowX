@@ -134,7 +134,7 @@ export default function DjangoQuiz () {
     setScore(0);
     setSelected("");
     setAnswers([]);
-    setTimeLeft(300);
+    setTimeLeft(600);
   };
 
   const handleReset = () => {

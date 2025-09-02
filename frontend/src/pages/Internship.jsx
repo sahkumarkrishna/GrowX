@@ -8,6 +8,8 @@ import WhyChooseInternship from './Internship/WhyChooseUs';
 
 import Certificate from './Internship/Certificate';
 import FAQSection from './Internship/FAQSection';
+import FeedbackSection from './Internship/Feedback';
+import Contact from './Internship/Contact';
 
 
 const Internship = () => {
@@ -19,8 +21,10 @@ const Internship = () => {
             <StatsSection />
             <Features />
             < WhyChooseInternship />
+            <FeedbackSection/>
             <FAQSection />
             <Certificate />
+            <Contact/>
 
 
         </div>

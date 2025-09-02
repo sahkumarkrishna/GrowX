@@ -133,7 +133,7 @@ export default function MaterialUIQuiz () {
     setScore(0);
     setSelected("");
     setAnswers([]);
-    setTimeLeft(300);
+    setTimeLeft(600);
   };
 
   const handleReset = () => {

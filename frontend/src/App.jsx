@@ -14,7 +14,7 @@ import CompanySetup from './components/admin/CompanySetup';
 import AdminJobs from "./components/admin/AdminJobs";
 import PostJob from './components/admin/PostJob';
 import Applicants from './components/admin/Applicants';
-import ProtectedRoute from './components/admin/ProtectedRoute';
+import ProtectedRoute from './components/shared/ProtectedRoute';
 import NotFound from './components/PageNot';
 import ResumeCheck from './components/ResumeCheck';
 import Internship from './pages/Internship';
@@ -57,16 +57,17 @@ const router = createBrowserRouter([
       {
         path: "learningVideo",
         element: (
+          <ProtectedRoute> <StudyRoadmap /></ProtectedRoute>
 
-          <StudyRoadmap />
 
         ),
       },
       {
         path: "category",
         element: (
-
-          <Category />
+          <ProtectedRoute>
+            <Category />
+          </ProtectedRoute>
 
         ),
       },

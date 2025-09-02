@@ -2,11 +2,11 @@ import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
-  const { user } = useSelector((store) => store.auth);
+  const { user } = useSelector((state) => state.auth);
   const location = useLocation();
 
-  if (!user || user.role !== "recruiter") {
-    // Save the attempted path
+  if (!user) {
+    // redirect to login and remember the page user tried to access
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

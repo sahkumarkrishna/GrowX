@@ -1,28 +1,31 @@
-import React, { useEffect, useState } from 'react';
-
-import { Label } from '../ui/label';
-import { Input } from '../ui/input';
-import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Button } from '../ui/button';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { toast } from 'sonner';
-import { useDispatch, useSelector } from 'react-redux';
-import { setLoading, setUser } from '@/redux/authSlice';
-import { Loader2 } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import { Button } from "../ui/button";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
+import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading, setUser } from "@/redux/authSlice";
+import { Loader2 } from "lucide-react";
 
 const Login = () => {
   const [input, setInput] = useState({
-    email: '',
-    password: '',
-    role: '',
+    email: "",
+    password: "",
+    role: "",
   });
 
   const { loading, user } = useSelector((store) => store.auth);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const location = useLocation();
 
   const USER_API_END_POINT = import.meta.env.VITE_USER_API;
+
+  // 👇 if user was redirected from a protected page, get it here
+  const from = location.state?.from?.pathname || "/";
 
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
@@ -32,49 +35,50 @@ const Login = () => {
     e.preventDefault();
 
     if (!input.email || !input.password || !input.role) {
-      toast.error('Please fill all fields including role');
+      toast.error("Please fill all fields including role");
       return;
     }
 
     try {
       dispatch(setLoading(true));
-      console.log('Sending login request to:', `${USER_API_END_POINT}/login`, input);
+      console.log("Sending login request to:", `${USER_API_END_POINT}/login`, input);
 
       const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         withCredentials: true,
       });
 
-      console.log('Login response:', res.data);
+      console.log("Login response:", res.data);
 
       if (res.data.success) {
         dispatch(setUser(res.data.user));
         toast.success(res.data.message);
-        navigate('/');
+
+        // ✅ Redirect back to protected page or default "/"
+        navigate(from, { replace: true });
       } else {
-        toast.error(res.data.message || 'Login failed!');
+        toast.error(res.data.message || "Login failed!");
       }
     } catch (error) {
-      console.error('Login error:', error);
-      toast.error(error?.response?.data?.message || 'Login failed!');
+      console.error("Login error:", error);
+      toast.error(error?.response?.data?.message || "Login failed!");
     } finally {
       dispatch(setLoading(false));
-      console.log('Loading state reset to false');
+      console.log("Loading state reset to false");
     }
   };
 
   useEffect(() => {
     if (user) {
-      console.log('User already logged in, redirecting...');
-      navigate('/');
+      console.log("User already logged in, redirecting...");
+      navigate("/");
     }
   }, [user, navigate]);
 
   return (
     <div>
-     
       <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50">
         <div className="w-full max-w-md space-y-8 bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
           <h2 className="text-center text-2xl font-bold text-gray-800">Login to your account</h2>
@@ -132,12 +136,12 @@ const Login = () => {
                   Please wait
                 </>
               ) : (
-                'Login'
+                "Login"
               )}
             </Button>
 
             <div className="text-center text-sm mt-4">
-              Don&apos;t have an account?{' '}
+              Don&apos;t have an account?{" "}
               <Link to="/signup" className="text-blue-600 hover:underline">
                 Signup
               </Link>

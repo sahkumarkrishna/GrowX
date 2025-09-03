@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner"; // for nice alerts
 import ContactImage from "../../assets/Contact.jpg";
 
 const Contact = () => {
@@ -12,17 +14,27 @@ const Contact = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    alert("Message sent!");
-    setFormData({ name: "", email: "", message: "" });
+
+    try {
+      const res = await axios.post(
+        import.meta.env.VITE_CONTACT_API, // ✅ your backend URL
+        formData
+      );
+
+      toast.success(res.data.message || "Your message has been sent successfully ✅"); // success alert
+      setFormData({ name: "", email: "", message: "" });
+    } catch (error) {
+      toast.error(
+        error.response?.data?.error || "Something went wrong. Try again."
+      );
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <div className="flex flex-col md:flex-row w-full max-w-6xl bg-white shadow-xl rounded-xl overflow-hidden">
-        
         {/* Left Side - Image */}
         <div className="md:w-1/2 w-full h-96 md:h-auto">
           <img
@@ -34,7 +46,9 @@ const Contact = () => {
 
         {/* Right Side - Form */}
         <div className="md:w-1/2 w-full p-8 md:p-12 flex flex-col justify-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-6">Contact Us</h2>
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-6">
+            Contact Us
+          </h2>
           <p className="text-gray-600 mb-8">
             Have a question or want to work together? Fill out the form and we’ll get back to you shortly.
           </p>
@@ -74,16 +88,6 @@ const Contact = () => {
               Send Message
             </button>
           </form>
-
-          {/* Contact Info */}
-          <div className="mt-10 text-gray-700">
-            <p className="font-semibold">Follow us on</p>
-            <div className="flex gap-4 mt-2 text-2xl">
-              <a href="#" className="hover:text-black"><i className="fab fa-facebook"></i></a>
-              <a href="#" className="hover:text-black"><i className="fab fa-instagram"></i></a>
-              <a href="#" className="hover:text-black"><i className="fab fa-twitter"></i></a>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -43,4 +43,3 @@ It provides a complete ecosystem for **Learning, Quizzes, Internships, Online Co
 
 ---
 
-## 📂 Project Structure (Example)

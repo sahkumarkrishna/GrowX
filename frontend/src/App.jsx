@@ -50,6 +50,12 @@ import GitHubQuiz from './pages/Quiz/QuizSection/ToolsFundamentals/GitHub';
 import DockerQuiz from './pages/Quiz/QuizSection/ToolsFundamentals/Docker';
 import ReactNativeQuiz from './pages/Quiz/QuizSection/AppDevelopment/React Native';
 import FlutterQuiz from './pages/Quiz/QuizSection/AppDevelopment/Flutter';
+import ResumeTemplates from './pages/Resume/ResumeTemplates';
+import ResumeBuilder from './pages/Resume/ResumeBuilder';
+import ResumeDetails from './pages/Resume/ResumeDetails';
+import AllResumes from './pages/Resume/AllResumes';
+import ResumeEdit from './pages/Resume/EditResume';
+import ResumeHome from './pages/ResumeHome';
 
 const RedirectRoot = () => {
   const { user } = useSelector((state) => state.auth);
@@ -108,6 +114,14 @@ const router = createBrowserRouter([
       { path: '/dockerQuiz', element: <DockerQuiz /> },
       { path: '/reactNativeQuiz', element: <ReactNativeQuiz /> },
       { path: '/flutterQuiz', element: <FlutterQuiz /> },
+
+      // Resume Routes
+      { path: "/resume", element: <ResumeHome /> },
+      { path: '/templates', element: <ResumeTemplates /> },
+      { path: '/resumebuilder', element:  <ProtectedRoute><ResumeBuilder /></ProtectedRoute>},
+      { path: '/resume/:id', element: <ResumeDetails /> },
+      { path: '/all-resumes', element: <AllResumes /> },
+      { path: '/edit-resume/:id', element: <ResumeEdit /> },
 
       // Admin Routes
       { path: '/admin/companies', element: <ProtectedRoute><Companies /></ProtectedRoute> },

@@ -9,6 +9,8 @@ import jobRoute from "./routes/job.route.js";
 import applicationRoute from "./routes/application.route.js";
 
 import contactRoute from "./routes/contactRoutes.js";
+import resumeRoutes from "./routes/ReumeRoutes.js"; // ✅ fixed path & typo
+
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -29,7 +31,7 @@ app.use(cookieParser());
 // CORS setup
 app.use(
   cors({
-    origin: "https://growx.onrender.com", // Frontend URL
+    origin: "http://localhost:5174", // Frontend URL
     credentials: true,
   })
 );
@@ -40,6 +42,8 @@ app.use("/api/v1/company", companyRoute);
 app.use("/api/v1/job", jobRoute);
 app.use("/api/v1/application", applicationRoute);
 app.use("/api/contact", contactRoute);
+// Routes
+app.use("/api/resumes", resumeRoutes);
 
 // Serve frontend (after API routes)
 app.use(express.static(path.join(__dirname, "../frontend/dist")));

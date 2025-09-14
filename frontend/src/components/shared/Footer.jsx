@@ -3,11 +3,11 @@ import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram } from 'react-icons/fa';
 
 const Footer = () => {
   return (
-    <footer className="bg-white text-black pt-12">
-      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
+    <footer className="bg-white text-black mt-auto w-full border-t">
+      <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3  py-12">
         {/* Logo & Description */}
         <div>
-          <h2 className="text-3xl font-bold mb-3">
+          <h2 className="text-3xl font-bold">
             Job<span className="text-[#F83002]">Portal</span>
           </h2>
           <p className="text-gray-700 mb-4">
@@ -26,6 +26,9 @@ const Footer = () => {
           <h3 className="font-semibold mb-3 text-lg">Jobs</h3>
           <ul className="space-y-2">
             <li><Link to="/learning" className="hover:text-[#F83002] transition-colors">Learning</Link></li>
+            <li><Link to="/quiz" className="hover:text-[#F83002] transition-colors">Quiz</Link></li>
+            <li><Link to="/resume" className="hover:text-[#F83002] transition-colors">Resume</Link></li>
+
             <li><Link to="/internship" className="hover:text-[#F83002] transition-colors">Internship</Link></li>
             <li><Link to="/onlineCoding" className="hover:text-[#F83002] transition-colors">Online Coding</Link></li>
             <li><Link to="/job" className="hover:text-[#F83002] transition-colors">Job</Link></li>
@@ -47,11 +50,6 @@ const Footer = () => {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Bottom copyright */}
-      <div className="mt-12 border-t border-gray-300 pt-6 text-center text-gray-600 text-sm">
-        &copy; {new Date().getFullYear()} JobPortal. All rights reserved.
       </div>
     </footer>
   );

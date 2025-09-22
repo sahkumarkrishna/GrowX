@@ -4,7 +4,7 @@ import templates from "./Templates";
 
 export default function ResumeTemplates() {
   return (
-    <div className="min-h-screen bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 p-4 md:p-8 lg:p-12">
+    <div className="min-h-screen bg-gradient-to-b from-white to-white p-4 md:p-8 lg:p-12">
       {/* Header */}
       <header className="text-center mb-8">
         <h1 className="text-3xl md:text-5xl font-bold text-purple-800 mb-3 md:mb-4">Resume Templates</h1>

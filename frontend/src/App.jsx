@@ -26,6 +26,13 @@ import Category from './pages/Internship/Category';
 import QuizHome from './pages/QuizHome';
 import QuizCategory from './pages/Quiz/QuizSection/QuizCategory';
 
+import KanbanBoardHome from './pages/KanbanHero';
+import CreateTask from './pages/KanbanBoard/Tasks/CreateTask';
+import KanbanBoard from './pages/KanbanBoard/Tasks/KanbanBoard';
+import GetTask from './pages/KanbanBoard/Tasks/GetTask';
+import UpdateTask from './pages/KanbanBoard/Tasks/UpdateTask';
+
+
 // Quiz Pages
 import HtmlQuiz from './pages/Quiz/QuizSection/BasicFundamentals/Html';
 import CssQuiz from './pages/Quiz/QuizSection/BasicFundamentals/Css';
@@ -118,10 +125,17 @@ const router = createBrowserRouter([
       // Resume Routes
       { path: "/resume", element: <ResumeHome /> },
       { path: '/templates', element: <ResumeTemplates /> },
-      { path: '/resumebuilder', element:  <ProtectedRoute><ResumeBuilder /></ProtectedRoute>},
+      { path: '/resumebuilder', element: <ProtectedRoute><ResumeBuilder /></ProtectedRoute> },
       { path: '/resume/:id', element: <ResumeDetails /> },
       { path: '/all-resumes', element: <AllResumes /> },
       { path: '/edit-resume/:id', element: <ResumeEdit /> },
+
+      // Kanban Routes
+      { path: "/KanbanBoard", element: <KanbanBoardHome /> },
+      { path: "/taskForm", element:  <ProtectedRoute><CreateTask /></ProtectedRoute> },
+      { path: "/Taskkanbanboard", element: <KanbanBoard /> },
+      { path: "/getTask/:id?", element: <GetTask /> },
+      { path: "/updateTask/:id?", element: <UpdateTask /> },
 
       // Admin Routes
       { path: '/admin/companies', element: <ProtectedRoute><Companies /></ProtectedRoute> },

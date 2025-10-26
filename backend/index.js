@@ -2,6 +2,8 @@ import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
+import http from "http";
+import { Server } from "socket.io";
 import connectDB from "./utils/db.js";
 import userRoute from "./routes/user.route.js";
 import companyRoute from "./routes/company.route.js";
@@ -10,6 +12,8 @@ import applicationRoute from "./routes/application.route.js";
 
 import contactRoute from "./routes/contactRoutes.js";
 import resumeRoutes from "./routes/ReumeRoutes.js"; // ✅ fixed path & typo
+
+import taskRoutes from "./routes/taskRoutes.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -36,6 +40,18 @@ app.use(
   })
 );
 
+// Socket.io Setup 
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: ["https://growx.onrender.com"], credentials: true },
+});
+
+// Attach io instance to req
+app.use((req, res, next) => {
+  req.io = io;
+  next();
+});
+
 // API Routes
 app.use("/api/v1/user", userRoute);
 app.use("/api/v1/company", companyRoute);
@@ -44,6 +60,8 @@ app.use("/api/v1/application", applicationRoute);
 app.use("/api/contact", contactRoute);
 // Routes
 app.use("/api/resumes", resumeRoutes);
+//  Routes 
+app.use("/api/tasks", taskRoutes);
 
 // Serve frontend (after API routes)
 app.use(express.static(path.join(__dirname, "../frontend/dist")));

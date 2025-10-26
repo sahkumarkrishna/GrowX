@@ -17,6 +17,7 @@ const USER_API_END_POINT = import.meta.env.VITE_USER_API;
 const navLinks = [
   { path: '/', label: 'Learning' },
   {path: 'quiz',label:"Quiz"},
+    {path: 'kanbanBoard',label:"KanbanBoard"},
   {path: 'resume',label:"Resume"},
 
   { path: '/onlineCoding', label: 'OnlineCoding' },

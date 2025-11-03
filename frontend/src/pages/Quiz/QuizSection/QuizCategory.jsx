@@ -226,7 +226,7 @@ export default function QuizDashboard() {
     const { progress, toggle, reset, stats } = useProgress();
 
     return (
-        <div className="min-h-screen w-full bg-gradient-to-b from-white via-muted/40 to-transparent py-10 ">
+        <div className="min-h-screen w-full ia-muted/40 to-transparent py-10 ">
             <div className="container mx-auto px-4 md:px-8">
 
                 {/* Header */}

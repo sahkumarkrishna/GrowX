@@ -251,7 +251,7 @@ export default function StudyRoadmap() {
   const { progress, toggle, reset, stats } = useProgress();
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-white via-muted/40 to-transparent py-10 mt-20">
+    <div className="min-h-screen w-full  via-muted/40 to-transparent py-10 mt-5">
       <div className="container mx-auto px-4 md:px-8">
 
         {/* Header */}

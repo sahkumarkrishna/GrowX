@@ -6,7 +6,7 @@ import { useParams, useNavigate } from "react-router-dom";
 const API_URL = import.meta.env.VITE_KANBAN_BOARD_API;
 
 export default function UpdateTask({ onTaskUpdated }) {
-  const { id } = useParams(); // get task ID from URL
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [task, setTask] = useState(null);
@@ -22,7 +22,6 @@ export default function UpdateTask({ onTaskUpdated }) {
     done: "bg-green-100 text-green-800",
   };
 
-  // Fetch the task by ID
   useEffect(() => {
     if (id) {
       axios
@@ -33,14 +32,10 @@ export default function UpdateTask({ onTaskUpdated }) {
           setDescription(res.data.description);
           setStatus(res.data.status);
         })
-        .catch((err) => {
-          console.error(err);
-          toast.error("Failed to fetch task 😢");
-        });
+        .catch(() => toast.error("Failed to fetch task 😢"));
     }
   }, [id]);
 
-  // Format the date nicely
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -51,14 +46,12 @@ export default function UpdateTask({ onTaskUpdated }) {
 
   const handleUpdate = async () => {
     try {
-      const updatedTask = { title, description, status };
-      await axios.put(`${API_URL}/update/${id}`, updatedTask);
-      toast.success("Task updated successfully! 🎉");
+      await axios.put(`${API_URL}/update/${id}`, { title, description, status });
+      toast.success("✅ Task updated successfully!");
       setIsEditing(false);
       if (onTaskUpdated) onTaskUpdated();
-      navigate("/getTask"); // Navigate back to all tasks after update
+      navigate("/getTask");
     } catch (error) {
-      console.error("Error updating task:", error);
       toast.error("Failed to update task 😢");
     }
   };
@@ -67,24 +60,31 @@ export default function UpdateTask({ onTaskUpdated }) {
     return <p className="text-white text-center mt-10">Loading task...</p>;
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 px-4 py-10 flex justify-center">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">✏️ Update Task</h2>
+    <div className="min-h-screen px-4 py-10 flex justify-center">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl mt-6 border border-gray-200">
+        <h2 className="text-2xl font-bold text-center mb-4">✏️ Update Task</h2>
 
         {isEditing ? (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-4">
+            <label className="font-semibold text-gray-700">Title</label>
             <input
-              className="p-2 rounded border"
+              className="p-3 rounded border font-medium text-gray-900"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              placeholder="Enter task title"
             />
+
+            <label className="font-semibold text-gray-700">Description</label>
             <textarea
-              className="p-2 rounded border"
+              className="p-3 rounded border font-medium text-gray-900 h-24"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+              placeholder="Enter task description"
             />
+
+            <label className="font-semibold text-gray-700">Status</label>
             <select
-              className={`p-2 rounded ${statusColors[status]}`}
+              className={`p-3 rounded font-bold ${statusColors[status]}`}
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
@@ -96,36 +96,28 @@ export default function UpdateTask({ onTaskUpdated }) {
 
             <div className="flex gap-2 mt-2">
               <button
-                className="bg-green-500 px-4 py-2 rounded text-white font-semibold hover:bg-green-600 transition-all"
+                className="bg-green-600 px-4 py-2 rounded text-white font-bold hover:bg-green-700 transition"
                 onClick={handleUpdate}
               >
-                Save
+                ✅ Save
               </button>
               <button
-                className="bg-red-500 px-4 py-2 rounded text-white font-semibold hover:bg-red-600 transition-all"
+                className="bg-red-500 px-4 py-2 rounded text-white font-bold hover:bg-red-600 transition"
                 onClick={() => setIsEditing(false)}
               >
-                Cancel
+                ❌ Cancel
               </button>
             </div>
           </div>
         ) : (
-          <div>
-            <p>
-              <strong>Title:</strong> {task.title}
-            </p>
-            <p>
-              <strong>Description:</strong> {task.description || "-"}
-            </p>
-            <p>
-              <strong>Status:</strong> {task.status}
-            </p>
-            <p>
-              <strong>Created On:</strong> {formatDate(task.createdAt)}
-            </p>
+          <div className="text-lg font-semibold space-y-2">
+            <p><span className="font-bold">Title:</span> {task.title}</p>
+            <p><span className="font-bold">Description:</span> {task.description || "-"}</p>
+            <p><span className="font-bold">Status:</span> {task.status}</p>
+            <p><span className="font-bold">Created On:</span> {formatDate(task.createdAt)}</p>
 
             <button
-              className="mt-4 bg-yellow-500 px-4 py-2 rounded text-white font-semibold hover:bg-yellow-600 transition-all"
+              className="mt-4 bg-yellow-500 px-4 py-2 rounded text-white font-bold hover:bg-yellow-600 transition"
               onClick={() => setIsEditing(true)}
             >
               ✏️ Edit Task

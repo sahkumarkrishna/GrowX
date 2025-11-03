@@ -102,7 +102,7 @@ export default function ResumeBuilder() {
 
   const currentIndex = sections.indexOf(activeSection);
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-white px-4 md:px-8 lg:px-12 pb-4 md:pb-8 lg:pb-12">
+    <div className="min-h-screen  px-4 md:px-8 lg:px-12 pb-4 md:pb-8 lg:pb-12">
       {/* Header */}
       <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4]">
         <h1 className="text-3xl md:text-4xl font-bold text-pink-600">

@@ -97,7 +97,7 @@ export default function AllResumes() {
   if (!resumes.length)
     return (
       <div className="flex justify-center items-center min-h-[60vh] px-4">
-        <Card className="p-8 sm:p-12 text-center bg-gradient-to-r from-pink-50 via-pink-100 to-white shadow-xl rounded-2xl max-w-md w-full">
+        <Card className="p-8 sm:p-12 text-center  shadow-xl rounded-2xl max-w-md w-full">
           <CardTitle className="text-2xl sm:text-3xl font-bold text-pink-600 mb-4">
             No Resumes Found
           </CardTitle>
@@ -110,8 +110,8 @@ export default function AllResumes() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-pink-600">All Resumes</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <h1 className="text-2xl font-bold text-pink-600 justify-center ">All Resumes</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6  ">
         {resumes.map((resume) => (
           <Card key={resume._id} className="p-4 hover:shadow-lg transition">
             <CardHeader>

@@ -19,7 +19,7 @@ export default function JobPortalStats({
   ];
 
   return (
-    <section className="w-full bg-white text-gray-900 py-10">
+    <section className="w-full  text-gray-900 py-10">
       <div className="max-w-6xl mx-auto px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
           {items.map((item, idx) => (

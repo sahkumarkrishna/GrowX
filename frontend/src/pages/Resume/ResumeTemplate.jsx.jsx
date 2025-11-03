@@ -34,7 +34,7 @@ export default function ResumeTemplate({ resume }) {
       {/* Resume Content */}
       <div
         ref={resumeRef}
-        className="max-w-3xl sm:max-w-5xl mx-auto bg-white p-4 sm:p-8 shadow-xl text-gray-900 rounded-xl font-sans"
+        className="max-w-3xl sm:max-w-5xl mx-auto bg-white p-4 sm:p-8 shadow-xl text-gray-900 rounded-xl font-sans mb-20 mt-10"
       >
         {/* Header */}
         <header className="text-center mb-6">

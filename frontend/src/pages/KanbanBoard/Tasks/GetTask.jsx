@@ -58,8 +58,8 @@ export default function GetTask() {
   const tasksToRender = id && task ? [task] : allTasks;
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 px-4 py-10">
-      <h2 className="text-3xl font-bold text-white mb-6 text-center ">
+    <div className="min-h-screen  px-4 py-10">
+      <h2 className="text-3xl font-bold  mb-6 text-center ">
         📋 {id ? "Task Details" : "All Tasks"}
       </h2>
 
@@ -75,7 +75,7 @@ export default function GetTask() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="border-black grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 shadow-md hover:shadow-xl hover:border-black transition-all py-10 px-4 rounded-lg">
         {tasksToRender.map((t) => (
           <div
             key={t._id}

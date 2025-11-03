@@ -83,7 +83,7 @@ const internships = [
 
 export default function Category() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 to-white p-12">
+    <div className="min-h-screen  p-12">
       <h1 className="text-5xl font-extrabold text-center text-indigo-900 mb-14 tracking-wide drop-shadow-md">
         Internship Categories
       </h1>

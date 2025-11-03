@@ -4,11 +4,12 @@ import { toast } from "sonner";
 
 const API_URL = import.meta.env.VITE_KANBAN_BOARD_API;
 
+// ✅ Softer gray theme colors
 const statusColors = {
-  todo: "bg-purple-200/80",
-  thisweek: "bg-green-200/80",
-  inprocess: "bg-yellow-200/80",
-  done: "bg-blue-200/80",
+  todo: "bg-gray-200 border border-gray-400 text-gray-900",
+  thisweek: "bg-blue-200 border border-blue-400 text-gray-900",
+  inprocess: "bg-yellow-200 border border-yellow-400 text-gray-900",
+  done: "bg-green-200 border border-green-400 text-gray-900",
 };
 
 export default function KanbanBoard() {
@@ -28,7 +29,6 @@ export default function KanbanBoard() {
     fetchTasks();
   }, []);
 
-  // Group tasks by status
   const groupedTasks = {
     todo: [],
     thisweek: [],
@@ -40,7 +40,6 @@ export default function KanbanBoard() {
     if (groupedTasks[task.status]) groupedTasks[task.status].push(task);
   });
 
-  // ✅ Format date (MM/DD/YYYY format)
   const formatDate = (dateString) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -51,52 +50,54 @@ export default function KanbanBoard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 py-10 px-4">
-      <h2 className="text-3xl font-extrabold text-white text-center mb-8 drop-shadow-lg">
-        🗂️ Kanban Task Board
-      </h2>
+    <div className="min-h-screen px-4 py-10">
+  <h2 className="text-3xl font-extrabold text-gray-800 text-center mb-12">
+    🗂️ Kanban Task Board
+  </h2>
 
+  {/* Columns */}
+  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {Object.keys(groupedTasks).map((status) => (
       <div
-        className="
-          grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 
-          gap-6 overflow-x-auto sm:overflow-x-visible
-          whitespace-nowrap sm:whitespace-normal
-        "
+        key={status}
+        className="w-full bg-violet-200 dark:bg-gray-800 border border-black dark:border-gray-700 rounded-2xl shadow-lg p-4"
       >
-        {Object.keys(groupedTasks).map((status) => (
-          <div
-            key={status}
-            className="flex-shrink-0 w-72 sm:w-auto backdrop-blur-md bg-white/10 border border-white/20 rounded-2xl shadow-2xl p-4 text-white"
-          >
-            <h3 className="font-bold mb-3 text-center text-lg capitalize border-b border-white/30 pb-2">
-              {status}
-            </h3>
+        {/* Column Title */}
+        <h3 className="font-bold mb-3 text-center text-lg capitalize pb-2 border-b border-black dark:border-gray-700 text-gray-700 dark:text-white">
+          {status}
+        </h3>
 
-            <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto">
-              {groupedTasks[status].length > 0 ? (
-                groupedTasks[status].map((task) => (
-                  <div
-                    key={task._id}
-                    className={`p-4 rounded-xl shadow-md ${statusColors[status]} text-gray-800`}
-                  >
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-semibold">{task.title}</h4>
-                      <span className="text-xs text-gray-600">
-                        📅 {task.date ? formatDate(task.date) : formatDate(task.createdAt)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-700">{task.description}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-300 text-center text-sm py-6">
-                  No tasks
+        {/* Tasks List */}
+        <div className="flex flex-col gap-3 max-h-[70vh] overflow-y-auto">
+          {groupedTasks[status].length > 0 ? (
+            groupedTasks[status].map((task) => (
+              <div
+                key={task._id}
+                className={`p-4 rounded-xl shadow-sm ${statusColors[status]}`}
+              >
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-lg font-bold text-gray-900">
+                    {task.title}
+                  </h4>
+                  <span className="text-xs text-gray-600">
+                    📅 {task.date ? formatDate(task.date) : formatDate(task.createdAt)}
+                  </span>
+                </div>
+                <p className="  text-gray-700 text-base font-semibold">
+                  {task.description}
                 </p>
-              )}
-            </div>
-          </div>
-        ))}
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-center text-sm py-6">
+              No tasks
+            </p>
+          )}
+        </div>
       </div>
-    </div>
+    ))}
+  </div>
+</div>
+
   );
 }

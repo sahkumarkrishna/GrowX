@@ -32,7 +32,7 @@ export default function TasksList() {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">
+    <div className="p-6 min-h-screen bg-gradient-to-r ">
       <h2 className="text-2xl font-bold mb-6 text-white text-center">
         🗂️ All Tasks
       </h2>

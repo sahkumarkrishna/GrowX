@@ -2,7 +2,7 @@ import React from "react";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[65vh] bg-gradient-to-b from-white to-gray-100 py-16 px-4 sm:px-8">
+    <section className="relative min-h-[65vh]  py-16 px-4 sm:px-8">
       
       {/* Decorative Background Shapes */}
       <div className="absolute top-0 left-1/4 w-72 h-72 bg-white/10 rounded-full blur-3xl"></div>
@@ -10,8 +10,8 @@ const HeroSection = () => {
       
       {/* Text Content */}
       <div className="text-center px-4 md:px-12 z-10">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 drop-shadow-lg">
-          <span className="bg-gradient-to-r from-black to-blue-300 bg-clip-text text-transparent">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 drop-shadow-lg mt-10">
+          <span className="bg-gradient-to-r from-black to-blue-300 bg-clip-text text-transparent ">
             Welcome to Our Internship Program
           </span>
         </h1>

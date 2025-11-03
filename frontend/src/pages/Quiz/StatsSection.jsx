@@ -7,7 +7,7 @@ export default function StatsSection() {
   ];
 
   return (
-    <section className="py-16 bg-gradient-to-r from-blue-50 via-white to-indigo-50">
+    <section className="py-16 ">
       <div className="max-w-6xl mx-auto px-6 sm:px-12 grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
         {stats.map((stat, i) => (
           <div

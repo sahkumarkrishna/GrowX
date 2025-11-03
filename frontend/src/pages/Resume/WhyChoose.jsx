@@ -28,7 +28,7 @@ export default function WhyChoose() {
   ];
 
   return (
-    <section className="py-24 px-4 bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50">
+    <section className="py-24 px-4 ">
       <div className="max-w-6xl mx-auto text-center mb-16">
         <h2 className="text-4xl font-bold text-gray-900">
           Why Choose <span className="text-purple-600">Our Resume Platform?</span>

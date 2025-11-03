@@ -10,9 +10,9 @@ const AboutPage = () => {
   };
 
   return (
-    <section className="relative py-20 mt-14 bg-white">
+    <section className="relative py-20 mt-14 ">
       <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
-        
+
         {/* Text + Image Wrapper for Mobile */}
         <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
           {/* Heading */}
@@ -49,9 +49,10 @@ const AboutPage = () => {
 
           <button
             onClick={handleGetStarted}
-            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl text-lg font-semibold shadow-lg hover:bg-indigo-700 hover:scale-105 transition"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition w-full sm:w-auto mt-5"
+
           >
-          Quiz Categories
+            Quiz Categories
           </button>
         </div>
 

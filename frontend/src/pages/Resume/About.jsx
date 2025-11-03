@@ -10,7 +10,7 @@ export default function About() {
     const handleTemplates = () => navigate("/templates");
 
     return (
-        <section className="bg-gradient-to-r from-slate-100 via-slate-100 to-slate-100 pt-0 pb-16">
+        <section className=" pt-0 pb-16">
             <div className="container mx-auto px-6">
                 {/* H1 */}
                 <motion.h2

@@ -61,7 +61,7 @@ const feedbackData = [
 
 const FeedbackSection = () => {
   return (
-    <section className="py-20 bg-gradient-to-r from-purple-50 via-blue-50 to-pink-50">
+    <section className="py-20">
       <div className="max-w-7xl mx-auto px-4">
         <h2 className="text-4xl font-bold text-center text-purple-900 mb-16">
           What People Say About My Resume Website

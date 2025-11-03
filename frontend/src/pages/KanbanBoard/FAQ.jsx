@@ -57,20 +57,20 @@ const FAQs = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="border border-gray-700 rounded-xl p-5 bg-gray-800/60 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300"
+              className="border border-gray-100 rounded-xl p-5 bg-gray-100/60 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300"
             >
               <div
                 className="flex justify-between items-center cursor-pointer"
                 onClick={() => toggleAnswer(index)}
               >
-                <h3 className="text-lg md:text-xl font-semibold text-gray-100">
+                <h3 className="text-lg md:text-xl font-semibold text-black">
                   {faq.question}
                 </h3>
                 <motion.div
                   animate={{ rotate: openIndex === index ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ChevronDown className="text-yellow-400" />
+                  <ChevronDown className="text-yellow-700" />
                 </motion.div>
               </div>
 
@@ -83,7 +83,7 @@ const FAQs = () => {
                     transition={{ duration: 0.4, ease: "easeInOut" }}
                     className="overflow-hidden mt-3"
                   >
-                    <p className="text-base text-gray-300 leading-relaxed">
+                    <p className="text-base text-black leading-relaxed">
                       {faq.answer}
                     </p>
                   </motion.div>

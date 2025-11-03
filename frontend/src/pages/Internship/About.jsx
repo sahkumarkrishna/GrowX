@@ -10,7 +10,7 @@ export default function About() {
     };
 
     return (
-        <section className="bg-gradient-to-r from-slate-100 via-slate-100 to-slate-100 pt-0 pb-16">
+        <section className=" pt-0 pb-16">
             <div className="container mx-auto px-6">
 
                 {/* H1 always on top */}
@@ -37,7 +37,7 @@ export default function About() {
                         <div className="flex flex-wrap gap-3">
                             <button
                                 onClick={handleApply}
-                                className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition mt-0 md:mt-4"
+                                className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition w-full sm:w-auto mt-5"
                             >
                                 Internship Categories
                             </button>

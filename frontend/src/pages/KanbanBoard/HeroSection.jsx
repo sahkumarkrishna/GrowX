@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 export default function HeroSection() {
   return (
     <section className="relative min-h-[65vh] flex flex-col items-center justify-center text-center 
-                        bg-gradient-to-b from-indigo-100 via-purple-100 to-pink-200 
+                        
                         py-16 px-4 sm:px-8 overflow-hidden -mt-14">
       
       {/* Subtle grid overlay */}

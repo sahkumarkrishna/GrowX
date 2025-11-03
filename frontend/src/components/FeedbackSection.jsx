@@ -58,7 +58,7 @@ const feedbackData = [
 
 const FeedbackSection = () => {
   return (
-    <div className="py-12 bg-gray-100">
+    <div className="py-12 ">
       <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-center items-center mb-4">
           <Send className="w-8 h-8 text-blue-500 mr-2" />

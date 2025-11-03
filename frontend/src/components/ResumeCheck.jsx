@@ -4,7 +4,7 @@ import { ExternalLink } from 'lucide-react';
 
 const ResumeCheck = () => {
   return (
-    <section className="min-h-[70vh] bg-gradient-to-br from-[#f3f4f6] to-white py-16 px-6 flex items-center justify-center">
+    <section className="min-h-[70vh]  py-16 px-6 flex items-center justify-center">
       <div className="max-w-3xl w-full text-center flex flex-col items-center justify-center">
         <h2 className="text-4xl md:text-5xl font-bold text-[#6A38C2] mb-4 leading-tight">
           Get Your Resume <br className="hidden md:block" /> ATS-Ready

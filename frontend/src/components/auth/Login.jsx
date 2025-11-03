@@ -8,7 +8,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading, setUser } from "@/redux/authSlice";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, Lock } from "lucide-react";
 
 const Login = () => {
   const [input, setInput] = useState({
@@ -23,8 +23,6 @@ const Login = () => {
   const location = useLocation();
 
   const USER_API_END_POINT = import.meta.env.VITE_USER_API;
-
-  // 👇 if user was redirected from a protected page, get it here
   const from = location.state?.from?.pathname || "/";
 
   const changeEventHandler = (e) => {
@@ -41,116 +39,121 @@ const Login = () => {
 
     try {
       dispatch(setLoading(true));
-      console.log("Sending login request to:", `${USER_API_END_POINT}/login`, input);
 
       const res = await axios.post(`${USER_API_END_POINT}/login`, input, {
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
-
-      console.log("Login response:", res.data);
 
       if (res.data.success) {
         dispatch(setUser(res.data.user));
         toast.success(res.data.message);
-
-        // ✅ Redirect back to protected page or default "/"
         navigate(from, { replace: true });
       } else {
         toast.error(res.data.message || "Login failed!");
       }
     } catch (error) {
-      console.error("Login error:", error);
       toast.error(error?.response?.data?.message || "Login failed!");
     } finally {
       dispatch(setLoading(false));
-      console.log("Loading state reset to false");
     }
   };
 
   useEffect(() => {
-    if (user) {
-      console.log("User already logged in, redirecting...");
-      navigate("/");
-    }
+    if (user) navigate("/");
   }, [user, navigate]);
 
-  return (
-    <div>
-      <div className="flex items-center justify-center px-4 sm:px-6 lg:px-8 min-h-screen bg-gray-50">
-        <div className="w-full max-w-md space-y-8 bg-white p-8 border border-gray-200 rounded-lg shadow-sm">
-          <h2 className="text-center text-2xl font-bold text-gray-800">Login to your account</h2>
-
-          <form onSubmit={submitHandler} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                name="email"
-                value={input.email}
-                onChange={changeEventHandler}
-                placeholder="abc@gmail.com"
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                name="password"
-                value={input.password}
-                onChange={changeEventHandler}
-                placeholder="Enter your password"
-                required
-              />
-            </div>
-
-            <div>
-              <Label>Role</Label>
-              <RadioGroup
-                className="flex gap-4 mt-2"
-                value={input.role}
-                onValueChange={(value) => setInput({ ...input, role: value })}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="student" id="student" />
-                  <Label htmlFor="student">Student</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="recruiter" id="recruiter" />
-                  <Label htmlFor="recruiter">Recruiter</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Login button with loading state */}
-            <Button type="submit" className="w-full mt-4" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Please wait
-                </>
-              ) : (
-                "Login"
-              )}
-            </Button>
-
-            <div className="text-center text-sm mt-4">
-              Don&apos;t have an account?{" "}
-              <Link to="/signup" className="text-blue-600 hover:underline">
-                Signup
-              </Link>
-            </div>
-          </form>
-        </div>
+return (
+  <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-white to-gray-100 px-4">
+    <div className="w-full max-w-xl bg-white/90 backdrop-blur-md p-10 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-200 space-y-8">
+      
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-extrabold text-gray-800">Welcome Back</h2>
+        <p className="text-gray-600 text-sm sm:text-base">
+          Login to access your dashboard
+        </p>
       </div>
+
+      <form onSubmit={submitHandler} className="space-y-5">
+
+        {/* Email */}
+        <div>
+          <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
+          <div className="relative mt-1">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              value={input.email}
+              onChange={changeEventHandler}
+              placeholder="example@gmail.com"
+              className="pl-10 h-12 rounded-lg"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Password */}
+        <div>
+          <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
+          <div className="relative mt-1">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              id="password"
+              type="password"
+              name="password"
+              value={input.password}
+              onChange={changeEventHandler}
+              placeholder="Enter your password"
+              className="pl-10 h-12 rounded-lg"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Role */}
+        <div>
+          <Label className="text-gray-700 font-medium">Role</Label>
+          <RadioGroup
+            className="flex gap-6 mt-3"
+            value={input.role}
+            onValueChange={(value) => setInput({ ...input, role: value })}
+          >
+            <label className="flex items-center gap-2 cursor-pointer">
+              <RadioGroupItem value="student" id="student" />
+              <span className="text-gray-700">Student</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <RadioGroupItem value="recruiter" id="recruiter" />
+              <span className="text-gray-700">Recruiter</span>
+            </label>
+          </RadioGroup>
+        </div>
+
+        {/* Submit */}
+        <Button type="submit" className="w-full h-12 text-base font-semibold rounded-lg" disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Logging in...
+            </>
+          ) : (
+            "Login"
+          )}
+        </Button>
+
+        {/* Bottom Link */}
+        <p className="text-center text-sm text-gray-600">
+          Don't have an account?{" "}
+          <Link to="/signup" className="font-medium text-blue-600 hover:underline">
+            Create account
+          </Link>
+        </p>
+      </form>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default Login;

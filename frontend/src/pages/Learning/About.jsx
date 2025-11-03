@@ -6,7 +6,7 @@ export default function About() {
   const navigate = useNavigate();
 
   return (
-    <section className="bg-gradient-to-r from-slate-100 via-slate-200 to-slate-100 py-16">
+    <section className="py-16">
       <div className="container mx-auto px-6">
 
         {/* H1 always on top */}
@@ -49,7 +49,8 @@ export default function About() {
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => navigate("/learningVideo")}
-                className="px-6 py-3 bg-violet-600 hover:bg-violet-700 font-semibold rounded-xl text-white shadow-md transition"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition w-full sm:w-auto mt-5"
+
               >
                 Get Started
               </button>

@@ -58,7 +58,7 @@ const feedbackData = [
 
 const FeedbackSection = () => {
   return (
-    <section className="py-20 bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+    <section className="py-20 ">
       <div className="max-w-6xl mx-auto px-4">
         <h2 className="text-4xl font-extrabold text-center text-gray-900 mb-14">
           🌟 What Our Users Say

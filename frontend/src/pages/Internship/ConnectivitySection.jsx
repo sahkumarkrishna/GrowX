@@ -9,7 +9,7 @@ const ConnectivitySection = () => {
         {/* Text Section */}
         <div className="flex flex-col gap-6 max-w-3xl">
           <h1 className="text-6xl font-extrabold leading-tight">
-            <span className="bg-gradient-to-r from-blue-500 via-pink-300 to-red-200 bg-clip-text text-transparent">
+            <span className=" bg-clip-text text-transparent">
               Remote Connectivity
             </span>
           </h1>

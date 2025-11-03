@@ -4,7 +4,7 @@ const Features = () => {
     return (
         <div>
             {/* Features Section */}
-            <section className="py-24 px-4 bg-gray-50">
+            <section className="py-24 px-4 ">
                 <h2 className="text-4xl font-bold text-center mb-16 text-purple-900 underline decoration-pink-500 decoration-4">
                     Features
                 </h2>

@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 export default function AboutSection() {
   return (
-    <section className="bg-gradient-to-r from-pink-500 to-orange-400e px-6 py-16"> {/* <-- Added bg color */}
+    <section className=" px-6 py-16"> {/* <-- Added bg color */}
       <div className="max-w-7xl mx-auto flex flex-col-reverse md:flex-row items-center justify-between gap-12">
 
         {/* Text Content */}
@@ -43,12 +43,11 @@ export default function AboutSection() {
           {/* Button */}
           <Link to="/taskForm">
             <motion.button
-              className={`w-60 h-20 text-xl font-semibold rounded-2xl mt-2
-                        bg-gradient-to-r  text-white shadow-lg bg-blue-500
-                        hover:shadow-2xl transition-all duration-300`}
-            whileHover={{ scale: 1.1, rotate: 2 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300 }}>
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition w-full sm:w-auto mt-5"
+
+              whileHover={{ scale: 1.1, rotate: 2 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 300 }}>
               Get Start
             </motion.button>
           </Link>

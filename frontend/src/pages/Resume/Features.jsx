@@ -4,7 +4,7 @@ const Features = () => {
   return (
     <div>
       {/* Features Section */}
-      <section className="py-24 px-4 bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50">
+      <section className="py-24 px-4 ">
         <h2 className="text-4xl font-bold text-center mb-16 text-purple-800 underline decoration-pink-500 decoration-4">
           Resume Builder Features
         </h2>

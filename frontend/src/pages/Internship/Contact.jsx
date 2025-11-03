@@ -33,7 +33,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <div className="min-h-screen flex items-center justify-center  p-6">
       <div className="flex flex-col md:flex-row w-full max-w-6xl bg-white shadow-xl rounded-xl overflow-hidden">
         {/* Left Side - Image */}
         <div className="md:w-1/2 w-full h-96 md:h-auto">

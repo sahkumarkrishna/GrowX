@@ -56,15 +56,16 @@ export default function FeaturesSection() {
   }, []);
 
   return (
-    <section className="py-20 bg-gradient-to-r from-pink-400 to-orange-400 text-white">
+    <section className="py-20 ">
       <div className="max-w-5xl mx-auto px-6 text-center">
-        <h2 className="text-3xl md:text-4xl font-bold text-white drop-shadow-md">
+        <h2 className="text-3xl md:text-4xl font-bold text-block drop-shadow-md">
           Key Features
         </h2>
-        <p className="text-orange-100 mt-3 text-base sm:text-lg">
+        <p className="text-blue-700 mt-3 text-base sm:text-lg font-semibold">
           Explore the powerful features of our Kanban Board. Manage, track, and
           visualize your tasks effortlessly.
         </p>
+
 
         <div className="relative mt-12 flex items-center justify-center overflow-hidden">
           <AnimatePresence mode="wait">
@@ -74,13 +75,13 @@ export default function FeaturesSection() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -100 }}
               transition={{ duration: 0.5 }}
-              className="p-8 w-full sm:w-3/4 lg:w-2/3 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/30 shadow-xl"
+              className="p-8 w-full sm:w-3/4 lg:w-2/3 rounded-2xl bg-black/10 backdrop-blur-lg border border-black/30 shadow-xl font-bold"
             >
               <div className="text-6xl">{features[currentIndex].icon}</div>
               <h3 className="text-2xl font-semibold mt-4 text-white">
                 {features[currentIndex].title}
               </h3>
-              <p className="text-orange-100 mt-2 text-sm sm:text-base">
+              <p className="text-orange-700 mt-2 text-sm sm:text-base">
                 {features[currentIndex].description}
               </p>
             </motion.div>
@@ -90,7 +91,7 @@ export default function FeaturesSection() {
             whileHover={{ scale: 1.2, backgroundColor: "rgba(255,255,255,0.2)" }}
             whileTap={{ scale: 0.9 }}
             onClick={prevSlide}
-            className="absolute left-2 sm:left-[-3rem] border border-white/50 text-white rounded-full p-4 shadow-lg backdrop-blur-md"
+            className="absolute left-2 sm:left-[-3rem] border border-black/100 text-black rounded-full p-4 shadow-lg backdrop-blur-md font-bold"
           >
             <FiArrowLeft size={24} />
           </motion.button>
@@ -99,7 +100,7 @@ export default function FeaturesSection() {
             whileHover={{ scale: 1.2, backgroundColor: "rgba(255,255,255,0.2)" }}
             whileTap={{ scale: 0.9 }}
             onClick={nextSlide}
-            className="absolute right-2 sm:right-[-3rem] border border-white/50 text-white rounded-full p-4 shadow-lg backdrop-blur-md"
+            className="absolute right-2 sm:right-[-3rem] border border-black/100 text-black rounded-full p-4 shadow-lg backdrop-blur-md"
           >
             <FiArrowRight size={24} />
           </motion.button>
@@ -110,9 +111,8 @@ export default function FeaturesSection() {
             <button
               key={index}
               onClick={() => setCurrentIndex(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index === currentIndex ? "bg-white" : "bg-white/50"
-              }`}
+              className={`w-3 h-3 rounded-full transition-all duration-300 ${index === currentIndex ? "bg-white" : "bg-white/50"
+                }`}
             />
           ))}
         </div>

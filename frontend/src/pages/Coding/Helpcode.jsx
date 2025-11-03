@@ -18,7 +18,7 @@ const HelpCodePage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 to-purple-300 mt-2">
+    <div className="min-h-screen  mt-2">
       {/* Header Section */}
       <header className="flex flex-col items-center justify-center text-center py-28 px-4">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-6 text-gray-900 drop-shadow-lg">
@@ -38,7 +38,7 @@ const HelpCodePage = () => {
       </header>
 
       {/* Features Section */}
-      <section className="py-24 px-4 bg-white">
+      <section className="py-24 px-4 ">
         <h2 className="text-4xl font-bold text-center mb-16 text-gray-900 underline decoration-purple-500 decoration-4">
           Features
         </h2>
@@ -63,7 +63,7 @@ const HelpCodePage = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-24 px-4 bg-gradient-to-r from-purple-200 via-purple-300 to-purple-400">
+      <section className="py-24 px-4 ">
         <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
           <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">

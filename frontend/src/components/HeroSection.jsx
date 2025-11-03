@@ -18,7 +18,7 @@ const HeroSection = () => {
   };
 
   return (
-  <div className="bg-gradient-to-b from-white to-gray-100 py-20 px-4 sm:px-8">
+  <div className="py-20 px-4 sm:px-8">
        <div className="max-w-5xl mx-auto text-center flex flex-col items-center gap-6">
        <span className="bg-yellow-100 text-yellow-700 px-4 py-1 rounded-full font-medium text-sm shadow-sm">
           🚀 No. 1 Job Hunt Platform

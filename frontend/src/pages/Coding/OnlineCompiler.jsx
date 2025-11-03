@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 const OnlineCompilerPage = () => {
   return (
-    <div className="relative min-h-[65vh] bg-gradient-to-b from-white to-gray-100 py-20 px-4 sm:px-8 ">
+    <div className="relative min-h-[65vh]  py-20 px-4 sm:px-8 ">
       {/* Header Section */}
       <header className="flex flex-col items-center justify-center text-center py-28 px-4">
         <h1 className="text-5xl md:text-6xl font-extrabold mb-4 text-gray-900 drop-shadow-lg">
@@ -23,7 +23,7 @@ const OnlineCompilerPage = () => {
       </header>
 
       {/* Features Section */}
-      <section className="py-24 px-4 bg-white">
+      <section className="py-24 px-4 ">
         <h2 className="text-4xl font-bold text-center mb-16 text-gray-900 underline decoration-blue-500 decoration-4">
           Features
         </h2>
@@ -50,7 +50,7 @@ const OnlineCompilerPage = () => {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-24 px-4 bg-gradient-to-r from-gray-100 via-blue-200 to-blue-300">
+      <section className="py-24 px-4 ">
         <h2 className="text-4xl font-bold text-center mb-16 text-gray-900">How It Works</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
           <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">

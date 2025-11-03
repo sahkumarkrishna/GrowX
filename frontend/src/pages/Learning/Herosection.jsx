@@ -2,7 +2,7 @@ import React from "react";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[65vh] bg-gradient-to-b from-white to-gray-100 py-20 px-4 sm:px-8">
+    <section className="relative min-h-[65vh]  py-20 px-4 sm:px-8">
       <div className="container mx-auto px-6 flex flex-col items-center text-center gap-10 relative z-10">
         
         {/* Text Section */}

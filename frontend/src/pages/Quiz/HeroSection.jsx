@@ -2,7 +2,7 @@ import React from "react";
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[65vh] bg-gradient-to-b from-white to-gray-100 py-16 px-4 sm:px-8">
+    <section className="relative min-h-[65vh]  py-16 px-4 sm:px-8">
       <div className="absolute inset-0 bg-grid-indigo-200/20 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]"></div>
 
       <div className="container mx-auto px-6 flex flex-col items-center text-center relative z-10">

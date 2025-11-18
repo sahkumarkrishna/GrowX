@@ -59,18 +59,14 @@
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
-  /* ✅ Light Mode Background */
   body {
-    @apply text-foreground bg-gradient-to-r from-white to-gray-400;
+    @apply text-foreground;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f, #f9d1f5);
   }
 
-  /* ✅ Dark Mode Background (optional) */
   .dark body {
-    @apply text-foreground bg-gradient-to-b from-[#0B1221] to-[#1C2A44];
+    @apply text-foreground;
+    background: linear-gradient(160deg, #1f0033, #2a004f, #3c0066);
   }
 }
 

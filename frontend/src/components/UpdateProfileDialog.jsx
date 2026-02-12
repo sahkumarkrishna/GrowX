@@ -3,10 +3,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '
 import { Label } from './ui/label'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
-import { Loader2 } from 'lucide-react'
+import { Loader2, User, Mail, Phone, FileText, Award, Briefcase } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import axios from 'axios'
-
 import { setUser } from '@/redux/authSlice'
 import { toast } from 'sonner'
 
@@ -65,93 +64,124 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
             setLoading(false);
         }
         setOpen(false);
-        console.log(input);
     }
 
-
-
     return (
-        <div>
-            <Dialog open={open}>
-                <DialogContent className="sm:max-w-[425px]" onInteractOutside={() => setOpen(false)}>
-                    <DialogHeader>
-                        <DialogTitle>Update Profile</DialogTitle>
-                    </DialogHeader>
-                    <form onSubmit={submitHandler}>
-                        <div className='grid gap-4 py-4'>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="name" className="text-right">Name</Label>
-                                <Input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    value={input.fullname}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="email" className="text-right">Email</Label>
-                                <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value={input.email}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="number" className="text-right">Number</Label>
-                                <Input
-                                    id="number"
-                                    name="number"
-                                    value={input.phoneNumber}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="bio" className="text-right">Bio</Label>
-                                <Input
-                                    id="bio"
-                                    name="bio"
-                                    value={input.bio}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="skills" className="text-right">Skills</Label>
-                                <Input
-                                    id="skills"
-                                    name="skills"
-                                    value={input.skills}
-                                    onChange={changeEventHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
-                            <div className='grid grid-cols-4 items-center gap-4'>
-                                <Label htmlFor="file" className="text-right">Resume</Label>
-                                <Input
-                                    id="file"
-                                    name="file"
-                                    type="file"
-                                    accept="application/pdf"
-                                    onChange={fileChangeHandler}
-                                    className="col-span-3"
-                                />
-                            </div>
+        <Dialog open={open}>
+            <DialogContent className="sm:max-w-[500px] bg-white rounded-2xl border-2 border-gray-200" onInteractOutside={() => setOpen(false)}>
+                <DialogHeader className="border-b border-gray-200 pb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                            <User className="h-5 w-5 text-white" />
                         </div>
-                        <DialogFooter>
-                            {
-                                loading ? <Button className="w-full my-4"> <Loader2 className='mr-2 h-4 w-4 animate-spin' /> Please wait </Button> : <Button type="submit" className="w-full my-4">Update</Button>
-                            }
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
-        </div>
+                        <DialogTitle className="text-2xl font-extrabold text-gray-900">Update Profile</DialogTitle>
+                    </div>
+                </DialogHeader>
+                <form onSubmit={submitHandler}>
+                    <div className='grid gap-4 py-4'>
+                        <div className='space-y-2'>
+                            <Label htmlFor="name" className="text-gray-700 font-semibold text-sm flex items-center gap-2">
+                                <User className="h-4 w-4 text-purple-600" />
+                                Full Name
+                            </Label>
+                            <Input
+                                id="name"
+                                name="fullname"
+                                type="text"
+                                value={input.fullname}
+                                onChange={changeEventHandler}
+                                className="h-11 border-2 focus:border-purple-500 rounded-xl"
+                                placeholder="John Doe"
+                            />
+                        </div>
+                        <div className='space-y-2'>
+                            <Label htmlFor="email" className="text-gray-700 font-semibold text-sm flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-blue-600" />
+                                Email
+                            </Label>
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                value={input.email}
+                                onChange={changeEventHandler}
+                                className="h-11 border-2 focus:border-blue-500 rounded-xl"
+                                placeholder="john@example.com"
+                            />
+                        </div>
+                        <div className='space-y-2'>
+                            <Label htmlFor="phoneNumber" className="text-gray-700 font-semibold text-sm flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-green-600" />
+                                Phone Number
+                            </Label>
+                            <Input
+                                id="phoneNumber"
+                                name="phoneNumber"
+                                value={input.phoneNumber}
+                                onChange={changeEventHandler}
+                                className="h-11 border-2 focus:border-green-500 rounded-xl"
+                                placeholder="+91 9876543210"
+                            />
+                        </div>
+                        <div className='space-y-2'>
+                            <Label htmlFor="bio" className="text-gray-700 font-semibold text-sm flex items-center gap-2">
+                                <Briefcase className="h-4 w-4 text-orange-600" />
+                                Bio
+                            </Label>
+                            <Input
+                                id="bio"
+                                name="bio"
+                                value={input.bio}
+                                onChange={changeEventHandler}
+                                className="h-11 border-2 focus:border-orange-500 rounded-xl"
+                                placeholder="Tell us about yourself"
+                            />
+                        </div>
+                        <div className='space-y-2'>
+                            <Label htmlFor="skills" className="text-gray-700 font-semibold text-sm flex items-center gap-2">
+                                <Award className="h-4 w-4 text-pink-600" />
+                                Skills
+                            </Label>
+                            <Input
+                                id="skills"
+                                name="skills"
+                                value={input.skills}
+                                onChange={changeEventHandler}
+                                className="h-11 border-2 focus:border-pink-500 rounded-xl"
+                                placeholder="React, Node.js, Python"
+                            />
+                        </div>
+                        <div className='space-y-2'>
+                            <Label htmlFor="file" className="text-gray-700 font-semibold text-sm flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-indigo-600" />
+                                Resume (PDF)
+                            </Label>
+                            <Input
+                                id="file"
+                                name="file"
+                                type="file"
+                                accept="application/pdf"
+                                onChange={fileChangeHandler}
+                                className="h-11 border-2 focus:border-indigo-500 rounded-xl cursor-pointer"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter className="border-t border-gray-200 pt-4">
+                        {
+                            loading ? (
+                                <Button disabled className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl font-semibold">
+                                    <Loader2 className='mr-2 h-5 w-5 animate-spin' /> Updating...
+                                </Button>
+                            ) : (
+                                <Button type="submit" className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 rounded-xl font-semibold shadow-lg">
+                                    Update Profile
+                                </Button>
+                            )
+                        }
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     )
 }
 

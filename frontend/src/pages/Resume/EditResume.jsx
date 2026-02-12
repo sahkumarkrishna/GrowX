@@ -8,7 +8,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
-export default function ResumeEdit() {
+import { motion } from "framer-motion";
+import { IoMdArrowRoundBack } from "react-icons/io";
+
+export default function EditResume() {
   const API_URL = import.meta.env.VITE_API_URL;
   const { id } = useParams();
   const navigate = useNavigate();
@@ -122,25 +125,51 @@ export default function ResumeEdit() {
 
   if (!resumeLoaded)
     return (
-      <>
-        <p className="text-center mt-20 text-lg text-gray-500">Loading resume...</p>
-
-      </>
-    );
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white p-4 md:p-8 lg:p-12">
-      {/* HEADER */}
-      <div className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
-        <h1 className="text-3xl md:text-4xl font-bold text-pink-600">Edit Resume</h1>
-        <div className="flex gap-4 flex-wrap">
-          <Button
-            onClick={handleSaveResume}
-            className="bg-green-500 hover:bg-green-600 text-white"
-          >
-            Save Changes
-          </Button>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center -mt-16">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Loading resume...</p>
+        </motion.div>
       </div>
+    );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-4 md:p-8 lg:p-12 -mt-16">
+      {/* Back Button */}
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        whileHover={{ scale: 1.05, x: -5 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate(-1)}
+        className="mb-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
+      >
+        <IoMdArrowRoundBack size={24} />
+        Back
+      </motion.button>
+
+      {/* HEADER */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4"
+      >
+        <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Edit Resume</h1>
+        <div className="flex gap-4 flex-wrap">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleSaveResume}
+            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+          >
+            💾 Save Changes
+          </motion.button>
+        </div>
+      </motion.div>
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* SIDEBAR */}

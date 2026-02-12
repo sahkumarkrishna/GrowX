@@ -251,7 +251,7 @@ export default function StudyRoadmap() {
   const { progress, toggle, reset, stats } = useProgress();
 
   return (
-    <div className="min-h-screen w-full  via-muted/40 to-transparent py-10 mt-5">
+    <div className="min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 -mt-16 ">
       <div className="container mx-auto px-4 md:px-8">
 
         {/* Header */}
@@ -259,67 +259,78 @@ export default function StudyRoadmap() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+          className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-8"
         >
-          <div className="space-y-3">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-3">
-              <Sparkles className="h-7 w-7" />
-              Study Roadmap
+          <div className="space-y-4">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-2 rounded-full text-sm font-semibold">
+              <Sparkles className="h-4 w-4" />
+              Learning Roadmap
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Master Your Skills
             </h1>
-            <p className="text-gray-600 text-sm mt-4 mb-4">
-              Curated YouTube playlist for Web, Mobile, and Backend. Track your learning progress.
+            <p className="text-gray-600 text-lg max-w-2xl">
+              Curated video courses for Web, Mobile, and Backend development. Track your progress and achieve your goals.
             </p>
 
-            <div className="max-w-md flex items-center gap-2">
-              <Search className="h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search topic, tag, or URL…"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
+            <div className="max-w-md">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input
+                  placeholder="Search courses, topics, or technologies..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="pl-10 h-12 rounded-xl border-2 focus:border-blue-500 transition-colors"
+                />
+              </div>
             </div>
           </div>
 
           {/* Progress Summary */}
-          <Card className="w-full md:w-[380px] shadow-md border-primary/20">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <ListChecks className="h-4 w-4" /> Overall Progress
+          <Card className="w-full md:w-[400px] shadow-xl border-0 bg-gradient-to-br from-white to-blue-50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <ListChecks className="h-5 w-5 text-blue-600" />
+                </div>
+                Your Progress
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Completed</span>
-                <span className="font-medium">{stats.done} / {stats.total}</span>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600 font-medium">Completed</span>
+                <span className="text-2xl font-bold text-blue-600">{stats.done} / {stats.total}</span>
               </div>
-              <Progress value={stats.pct} className="h-2" />
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{stats.pct}%</span>
-                <Button variant="ghost" size="sm" onClick={reset} className="h-7 px-2">Reset</Button>
+              <div className="space-y-2">
+                <Progress value={stats.pct} className="h-3 bg-gray-200" />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-semibold text-blue-600">{stats.pct}% Complete</span>
+                  <Button variant="ghost" size="sm" onClick={reset} className="h-8 px-3 hover:bg-red-50 hover:text-red-600">Reset Progress</Button>
+                </div>
               </div>
             </CardContent>
           </Card>
         </motion.div>
 
-        <Separator className="my-6" />
+        <Separator className="my-8" />
 
         {/* Tabs */}
         <Tabs defaultValue="fundamentals" className="w-full">
-          <TabsList className="flex w-full overflow-x-auto scrollbar-hide justify-start md:justify-center gap-2 rounded-xl p-2 bg-muted/40">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-hide justify-start md:justify-center gap-3 rounded-2xl p-3 bg-white shadow-lg border">
             {Object.entries(TAB_META).map(([key, meta]) => (
               <TabsTrigger
                 key={key}
                 value={key}
-                className="flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm rounded-lg transition data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="flex items-center gap-2 whitespace-nowrap px-6 py-3 text-sm font-semibold rounded-xl transition-all data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg hover:bg-gray-50"
               >
-                <span>{meta.emoji}</span>
+                <span className="text-lg">{meta.emoji}</span>
                 {meta.label}
               </TabsTrigger>
             ))}
           </TabsList>
 
           {Object.entries(ROADMAP).map(([key, items]) => (
-            <TabsContent key={key} value={key} className="mt-6">
+            <TabsContent key={key} value={key} className="mt-8">
               <CategoryGrid
                 items={items.filter((i) =>
                   [i.title, i.tag].join(" ").toLowerCase().includes(query.toLowerCase())
@@ -347,37 +358,54 @@ function CategoryGrid({ items, progress, onToggle }) {
   }
 
   return (
-    <ScrollArea className="h-[560px] rounded-2xl border bg-card/40 p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <ScrollArea className="h-[600px] rounded-3xl border-2 bg-white shadow-xl p-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item, idx) => (
           <motion.div
             key={item.url}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: 0.02 * idx }}
+            transition={{ duration: 0.3, delay: 0.03 * idx }}
+            whileHover={{ y: -8 }}
           >
-            <Card className={cn("h-full transition-shadow hover:shadow-lg", progress[item.url] && "border-primary/60 shadow-primary/30")}>
+            <Card className={cn(
+              "h-full transition-all duration-300 hover:shadow-2xl border-2 overflow-hidden group",
+              progress[item.url] ? "border-green-400 bg-green-50/50" : "border-gray-200 hover:border-blue-400"
+            )}>
               
               {/* Thumbnail */}
-              {item.img && (
-                <img
-                  src={item.img}
-                  alt={item.title}
-                  className="w-full h-56 object-cover rounded-t-lg"
-                />
-              )}
+              <div className="relative overflow-hidden">
+                {item.img && (
+                  <img
+                    src={item.img}
+                    alt={item.title}
+                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                {progress[item.url] && (
+                  <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
+                    <ListChecks className="h-3 w-3" />
+                    Completed
+                  </div>
+                )}
+              </div>
 
-              <CardHeader className="pb-3 pt-3">
+              <CardHeader className="pb-3 pt-4">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <CardTitle className="text-base leading-6 font-semibold">{item.title}</CardTitle>
-                    {item.tag && <Badge variant="secondary" className="rounded-full mt-2">{item.tag}</Badge>}
+                  <div className="flex-1">
+                    <CardTitle className="text-lg leading-6 font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{item.title}</CardTitle>
+                    {item.tag && (
+                      <Badge variant="secondary" className="rounded-full mt-3 bg-blue-100 text-blue-700 font-semibold">
+                        {item.tag}
+                      </Badge>
+                    )}
                   </div>
 
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button asChild variant="outline" size="icon" className="shrink-0">
+                        <Button asChild variant="outline" size="icon" className="shrink-0 hover:bg-blue-50 hover:border-blue-400">
                           <a href={item.url} target="_blank" rel="noreferrer">
                             <ExternalLink className="h-4 w-4" />
                           </a>
@@ -390,35 +418,32 @@ function CategoryGrid({ items, progress, onToggle }) {
               </CardHeader>
 
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <PlayCircle className="h-4 w-4" />
-                  <span>Video lesson • YouTube</span>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <PlayCircle className="h-4 w-4 text-blue-600" />
+                  <span>Video Tutorial</span>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-3 border-t-2">
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id={`check-${idx}`}
                       checked={!!progress[item.url]}
                       onCheckedChange={() => onToggle(item.url)}
+                      className="data-[state=checked]:bg-green-600"
                     />
-                    <label htmlFor={`check-${idx}`} className="text-sm">
-                      Mark as done
+                    <label htmlFor={`check-${idx}`} className="text-sm font-medium cursor-pointer">
+                      Mark complete
                     </label>
                   </div>
 
-                  <Button
-                    asChild
-                    size="sm"
-                    variant={progress[item.url] ? "secondary" : "default"}
-                  >
+                  <Button asChild size="sm" className="rounded-full">
                     <a
                       href={item.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-2 px-5 py-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-medium shadow-lg hover:shadow-xl transition-transform duration-300 hover:scale-105"
+                      className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                     >
-                      <PlayCircle className="h-5 w-5" /> Watch
+                      <PlayCircle className="h-4 w-4" /> Watch
                     </a>
                   </Button>
                 </div>

@@ -1,72 +1,54 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import learningImg from "../../assets/international.webp";
+import { motion } from 'framer-motion';
+import { Target, Users, Award, Zap } from 'lucide-react';
 
 export default function About() {
-  const navigate = useNavigate();
+  const features = [
+    { icon: Target, title: 'Goal-Oriented', desc: 'Structured learning paths designed to achieve your career goals' },
+    { icon: Users, title: 'Expert Mentors', desc: 'Learn from industry professionals with real-world experience' },
+    { icon: Award, title: 'Certified Learning', desc: 'Earn recognized certificates upon course completion' },
+    { icon: Zap, title: 'Fast-Track Skills', desc: 'Accelerated programs to quickly master in-demand skills' }
+  ];
 
   return (
-    <section className="py-16">
-      <div className="container mx-auto px-6">
-
-        {/* H1 always on top */}
-        <h1 className="text-4xl md:text-4xl font-extrabold leading-tight mb-10 text-center md:text-left text-sky-700">
-          About
-        </h1>
-        <h3 className="text-2xl font-extrabold leading-tight mb-6 text-gray-800">
-          Learn, Build & Grow with Confidence
-        </h3>
-
-        {/* Flex container */}
-        <div className="flex flex-col md:flex-row items-center gap-10">
-
-          {/* Left: Text */}
-          <div className="flex-1 order-2 md:order-1">
-            <p className="text-lg md:text-xl text-gray-700 mb-6 max-w-3xl leading-relaxed">
-              Learning is a lifelong journey that empowers individuals to grow,
-              innovate, and achieve meaningful goals. Our platform is designed for
-              learners who want more than just theory — it is rooted in{" "}
-              <strong>real-world applications, modern tools,</strong> and{" "}
-              <strong>hands-on lessons</strong> that provide the confidence and
-              knowledge required to thrive in today’s fast-changing digital
-              landscape. Every step is about applying concepts effectively, not
-              just memorizing them.
+    <section className="py-20 px-4 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+              Transform Your Career with <span className="text-blue-600">Expert-Led Learning</span>
+            </h2>
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              GrowX Learning is your gateway to mastering cutting-edge skills. Our platform combines world-class content, 
+              hands-on projects, and personalized mentorship to accelerate your professional growth.
             </p>
-
-            <p className="text-lg md:text-xl text-gray-600 mb-6 max-w-3xl leading-relaxed">
-              Whether you’re just beginning or aiming to sharpen advanced skills,
-              we emphasize project-driven experiences, industry best practices,
-              and problem-solving techniques. Our approach builds curiosity,
-              adaptability, and innovation, preparing you for success in evolving
-              industries. Each module bridges the gap between{" "}
-              <strong>theory and execution</strong>, ensuring you master not only
-              tools but also the mindset for lifelong growth. Learning with us is
-              about more than acquiring information — it’s about building the
-              ability to think critically, create boldly, and grow continuously.
-            </p>
-
-            {/* Buttons */}
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => navigate("/learningVideo")}
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition w-full sm:w-auto mt-5"
-
-              >
-                Get Started
-              </button>
+            <div className="grid grid-cols-2 gap-6">
+              {features.map((feature, idx) => (
+                <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <feature.icon className="text-blue-600" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{feature.title}</h3>
+                    <p className="text-sm text-gray-600">{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-          </div>
+          </motion.div>
 
-          {/* Right: Image */}
-          <div className="w-full md:w-1/2 lg:w-5/12 order-1 md:order-2">
-            <div className="rounded-2xl overflow-hidden shadow-2xl">
-              <img
-                src={learningImg}
-                alt="Learning preview"
-                className="w-full h-80 md:h-[28rem] lg:h-[32rem] object-cover"
-              />
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="relative">
+            <div className="relative">
+              <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&h=700&fit=crop" alt="Learning Experience" className="rounded-3xl shadow-2xl w-full h-[500px] object-cover" />
+              <div className="absolute -bottom-6 -left-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-2xl shadow-xl">
+                <div className="text-3xl font-bold">10M+</div>
+                <div className="text-sm">Hours of Learning</div>
+              </div>
+              <div className="absolute -top-6 -right-6 bg-yellow-400 text-gray-900 p-6 rounded-2xl shadow-xl">
+                <div className="text-3xl font-bold">4.9★</div>
+                <div className="text-sm font-semibold">Average Rating</div>
+              </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

@@ -1,36 +1,53 @@
-import React from 'react';
+import { motion } from 'framer-motion';
+import { Code, Briefcase, Video, FileText, Users, Trophy, Clock, Smartphone } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const Features = () => {
-    return (
-        <div>
-            {/* Features Section */}
-            <section className="py-24 px-4 ">
-                <h2 className="text-4xl font-bold text-center mb-16 text-purple-900 underline decoration-pink-500 decoration-4">
-                    Features
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-                    <div className="bg-purple-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                        <h3 className="text-2xl font-semibold mb-4 text-purple-700">Interactive Tutorials</h3>
-                        <p className="text-purple-800">
-                            Learn programming step by step with interactive tutorials designed for beginners and advanced learners.
-                        </p>
-                    </div>
-                    <div className="bg-pink-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                        <h3 className="text-2xl font-semibold mb-4 text-pink-700">Hands-on Practice</h3>
-                        <p className="text-pink-800">
-                            Strengthen your coding skills by solving challenges and building real projects in different programming languages.
-                        </p>
-                    </div>
-                    <div className="bg-blue-50 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                        <h3 className="text-2xl font-semibold mb-4 text-blue-700">Community Learning</h3>
-                        <p className="text-blue-800">
-                            Connect with a community of learners and mentors, ask questions, share knowledge, and grow together.
-                        </p>
-                    </div>
-                </div>
-            </section>
+export default function Features() {
+  const features = [
+    { icon: Code, title: 'Interactive Coding', desc: 'Practice with live code editors and instant feedback', color: 'bg-blue-500' },
+    { icon: Video, title: 'HD Video Lessons', desc: 'Crystal-clear video content from industry experts', color: 'bg-purple-500' },
+    { icon: Briefcase, title: 'Real Projects', desc: 'Build portfolio-worthy projects as you learn', color: 'bg-green-500' },
+    { icon: FileText, title: 'Downloadable Resources', desc: 'Access notes, cheat sheets, and templates', color: 'bg-orange-500' },
+    { icon: Users, title: 'Community Support', desc: 'Connect with peers and mentors 24/7', color: 'bg-pink-500' },
+    { icon: Trophy, title: 'Certificates', desc: 'Earn industry-recognized certificates', color: 'bg-yellow-500' },
+    { icon: Clock, title: 'Lifetime Access', desc: 'Learn at your own pace, anytime, anywhere', color: 'bg-indigo-500' },
+    { icon: Smartphone, title: 'Mobile Learning', desc: 'Continue learning on iOS and Android apps', color: 'bg-teal-500' }
+  ];
+
+  return (
+    <section className="py-20 px-4 bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+            Everything You Need to <span className="text-blue-600">Succeed</span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Our comprehensive learning platform provides all the tools and resources you need to master new skills
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((feature, idx) => (
+            <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group">
+              <div className={`${feature.color} w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <feature.icon className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}</h3>
+              <p className="text-gray-600">{feature.desc}</p>
+            </motion.div>
+          ))}
         </div>
-    );
-}
 
-export default Features;
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-white text-center">
+          <h3 className="text-3xl font-bold mb-4">Ready to Start Your Learning Journey?</h3>
+          <p className="text-xl mb-8 text-blue-100">Join thousands of learners already transforming their careers</p>
+          <Link to="/learningVideo">
+            <button className="bg-white text-blue-600 px-10 py-4 rounded-full font-bold text-lg hover:bg-yellow-300 hover:text-blue-700 transition-all shadow-lg">
+              Get Started Free
+            </button>
+          </Link>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

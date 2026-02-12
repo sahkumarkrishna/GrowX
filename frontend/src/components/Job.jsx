@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { Bookmark, BookmarkCheck } from 'lucide-react';
+import { Bookmark, BookmarkCheck, MapPin, Briefcase, DollarSign, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { useNavigate } from 'react-router-dom';
@@ -17,84 +17,97 @@ const Job = ({ job }) => {
   };
 
   const handleSaveJob = () => {
-    // ✅ Toggle saved state (you can also call an API here)
     setIsSaved(!isSaved);
-
-    // Optional: Call API to save job
-    // await axios.post('/api/saved-jobs', { jobId: job._id })
   };
 
+  const daysAgo = daysAgoFunction(job?.createdAt);
+
   return (
-    <div className="p-5 rounded-xl shadow-md bg-white border border-gray-100 hover:shadow-lg transition duration-300">
-      {/* Top Section: Date and Bookmark */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-500">
-          {daysAgoFunction(job?.createdAt) === 0
-            ? 'Today'
-            : `${daysAgoFunction(job?.createdAt)} days ago`}
-        </p>
+    <div className="group relative p-6 rounded-3xl shadow-lg bg-white border border-gray-100 hover:border-emerald-300 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 ">
+      {/* Top Section */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-2">
+          {daysAgo === 0 ? (
+            <span className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+              <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+              New Today
+            </span>
+          ) : (
+            <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-semibold rounded-full flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {daysAgo}d ago
+            </span>
+          )}
+        </div>
         <Button
           variant="outline"
-          className="rounded-full"
+          className="rounded-full border-2 hover:scale-110 transition-transform hover:border-emerald-500"
           size="icon"
           onClick={handleSaveJob}
         >
           {isSaved ? (
-            <BookmarkCheck className="w-4 h-4 text-purple-600" />
+            <BookmarkCheck className="w-4 h-4 text-emerald-600" />
           ) : (
             <Bookmark className="w-4 h-4" />
           )}
         </Button>
       </div>
 
-      {/* Company Logo and Name */}
-      <div className="flex items-center gap-3 my-4">
-        <Avatar className="w-12 h-12">
+      {/* Company Info */}
+      <div className="flex items-center gap-4 mb-4">
+        <Avatar className="w-16 h-16 ring-2 ring-emerald-100 group-hover:ring-emerald-300 transition-all">
           <AvatarImage
             src={job?.company?.logo || 'https://via.placeholder.com/150'}
             alt={job?.company?.name || 'Company Logo'}
           />
-          <AvatarFallback>🏢</AvatarFallback>
+          <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-teal-500 text-white text-xl">
+            {job?.company?.name?.[0] || '🏢'}
+          </AvatarFallback>
         </Avatar>
         <div>
-          <h2 className="font-semibold text-base md:text-lg">{job?.company?.name}</h2>
-          <p className="text-xs text-gray-500">India</p>
+          <h2 className="font-bold text-lg text-gray-900">{job?.company?.name}</h2>
+          <div className="flex items-center gap-1 text-sm text-gray-500">
+            <MapPin className="h-4 w-4" />
+            <span>{job?.location || 'India'}</span>
+          </div>
         </div>
       </div>
 
-      {/* Job Title and Description */}
-      <div>
-        <h1 className="font-bold text-lg md:text-xl mb-1">{job?.title}</h1>
-        <p className="text-sm text-gray-600 line-clamp-3">{job?.description}</p>
-      </div>
+      {/* Job Title */}
+      <h1 className="font-bold text-xl text-gray-900 mb-2 group-hover:text-emerald-600 transition-colors">
+        {job?.title}
+      </h1>
+      <p className="text-sm text-gray-600 line-clamp-2 mb-4">{job?.description}</p>
 
       {/* Tags */}
-      <div className="flex flex-wrap gap-2 mt-4">
-        <Badge className="text-blue-700 font-bold" variant="ghost">
+      <div className="flex flex-wrap gap-2 mb-5">
+        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 font-semibold px-3 py-1">
+          <Briefcase className="h-3 w-3 mr-1" />
           {job?.position} Position{job?.position > 1 ? 's' : ''}
         </Badge>
-        <Badge className="text-[#F83002] font-bold" variant="ghost">
+        <Badge className="bg-teal-50 text-teal-700 border-teal-200 font-semibold px-3 py-1">
           {job?.jobType}
         </Badge>
-        <Badge className="text-[#7209b7] font-bold" variant="ghost">
+        <Badge className="bg-amber-50 text-amber-700 border-amber-200 font-semibold px-3 py-1">
+          <DollarSign className="h-3 w-3 mr-1" />
           ₹{job?.salary} LPA
         </Badge>
       </div>
 
       {/* Buttons */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-5">
+      <div className="flex gap-3">
         <Button
           onClick={() => navigate(`/description/${job?._id}`)}
           variant="outline"
-          className="w-full sm:w-auto"
+          className="flex-1 rounded-xl border-2 hover:border-emerald-600 hover:text-emerald-600 font-semibold"
         >
           Details
         </Button>
         <Button
-          className="bg-[#7209b7] w-full sm:w-auto text-white hover:bg-[#5e079e]"
+          className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold shadow-lg"
           onClick={handleSaveJob}
         >
-          {isSaved ? 'Saved' : 'Save For Later'}
+          {isSaved ? '✓ Saved' : 'Save'}
         </Button>
       </div>
     </div>

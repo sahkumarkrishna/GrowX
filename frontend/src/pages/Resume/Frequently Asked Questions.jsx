@@ -1,50 +1,75 @@
+import { motion } from "framer-motion";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 const faqData = [
   {
     id: 1,
-    question: "What technologies did you use to build your resume website?",
-    answer: "I used React.js, Tailwind CSS, Framer Motion for animations, and shadcn/ui for UI components to make the site interactive and modern.",
+    question: "How do I create a resume?",
+    answer: "Simply click 'Create Resume', fill in your details across different sections, and our builder will format everything professionally for you.",
   },
   {
     id: 2,
-    question: "Is your resume website mobile-friendly?",
-    answer: "Yes, the website is fully responsive and works seamlessly on all devices including desktops, tablets, and smartphones.",
+    question: "Are the templates ATS-friendly?",
+    answer: "Yes! All our templates are designed to be ATS-compatible, ensuring your resume passes through applicant tracking systems successfully.",
   },
   {
     id: 3,
-    question: "Can I download your resume from the website?",
-    answer: "Absolutely! There is a dedicated section where you can view and download my resume in PDF format.",
+    question: "Can I download my resume as PDF?",
+    answer: "Absolutely! You can download your resume in high-quality PDF format, perfect for job applications and printing.",
   },
   {
     id: 4,
-    question: "How can I contact you through the website?",
-    answer: "You can use the contact form available on the website or reach out via the provided email or social media links.",
+    question: "Can I edit my resume after creating it?",
+    answer: "Yes, you can edit your resume anytime. Just go to 'My Resumes', select the resume you want to edit, and make your changes.",
   },
   {
     id: 5,
-    question: "Does your website showcase your projects?",
-    answer: "Yes, all my projects are showcased with descriptions, technologies used, and interactive links to view them live or access the code.",
+    question: "How many resumes can I create?",
+    answer: "You can create unlimited resumes! Create different versions for different job applications to maximize your chances.",
   },
 ];
 
 const FAQSection = () => {
   return (
-    <section className="py-20 ">
+    <section className="py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50">
       <div className="max-w-4xl mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center text-purple-900 mb-12">
-          Frequently Asked Questions
-        </h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-block px-4 py-2 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full text-purple-700 font-semibold text-sm mb-4">
+            FAQ
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-gray-600 text-lg">Everything you need to know</p>
+        </motion.div>
+
         <Accordion type="single" collapsible className="space-y-4">
-          {faqData.map((faq) => (
-            <AccordionItem key={faq.id} value={`item-${faq.id}`} className="border border-gray-200 rounded-xl shadow-sm bg-white hover:shadow-lg transition">
-              <AccordionTrigger className="text-lg font-medium text-purple-900 ml-4">
-                {faq.question}
-              </AccordionTrigger>
-              <AccordionContent className="text-gray-700 mt-2 ml-4">
-                {faq.answer}
-              </AccordionContent>
-            </AccordionItem>
+          {faqData.map((faq, index) => (
+            <motion.div
+              key={faq.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+            >
+              <AccordionItem 
+                value={`item-${faq.id}`} 
+                className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-purple-100 overflow-hidden"
+              >
+                <AccordionTrigger className="text-lg font-bold text-gray-800 px-6 py-4 hover:text-purple-600 transition-colors">
+                  {faq.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-gray-600 px-6 pb-4 leading-relaxed">
+                  {faq.answer}
+                </AccordionContent>
+              </AccordionItem>
+            </motion.div>
           ))}
         </Accordion>
       </div>

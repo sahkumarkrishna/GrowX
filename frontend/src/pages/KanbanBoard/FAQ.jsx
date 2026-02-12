@@ -43,34 +43,47 @@ const FAQs = () => {
   };
 
   return (
-    <div className="min-h-screen py-16 px-4">
-      <div className="max-w-4xl mx-auto text-white">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-10 text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">
-          Frequently Asked Questions
-        </h2>
+    <div className="py-20 px-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+      <div className="max-w-4xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-12"
+        >
+          <div className="inline-block px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full text-indigo-700 font-semibold text-sm mb-4">
+            FAQ
+          </div>
+          <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+            Frequently Asked Questions
+          </h2>
+          <p className="text-gray-600 text-lg">Everything you need to know</p>
+        </motion.div>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           {faqs.map((faq, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="border border-gray-100 rounded-xl p-5 bg-gray-100/60 backdrop-blur-sm shadow-md hover:shadow-lg transition-all duration-300"
+              transition={{ duration: 0.4, delay: index * 0.05 }}
+              className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100 overflow-hidden"
             >
               <div
-                className="flex justify-between items-center cursor-pointer"
+                className="flex justify-between items-center cursor-pointer p-6"
                 onClick={() => toggleAnswer(index)}
               >
-                <h3 className="text-lg md:text-xl font-semibold text-black">
+                <h3 className="text-lg font-bold text-gray-800 pr-4">
                   {faq.question}
                 </h3>
                 <motion.div
                   animate={{ rotate: openIndex === index ? 180 : 0 }}
                   transition={{ duration: 0.3 }}
+                  className="flex-shrink-0"
                 >
-                  <ChevronDown className="text-yellow-700" />
+                  <ChevronDown className="text-indigo-600" size={24} />
                 </motion.div>
               </div>
 
@@ -80,12 +93,14 @@ const FAQs = () => {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.4, ease: "easeInOut" }}
-                    className="overflow-hidden mt-3"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="overflow-hidden"
                   >
-                    <p className="text-base text-black leading-relaxed">
-                      {faq.answer}
-                    </p>
+                    <div className="px-6 pb-6">
+                      <p className="text-gray-600 leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

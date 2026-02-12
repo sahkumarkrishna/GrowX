@@ -1,36 +1,54 @@
-import React from 'react';
+import { motion } from 'framer-motion';
+import { Brain, BarChart, Users, Zap, Trophy, Target } from 'lucide-react';
 
 const Features = () => {
-    return (
-        <div>
-            {/* Features Section */}
-            <section className="py-24 px-4 ">
-                <h2 className="text-4xl font-bold text-center mb-16 text-blue-900 underline decoration-purple-600 decoration-4">
-                    Features
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-                    <div className="bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                        <h3 className="text-2xl font-semibold mb-4">Interactive Quizzes</h3>
-                        <p>
-                            Take engaging quizzes with instant feedback to test and strengthen your knowledge across various topics.
-                        </p>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-500 to-pink-500 text-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                        <h3 className="text-2xl font-semibold mb-4">Progress Tracking</h3>
-                        <p>
-                            Track your quiz performance over time with detailed analytics and personalized progress reports.
-                        </p>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-500 to-teal-500 text-white p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-                        <h3 className="text-2xl font-semibold mb-4">Community Challenges</h3>
-                        <p>
-                            Compete with friends and the community by participating in timed challenges and leaderboard competitions.
-                        </p>
-                    </div>
-                </div>
-            </section>
+  const features = [
+    { icon: Brain, title: 'Interactive Quizzes', desc: 'Engaging questions with instant feedback to test and strengthen your knowledge', color: 'from-blue-500 to-indigo-500' },
+    { icon: BarChart, title: 'Progress Tracking', desc: 'Detailed analytics and personalized reports to monitor your improvement', color: 'from-purple-500 to-pink-500' },
+    { icon: Users, title: 'Community Challenges', desc: 'Compete with friends in timed challenges and climb the leaderboard', color: 'from-green-500 to-teal-500' },
+    { icon: Zap, title: 'Instant Results', desc: 'Get immediate feedback on your answers with detailed explanations', color: 'from-orange-500 to-red-500' },
+    { icon: Trophy, title: 'Earn Rewards', desc: 'Collect badges and certificates as you complete quizzes and challenges', color: 'from-yellow-500 to-orange-500' },
+    { icon: Target, title: 'Adaptive Learning', desc: 'Smart difficulty adjustment based on your performance and progress', color: 'from-cyan-500 to-blue-500' }
+  ];
+
+  return (
+    <section className="py-20 px-4 bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mb-16"
+        >
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+            Powerful Features for <span className="text-indigo-600">Better Learning</span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Everything you need to master new skills through interactive quizzes
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: idx * 0.1 }}
+              className="group bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all hover:-translate-y-2"
+            >
+              <div className={`bg-gradient-to-br ${feature.color} w-16 h-16 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                <feature.icon className="text-white" size={32} />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-gray-900 group-hover:text-indigo-600 transition-colors">{feature.title}</h3>
+              <p className="text-gray-600 leading-relaxed">{feature.desc}</p>
+            </motion.div>
+          ))}
         </div>
-    );
-}
+      </div>
+    </section>
+  );
+};
 
 export default Features;

@@ -3,7 +3,9 @@ import axios from "axios";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaEdit, FaTrash, FaDownload } from "react-icons/fa";
+import { FaEye, FaEdit, FaTrash, FaDownload, FaPlus } from "react-icons/fa";
+import { IoMdArrowRoundBack } from "react-icons/io";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -43,19 +45,16 @@ export default function AllResumes() {
   }
 };
 
-
-  // ✅ Download resume as PDF (fetch single resume and export)
   const handleDownload = async (id, name) => {
     try {
       const res = await axios.get(`${API_URL}/${id}`);
       const resumeData = res.data.data;
 
-      // Create a temporary div to render resume content
       const tempDiv = document.createElement("div");
       tempDiv.style.position = "absolute";
       tempDiv.style.left = "-9999px";
       tempDiv.style.top = "0";
-      tempDiv.style.width = "800px"; // A4 width
+      tempDiv.style.width = "800px";
       tempDiv.innerHTML = `
         <div style="padding:20px; font-family:Arial; line-height:1.5;">
           <h2 style="margin:0; color:#E91E63;">${resumeData.personalInfo?.fullName || "Unnamed Resume"}</h2>
@@ -92,73 +91,145 @@ export default function AllResumes() {
   };
 
   if (loading)
-    return <p className="text-center text-gray-500 mt-20 text-lg">Loading resumes...</p>;
-
-  if (!resumes.length)
     return (
-      <div className="flex justify-center items-center min-h-[60vh] px-4">
-        <Card className="p-8 sm:p-12 text-center  shadow-xl rounded-2xl max-w-md w-full">
-          <CardTitle className="text-2xl sm:text-3xl font-bold text-pink-600 mb-4">
-            No Resumes Found
-          </CardTitle>
-          <p className="text-gray-700 text-sm sm:text-base">
-            You haven't added any resumes yet.
-          </p>
-        </Card>
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-purple-600"></div>
       </div>
     );
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-pink-600 justify-center ">All Resumes</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6  ">
-        {resumes.map((resume) => (
-          <Card key={resume._id} className="p-4 hover:shadow-lg transition">
-            <CardHeader>
-              <CardTitle>
-                {resume.personalInfo?.fullName || "Unnamed Resume"}
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-6 -mt-16">
+      {/* Header */}
+      <div className="max-w-7xl mx-auto">
+        <motion.button
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          whileHover={{ scale: 1.05, x: -5 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate(-1)}
+          className="mb-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
+        >
+          <IoMdArrowRoundBack size={24} />
+          Back
+        </motion.button>
+
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4"
+        >
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              My Resumes
+            </h1>
+            <p className="text-gray-600 mt-2">{resumes.length} resume{resumes.length !== 1 ? 's' : ''} found</p>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/resume-builder')}
+            className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+          >
+            <FaPlus /> Create New Resume
+          </motion.button>
+        </motion.div>
+
+        {!resumes.length ? (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex justify-center items-center min-h-[50vh]"
+          >
+            <Card className="p-12 text-center shadow-2xl rounded-2xl max-w-md w-full bg-white">
+              <div className="text-6xl mb-4">📄</div>
+              <CardTitle className="text-3xl font-bold text-pink-600 mb-4">
+                No Resumes Found
               </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p><strong>Email:</strong> {resume.personalInfo?.email || "-"}</p>
-              <p><strong>Phone:</strong> {resume.personalInfo?.phone || "-"}</p>
+              <p className="text-gray-700 mb-6">
+                You haven't created any resumes yet. Start building your professional resume now!
+              </p>
+              <Button
+                onClick={() => navigate('/resume-builder')}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-xl font-bold"
+              >
+                Create Your First Resume
+              </Button>
+            </Card>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {resumes.map((resume, idx) => (
+              <motion.div
+                key={resume._id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
+                whileHover={{ y: -8, scale: 1.02 }}
+              >
+                <Card className="h-full hover:shadow-2xl transition-all duration-300 bg-white border-2 border-purple-100 overflow-hidden">
+                  <div className="h-2 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600"></div>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xl">
+                        {resume.personalInfo?.fullName?.charAt(0) || "U"}
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg font-bold text-gray-800 truncate">
+                          {resume.personalInfo?.fullName || "Unnamed Resume"}
+                        </CardTitle>
+                        <p className="text-sm text-gray-500 truncate">{resume.personalInfo?.title || "No title"}</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4 text-sm">
+                      <p className="text-gray-600 truncate">
+                        <span className="font-semibold">✉️</span> {resume.personalInfo?.email || "-"}
+                      </p>
+                      <p className="text-gray-600 truncate">
+                        <span className="font-semibold">📞</span> {resume.personalInfo?.phone || "-"}
+                      </p>
+                    </div>
 
-              <div className="flex flex-col sm:flex-row sm:gap-2 gap-2 mt-4 justify-center sm:justify-start">
-                {/* View Resume */}
-                <Button
-                  className="flex-1 sm:flex-none bg-pink-500 hover:bg-pink-600 text-white font-medium px-4 py-2 rounded-lg shadow-md transition transform hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => navigate(`/resume/${resume._id}`)}
-                >
-                  <FaEye /> View
-                </Button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        size="sm"
+                        className="bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition flex items-center justify-center gap-1"
+                        onClick={() => navigate(`/resume/${resume._id}`)}
+                      >
+                        <FaEye size={14} /> View
+                      </Button>
 
-                {/* Edit */}
-                <Button
-                  className="flex-1 sm:flex-none bg-yellow-500 hover:bg-yellow-600 text-white font-medium px-4 py-2 rounded-lg shadow-md transition transform hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => navigate(`/edit-resume/${resume._id}`)}
-                >
-                  <FaEdit /> Edit
-                </Button>
+                      <Button
+                        size="sm"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-medium rounded-lg transition flex items-center justify-center gap-1"
+                        onClick={() => navigate(`/edit-resume/${resume._id}`)}
+                      >
+                        <FaEdit size={14} /> Edit
+                      </Button>
 
-                {/* Delete */}
-                <Button
-                  className="flex-1 sm:flex-none bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg shadow-md transition transform hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => handleDelete(resume._id)}
-                >
-                  <FaTrash /> Delete
-                </Button>
+                      <Button
+                        size="sm"
+                        className="bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition flex items-center justify-center gap-1"
+                        onClick={() => handleDownload(resume._id, resume.personalInfo?.fullName)}
+                      >
+                        <FaDownload size={14} /> Download
+                      </Button>
 
-                {/* ✅ Download */}
-                <Button
-                  className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white font-medium px-4 py-2 rounded-lg shadow-md transition transform hover:scale-105 flex items-center justify-center gap-2"
-                  onClick={() => handleDownload(resume._id, resume.personalInfo?.fullName)}
-                >
-                  <FaDownload /> Download
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                      <Button
+                        size="sm"
+                        className="bg-red-500 hover:bg-red-600 text-white font-medium rounded-lg transition flex items-center justify-center gap-1"
+                        onClick={() => handleDelete(resume._id)}
+                      >
+                        <FaTrash size={14} /> Delete
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

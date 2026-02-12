@@ -2,25 +2,26 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "sonner";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { IoMdArrowRoundBack } from "react-icons/io";
 
 const API_URL = import.meta.env.VITE_KANBAN_BOARD_API;
 
-export default function UpdateTask({ onTaskUpdated }) {
+const statusOptions = [
+  { value: "todo", label: "To Do", gradient: "from-blue-500 to-cyan-500", icon: "📋" },
+  { value: "thisweek", label: "This Week", gradient: "from-purple-500 to-pink-500", icon: "📅" },
+  { value: "inprocess", label: "In Process", gradient: "from-orange-500 to-yellow-500", icon: "⚡" },
+  { value: "done", label: "Done", gradient: "from-green-500 to-emerald-500", icon: "✅" },
+];
+
+export default function UpdateTask() {
   const { id } = useParams();
   const navigate = useNavigate();
-
   const [task, setTask] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("todo");
-
-  const statusColors = {
-    todo: "bg-blue-100 text-blue-800",
-    thisweek: "bg-yellow-100 text-yellow-800",
-    inprocess: "bg-orange-100 text-orange-800",
-    done: "bg-green-100 text-green-800",
-  };
 
   useEffect(() => {
     if (id) {
@@ -37,7 +38,7 @@ export default function UpdateTask({ onTaskUpdated }) {
   }, [id]);
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+    return new Date(dateString).toLocaleDateString("en-US", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -49,7 +50,6 @@ export default function UpdateTask({ onTaskUpdated }) {
       await axios.put(`${API_URL}/update/${id}`, { title, description, status });
       toast.success("✅ Task updated successfully!");
       setIsEditing(false);
-      if (onTaskUpdated) onTaskUpdated();
       navigate("/getTask");
     } catch (error) {
       toast.error("Failed to update task 😢");
@@ -57,74 +57,155 @@ export default function UpdateTask({ onTaskUpdated }) {
   };
 
   if (!task)
-    return <p className="text-white text-center mt-10">Loading task...</p>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-xl">Loading task...</p>
+      </div>
+    );
+
+  const currentStatus = statusOptions.find(s => s.value === status);
 
   return (
-    <div className="min-h-screen px-4 py-10 flex justify-center">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-xl mt-6 border border-gray-200">
-        <h2 className="text-2xl font-bold text-center mb-4">✏️ Update Task</h2>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 px-4 py-10 flex justify-center items-center -mt-16 ">
+      {/* Back Button - Absolute Position */}
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        whileHover={{ scale: 1.05, x: -5 }}
+        whileTap={{ scale: 0.95 }}
+        onClick={() => navigate(-1)}
+        className="absolute top-10 left-4 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md z-10 mt-20"
+      >
+        <IoMdArrowRoundBack size={24} />
+        Back
+      </motion.button>
 
-        {isEditing ? (
-          <div className="flex flex-col gap-4">
-            <label className="font-semibold text-gray-700">Title</label>
-            <input
-              className="p-3 rounded border font-medium text-gray-900"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter task title"
-            />
-
-            <label className="font-semibold text-gray-700">Description</label>
-            <textarea
-              className="p-3 rounded border font-medium text-gray-900 h-24"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter task description"
-            />
-
-            <label className="font-semibold text-gray-700">Status</label>
-            <select
-              className={`p-3 rounded font-bold ${statusColors[status]}`}
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="todo">To Do</option>
-              <option value="thisweek">This Week</option>
-              <option value="inprocess">In Process</option>
-              <option value="done">Done</option>
-            </select>
-
-            <div className="flex gap-2 mt-2">
-              <button
-                className="bg-green-600 px-4 py-2 rounded text-white font-bold hover:bg-green-700 transition"
-                onClick={handleUpdate}
-              >
-                ✅ Save
-              </button>
-              <button
-                className="bg-red-500 px-4 py-2 rounded text-white font-bold hover:bg-red-600 transition"
-                onClick={() => setIsEditing(false)}
-              >
-                ❌ Cancel
-              </button>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-2xl"
+      >
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/50">
+          {/* Header */}
+          <div className={`bg-gradient-to-r ${currentStatus.gradient} p-6 text-white`}>
+            <div className="flex items-center gap-3">
+              <span className="text-4xl">{currentStatus.icon}</span>
+              <div>
+                <h2 className="text-3xl font-black">✏️ Update Task</h2>
+                <p className="text-white/80">Modify task details</p>
+              </div>
             </div>
           </div>
-        ) : (
-          <div className="text-lg font-semibold space-y-2">
-            <p><span className="font-bold">Title:</span> {task.title}</p>
-            <p><span className="font-bold">Description:</span> {task.description || "-"}</p>
-            <p><span className="font-bold">Status:</span> {task.status}</p>
-            <p><span className="font-bold">Created On:</span> {formatDate(task.createdAt)}</p>
 
-            <button
-              className="mt-4 bg-yellow-500 px-4 py-2 rounded text-white font-bold hover:bg-yellow-600 transition"
-              onClick={() => setIsEditing(true)}
-            >
-              ✏️ Edit Task
-            </button>
+          <div className="p-8">
+            {isEditing ? (
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-gray-700 font-bold mb-2">Title</label>
+                  <input
+                    className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-all"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Enter task title"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-bold mb-2">Description</label>
+                  <textarea
+                    className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-all h-32 resize-none"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter task description"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-gray-700 font-bold mb-3">Status</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {statusOptions.map((option) => (
+                      <motion.button
+                        key={option.value}
+                        type="button"
+                        onClick={() => setStatus(option.value)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`p-4 rounded-xl font-bold transition-all ${
+                          status === option.value
+                            ? `bg-gradient-to-r ${option.gradient} text-white shadow-lg`
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        <span className="text-xl mr-2">{option.icon}</span>
+                        {option.label}
+                      </motion.button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex-1 bg-gradient-to-r ${currentStatus.gradient} text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all`}
+                    onClick={handleUpdate}
+                  >
+                    ✅ Save Changes
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-6 bg-gray-200 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-300 transition-all"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    ❌ Cancel
+                  </motion.button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Title</p>
+                  <p className="text-xl font-bold text-gray-800">{task.title}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Description</p>
+                  <p className="text-gray-700">{task.description || "No description"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Status</p>
+                  <span className={`inline-block bg-gradient-to-r ${currentStatus.gradient} text-white px-4 py-2 rounded-lg font-bold`}>
+                    {currentStatus.icon} {currentStatus.label}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Created On</p>
+                  <p className="text-gray-700">{formatDate(task.createdAt)}</p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex-1 bg-gradient-to-r ${currentStatus.gradient} text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all`}
+                    onClick={() => setIsEditing(true)}
+                  >
+                    ✏️ Edit Task
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="px-6 bg-gray-200 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-300 transition-all"
+                    onClick={() => navigate("/getTask")}
+                  >
+                    ← Back
+                  </motion.button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      </motion.div>
     </div>
   );
 }

@@ -1,99 +1,38 @@
-import React from "react";
-import { Star } from "lucide-react"; 
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Card} from "@/components/ui/card";
+import { motion } from 'framer-motion';
+import { Star, Quote } from 'lucide-react';
 
-// Updated feedback data with new names
-const feedbackData = [
-  {
-    id: 1,
-    name: "Sanya Kapoor",
-    gender: "Female",
-    image: "https://randomuser.me/api/portraits/women/65.jpg",
-    feedback: "The portal helped me land my dream internship quickly. Highly intuitive and user-friendly!",
-    rating: 5,
-  },
-  {
-    id: 2,
-    name: "Aditya Verma",
-    gender: "Male",
-    image: "https://randomuser.me/api/portraits/men/77.jpg",
-    feedback: "Navigation is smooth and the learning resources are excellent, though job filters could improve.",
-    rating: 4,
-  },
-  {
-    id: 3,
-    name: "Isha Mehta",
-    gender: "Female",
-    image: "https://randomuser.me/api/portraits/women/58.jpg",
-    feedback: "Responsive support and practical guidance made my learning journey seamless.",
-    rating: 5,
-  },
-  {
-    id: 4,
-    name: "Raghav Singh",
-    gender: "Male",
-    image: "https://randomuser.me/api/portraits/men/69.jpg",
-    feedback: "Smooth experience and very engaging platform. I’d recommend it to everyone!",
-    rating: 4,
-  },
-  {
-    id: 5,
-    name: "Tanya Roy",
-    gender: "Female",
-    image: "https://randomuser.me/api/portraits/women/72.jpg",
-    feedback: "Good resources but resume suggestions can be more detailed.",
-    rating: 3,
-  },
-  {
-    id: 6,
-    name: "Vivaan Malhotra",
-    gender: "Male",
-    image: "https://randomuser.me/api/portraits/men/40.jpg",
-    feedback: "Found my perfect job in just a week. This platform is amazing!",
-    rating: 5,
-  },
-];
+export default function Feedback() {
+  const testimonials = [
+    { name: 'Sarah Johnson', role: 'Software Engineer', company: 'Google', rating: 5, text: 'GrowX transformed my career. The courses are practical and the instructors are world-class.', img: 'https://i.pravatar.cc/150?img=1' },
+    { name: 'Michael Chen', role: 'Data Scientist', company: 'Microsoft', rating: 5, text: 'Best investment in my education. Landed my dream job within 3 months of completing the program.', img: 'https://i.pravatar.cc/150?img=13' },
+    { name: 'Emily Rodriguez', role: 'Product Manager', company: 'Amazon', rating: 5, text: 'The hands-on projects gave me real portfolio pieces. Highly recommend to anyone serious about learning.', img: 'https://i.pravatar.cc/150?img=5' }
+  ];
 
-const FeedbackSection = () => {
   return (
-    <section className="py-16">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
-          What Our Users Say
-        </h2>
+    <section className="py-20 px-4 bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="max-w-7xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">What Our <span className="text-blue-600">Students Say</span></h2>
+          <p className="text-xl text-gray-600">Join thousands of successful learners who transformed their careers</p>
+        </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {feedbackData.map((fb) => (
-            <Card
-              key={fb.id}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition p-6 flex flex-col justify-between"
-            >
-              <div className="flex items-center gap-4 mb-4">
-                <Avatar className="w-16 h-16">
-                  <AvatarImage src={fb.image} alt={fb.name} />
-                  <AvatarFallback>{fb.name[0]}</AvatarFallback>
-                </Avatar>
+          {testimonials.map((t, idx) => (
+            <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all">
+              <Quote className="text-blue-600 mb-4" size={32} />
+              <div className="flex gap-1 mb-4">{[...Array(t.rating)].map((_, i) => <Star key={i} className="text-yellow-400 fill-yellow-400" size={20} />)}</div>
+              <p className="text-gray-700 mb-6 leading-relaxed">{t.text}</p>
+              <div className="flex items-center gap-4">
+                <img src={t.img} alt={t.name} className="w-14 h-14 rounded-full" />
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900">{fb.name}</h4>
-                  <p className="text-sm text-gray-500">{fb.gender}</p>
+                  <div className="font-bold text-gray-900">{t.name}</div>
+                  <div className="text-sm text-gray-600">{t.role} at {t.company}</div>
                 </div>
               </div>
-              <p className="text-gray-700 mb-4">{fb.feedback}</p>
-              <div className="flex space-x-1">
-                {Array.from({ length: fb.rating }, (_, i) => (
-                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                ))}
-                {Array.from({ length: 5 - fb.rating }, (_, i) => (
-                  <Star key={i} className="w-5 h-5 text-gray-300" />
-                ))}
-              </div>
-            </Card>
+            </motion.div>
           ))}
         </div>
       </div>
     </section>
   );
-};
-
-export default FeedbackSection;
+}

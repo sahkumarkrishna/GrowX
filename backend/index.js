@@ -12,8 +12,11 @@ import applicationRoute from "./routes/application.route.js";
 
 import contactRoute from "./routes/contactRoutes.js";
 import resumeRoutes from "./routes/ReumeRoutes.js"; // ✅ fixed path & typo
-
 import taskRoutes from "./routes/taskRoutes.js";
+import quizRoute from "./routes/quiz.route.js";
+import quizResultRoute from "./routes/quizResult.route.js";
+import savedJobRoute from "./routes/savedJob.route.js";
+import atsAnalysisRoute from "./routes/atsAnalysis.route.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -27,15 +30,26 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
-//https://growx.onrender.com
 // CORS setup
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://growx.onrender.com",
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: "https://growx.onrender.com", // Frontend URL
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
   })
 );
@@ -43,7 +57,10 @@ app.use(
 // Socket.io Setup 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: ["https://growx.onrender.com"], credentials: true },
+  cors: { 
+    origin: allowedOrigins,
+    credentials: true 
+  },
 });
 
 // Attach io instance to req
@@ -62,6 +79,10 @@ app.use("/api/contact", contactRoute);
 app.use("/api/resumes", resumeRoutes);
 //  Routes 
 app.use("/api/tasks", taskRoutes);
+app.use("/api/v1/quiz", quizRoute);
+app.use("/api/v1/quiz-result", quizResultRoute);
+app.use("/api/v1/saved-job", savedJobRoute);
+app.use("/api/v1/ats", atsAnalysisRoute);
 
 // Serve frontend (after API routes)
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -77,3 +98,6 @@ app.listen(PORT, async () => {
   await connectDB();
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+
+

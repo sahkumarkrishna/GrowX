@@ -1,61 +1,56 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import learningImg from "../../assets/image.png";
+import { motion } from 'framer-motion';
+import { Target, Users, Award, Zap } from 'lucide-react';
 
 export default function About() {
-    const navigate = useNavigate();
+  const features = [
+    { icon: Target, title: 'Goal-Oriented', desc: 'Structured internship paths designed to achieve your career goals' },
+    { icon: Users, title: 'Expert Mentors', desc: 'Learn from industry professionals with real-world experience' },
+    { icon: Award, title: 'Certified Program', desc: 'Earn recognized certificates upon internship completion' },
+    { icon: Zap, title: 'Fast-Track Career', desc: 'Accelerated programs to quickly gain practical experience' }
+  ];
 
-    const handleApply = () => {
-        navigate("/category");
-    };
-
-    return (
-        <section className=" pt-0 pb-16">
-            <div className="container mx-auto px-6">
-
-                {/* H1 always on top */}
-                <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 drop-shadow-lg leading-tight mb-6">
-                    <span className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                        About
-                    </span>
-                </h1>
-
-                {/* Flex container */}
-                <div className="flex flex-col md:flex-row items-center gap-10">
-
-                    {/* Left: Text */}
-                    <div className="flex-1 order-2 md:order-1">
-                        <p className="text-lg md:text-xl text-gray-700 drop-shadow-md mb-4">
-                            Our internship program is designed to provide students and young professionals with a unique opportunity to gain real-world experience. Interns work on live projects, collaborate with skilled mentors, and participate in hands-on workshops that enhance both technical and soft skills. This immersive approach ensures that every participant develops the confidence and expertise needed to excel in their future careers.
-                        </p>
-
-                        <p className="text-lg md:text-xl text-gray-700 drop-shadow-md mb-4">
-                            We focus on personalized mentorship, skill development, and professional growth. Interns are encouraged to contribute ideas, solve real challenges, and take ownership of meaningful tasks. By the end of the program, they emerge with a portfolio of completed projects, practical knowledge, and the experience required to stand out in the competitive job market. Join us to kickstart your career journey and make an impact from day one.
-                        </p>
-
-                        {/* Buttons */}
-                        <div className="flex flex-wrap gap-3">
-                            <button
-                                onClick={handleApply}
-                                className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition w-full sm:w-auto mt-5"
-                            >
-                                Internship Categories
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Right: Image */}
-                    <div className="w-full md:w-1/2 lg:w-5/12 order-1 md:order-2">
-                        <div className="rounded-2xl overflow-hidden shadow-2xl">
-                            <img
-                                src={learningImg}
-                                alt="Learning preview"
-                                className="w-full h-48 md:h-[28rem] lg:h-[32rem] object-cover"
-                            />
-                        </div>
-                    </div>
-                </div>
+  return (
+    <section id="about" className="py-20 px-4 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+              Build Your Career with <span className="text-blue-600">Real Experience</span>
+            </h2>
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              GrowX Internship is your gateway to professional success. Our program combines hands-on projects, 
+              personalized mentorship, and industry exposure to accelerate your career growth.
+            </p>
+            <div className="grid grid-cols-2 gap-6">
+              {features.map((feature, idx) => (
+                <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className="flex items-start gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg">
+                    <feature.icon className="text-blue-600" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{feature.title}</h3>
+                    <p className="text-sm text-gray-600">{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-        </section>
-    );
+          </motion.div>
+
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.6 }} className="relative">
+            <div className="relative">
+              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&h=700&fit=crop" alt="Internship Experience" className="rounded-3xl shadow-2xl w-full h-[500px] object-cover" />
+              <div className="absolute -bottom-6 -left-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-2xl shadow-xl">
+                <div className="text-3xl font-bold">50+</div>
+                <div className="text-sm">Interns Onboarded</div>
+              </div>
+              <div className="absolute -top-6 -right-6 bg-yellow-400 text-gray-900 p-6 rounded-2xl shadow-xl">
+                <div className="text-3xl font-bold">95%</div>
+                <div className="text-sm font-semibold">Success Rate</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
 }

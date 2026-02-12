@@ -1,36 +1,42 @@
-import React from 'react';
+import { motion } from 'framer-motion';
+import { FileText, Download, Edit, Layout, CheckCircle, Palette, Zap, Share2 } from 'lucide-react';
 
-const Features = () => {
+export default function Features() {
+  const features = [
+    { icon: Layout, title: 'Multiple Templates', desc: 'Choose from 10+ professionally designed templates', color: 'bg-blue-500' },
+    { icon: Edit, title: 'Easy Editing', desc: 'Intuitive editor with real-time preview', color: 'bg-purple-500' },
+    { icon: CheckCircle, title: 'ATS-Optimized', desc: 'Pass Applicant Tracking Systems with ease', color: 'bg-green-500' },
+    { icon: Download, title: 'PDF Export', desc: 'Download your resume in high-quality PDF', color: 'bg-orange-500' },
+    { icon: Palette, title: 'Customizable', desc: 'Personalize colors, fonts, and layouts', color: 'bg-pink-500' },
+    { icon: FileText, title: 'Content Guidance', desc: 'Get tips and examples for each section', color: 'bg-yellow-500' },
+    { icon: Zap, title: 'Quick Build', desc: 'Create professional resumes in minutes', color: 'bg-indigo-500' },
+    { icon: Share2, title: 'Easy Sharing', desc: 'Share your resume link with recruiters', color: 'bg-teal-500' }
+  ];
+
   return (
-    <div>
-      {/* Features Section */}
-      <section className="py-24 px-4 ">
-        <h2 className="text-4xl font-bold text-center mb-16 text-purple-800 underline decoration-pink-500 decoration-4">
-          Resume Builder Features
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-6xl mx-auto">
-          <div className="bg-purple-100 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-            <h3 className="text-2xl font-semibold mb-4 text-purple-700">Quick Resume Creation</h3>
-            <p className="text-purple-800">
-              Build professional resumes in minutes with pre-designed templates and smart suggestions for content.
-            </p>
-          </div>
-          <div className="bg-pink-100 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-            <h3 className="text-2xl font-semibold mb-4 text-pink-700">Customizable Templates</h3>
-            <p className="text-pink-800">
-              Choose from a variety of modern, ATS-friendly templates and easily customize fonts, colors, and layout to fit your style.
-            </p>
-          </div>
-          <div className="bg-yellow-100 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow duration-300">
-            <h3 className="text-2xl font-semibold mb-4 text-yellow-700">Expert Tips & Guidance</h3>
-            <p className="text-yellow-800">
-              Receive personalized suggestions for optimizing your resume content and highlighting your strengths to impress recruiters.
-            </p>
-          </div>
+    <section className="py-20 px-4 bg-gray-50">
+      <div className="max-w-7xl mx-auto">
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
+            Everything You Need to <span className="text-blue-600">Stand Out</span>
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Our comprehensive resume builder provides all the tools you need to create winning resumes
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {features.map((feature, idx) => (
+            <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="bg-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 group">
+              <div className={`${feature.color} w-14 h-14 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                <feature.icon className="text-white" size={28} />
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-900">{feature.title}</h3>
+              <p className="text-gray-600">{feature.desc}</p>
+            </motion.div>
+          ))}
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
-
-export default Features;

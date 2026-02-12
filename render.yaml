@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: growx
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install && cd ../frontend && npm install && npm run build
+    startCommand: cd backend && npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      - key: MONGO_URI
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: CLOUD_NAME
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: API_SECRET
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: FRONTEND_URL
+        value: https://growx.onrender.com

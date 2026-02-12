@@ -1,68 +1,83 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import quiz from "../../assets/quiz.png";
+import { motion } from 'framer-motion';
+import { Brain, Target, Users, Award } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const AboutPage = () => {
   const navigate = useNavigate();
 
-  const handleGetStarted = () => {
-    navigate("/quizCategory");
-  };
+  const features = [
+    { icon: Target, title: 'Goal-Oriented', desc: 'Structured quizzes designed to achieve your learning goals' },
+    { icon: Users, title: 'Community Driven', desc: 'Compete with thousands of learners worldwide' },
+    { icon: Award, title: 'Earn Badges', desc: 'Get recognized for your achievements' },
+    { icon: Brain, title: 'Smart Learning', desc: 'Adaptive difficulty based on your performance' }
+  ];
 
   return (
-    <section className="relative py-20 mt-14 ">
-      <div className="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
-
-        {/* Text + Image Wrapper for Mobile */}
-        <div className="flex-1 flex flex-col items-center md:items-start text-center md:text-left">
-          {/* Heading */}
-          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
-            <span className="text-indigo-600">Our Quiz Platform</span> 🎓
-          </h2>
-
-          {/* Image (comes just below heading on mobile) */}
-          <div className="w-full flex justify-center md:hidden mb-6">
-            <img
-              src="https://cdn-icons-png.flaticon.com/512/906/906175.png"
-              alt="Quiz Illustration"
-              className="w-72 drop-shadow-lg"
-            />
-          </div>
-
-          {/* Paragraph */}
-          <p className="text-lg text-gray-700 leading-relaxed mb-6">
-            Our quiz platform is built with a vision to make learning more
-            engaging, enjoyable, and accessible for everyone. Education should
-            never feel like a burden, and quizzes are the perfect way to combine
-            fun with knowledge. Whether you are preparing for competitive exams,
-            looking to strengthen subject knowledge, or simply curious about new
-            topics, our platform provides quizzes tailored to your needs.
-            <br /><br />
-            With a wide range of categories, real-time feedback, and leaderboards,
-            users can track progress, compete with friends, and push themselves
-            toward excellence. The platform is designed to encourage continuous
-            growth and curiosity, transforming learning into an interactive
-            journey. We strongly believe that every question answered brings you
-            closer to achieving your goals. Join us today and explore a world
-            where learning is fun, competitive, and truly rewarding.
-          </p>
-
-          <button
-            onClick={handleGetStarted}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-lg font-semibold shadow-md hover:from-blue-700 hover:to-purple-700 transition w-full sm:w-auto mt-5"
-
+    <section className="py-20 px-4 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
-            Quiz Categories
-          </button>
-        </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+              Transform Learning with <span className="text-indigo-600">Interactive Quizzes</span>
+            </h2>
+            <p className="text-lg text-gray-600 mb-8 leading-relaxed">
+              Our quiz platform makes learning engaging and fun. Test your knowledge across 40+ topics, track your progress, and compete with friends. Whether preparing for exams or exploring new subjects, we've got you covered.
+            </p>
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              {features.map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: idx * 0.1 }}
+                  className="flex items-start gap-3">
+                  <div className="bg-indigo-100 p-2 rounded-lg">
+                    <feature.icon className="text-indigo-600" size={24} />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{feature.title}</h3>
+                    <p className="text-sm text-gray-600">{feature.desc}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            <button
+              onClick={() => navigate('/quizCategory')}
+              className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-full font-semibold hover:shadow-xl transition-all hover:scale-105"
+            >
+              Explore Quiz Categories
+            </button>
+          </motion.div>
 
-        {/* Desktop Image (hidden on mobile) */}
-        <div className="flex-1 hidden md:flex justify-center">
-          <img
-            src={quiz}
-            alt="Quiz Illustration"
-            className="w-80 md:w-[420px] drop-shadow-lg"
-          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative"
+          >
+            <div className="relative">
+              <img
+                src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&h=700&fit=crop"
+                alt="Quiz Learning"
+                className="rounded-3xl shadow-2xl w-full h-[500px] object-cover"
+              />
+              <div className="absolute -bottom-6 -left-6 bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6 rounded-2xl shadow-xl">
+                <div className="text-3xl font-bold">1000+</div>
+                <div className="text-sm">Quiz Questions</div>
+              </div>
+              <div className="absolute -top-6 -right-6 bg-yellow-400 text-gray-900 p-6 rounded-2xl shadow-xl">
+                <div className="text-3xl font-bold">40+</div>
+                <div className="text-sm font-semibold">Categories</div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </div>
     </section>

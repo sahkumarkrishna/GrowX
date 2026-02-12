@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 
 import Login from './components/auth/Login';
 import Signup from './components/auth/Signup';
+import AdminLogin from './components/auth/AdminLogin';
 import Jobs from './components/Jobs';
 import Browse from './components/Browse';
 import Profile from './components/Profile';
@@ -13,18 +14,26 @@ import CompanySetup from './components/admin/CompanySetup';
 import AdminJobs from "./components/admin/AdminJobs";
 import PostJob from './components/admin/PostJob';
 import Applicants from './components/admin/Applicants';
+import AdminQuizzes from './components/admin/AdminQuizzes';
+import CreateQuiz from './components/admin/CreateQuiz';
+import EditQuiz from './components/admin/EditQuiz';
+import AdminDashboard from './components/admin/AdminDashboard';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import NotFound from './components/PageNot';
 import ResumeCheck from './components/ResumeCheck';
 import Internship from './pages/Internship';
-import LearningHome from './pages/LearningHome';
+import ATSChecker from './pages/ATSChecker';
+import ResumeReview from './pages/ATSChecker/ResumeReview';
+import LearningHome from './pages/HomeLearning';
 import StudyRoadmap from './pages/Learning/VideoDashboard';
+import WatchDemo from './pages/Learning/WatchDemo';
 import ProblemSlove from './pages/ProblemSlove';
 import JobHome from './components/JobHome';
 import MainLayout from './Layout/MainLayout';
 import Category from './pages/Internship/Category';
 import QuizHome from './pages/QuizHome';
-import QuizCategory from './pages/Quiz/QuizSection/QuizCategory';
+
+//Kanban Board Pages
 
 import KanbanBoardHome from './pages/KanbanHero';
 import CreateTask from './pages/KanbanBoard/Tasks/CreateTask';
@@ -33,47 +42,36 @@ import GetTask from './pages/KanbanBoard/Tasks/GetTask';
 import UpdateTask from './pages/KanbanBoard/Tasks/UpdateTask';
 
 
-// Quiz Pages
-import HtmlQuiz from './pages/Quiz/QuizSection/BasicFundamentals/Html';
-import CssQuiz from './pages/Quiz/QuizSection/BasicFundamentals/Css';
-import FirebaseQuiz from './pages/Quiz/QuizSection/DatabasesFundamentals/Firebase';
-import MongoDBQuiz from './pages/Quiz/QuizSection/DatabasesFundamentals/MongoDB';
-import MySQLQuiz from './pages/Quiz/QuizSection/DatabasesFundamentals/MySql';
-import AngularQuiz from './pages/Quiz/QuizSection/FrontendFundamentals/Angular';
-import ReactQuiz from './pages/Quiz/QuizSection/FrontendFundamentals/React';
-import BootstrapQuiz from './pages/Quiz/QuizSection/FrontendFundamentals/Bootstrap';
-import TailwindQuiz from './pages/Quiz/QuizSection/FrontendFundamentals/Tailwind';
-import MaterialUIQuiz from './pages/Quiz/QuizSection/FrontendFundamentals/Material';
-import DjangoQuiz from './pages/Quiz/QuizSection/BackendFundamentals/Django';
-import NodeJSQuiz from './pages/Quiz/QuizSection/BackendFundamentals/Node';
-import SpringBootQuiz from './pages/Quiz/QuizSection/BackendFundamentals/Spring Boot';
-import CQuiz from './pages/Quiz/QuizSection/languagesFundamentals/C';
-import CPPQuiz from './pages/Quiz/QuizSection/languagesFundamentals/Cpp';
-import JavaQuiz from './pages/Quiz/QuizSection/languagesFundamentals/Java';
-import PythonQuiz from './pages/Quiz/QuizSection/languagesFundamentals/Python';
-import JSQuiz from './pages/Quiz/QuizSection/languagesFundamentals/Javascript';
-import TSQuiz from './pages/Quiz/QuizSection/languagesFundamentals/Typescript';
-import GitHubQuiz from './pages/Quiz/QuizSection/ToolsFundamentals/GitHub';
-import DockerQuiz from './pages/Quiz/QuizSection/ToolsFundamentals/Docker';
-import ReactNativeQuiz from './pages/Quiz/QuizSection/AppDevelopment/React Native';
-import FlutterQuiz from './pages/Quiz/QuizSection/AppDevelopment/Flutter';
+// Amin Dashboard Pages
+
+import QuizDashboard from './pages/Quiz/QuizDashboard';
+import QuizTake from './pages/Quiz/QuizTake';
+
+//Resume Builder 
 import ResumeTemplates from './pages/Resume/ResumeTemplates';
 import ResumeBuilder from './pages/Resume/ResumeBuilder';
 import ResumeDetails from './pages/Resume/ResumeDetails';
 import AllResumes from './pages/Resume/AllResumes';
-import ResumeEdit from './pages/Resume/EditResume';
+import EditResume from './pages/Resume/EditResume';
 import ResumeHome from './pages/ResumeHome';
+
+// User Dashboard
+import UserDashboard from './components/UserDashboard';
+import QuizDashboardUser from './components/QuizDashboardUser';
+import JobDashboardUser from './components/JobDashboardUser';
+import SavedJobsDashboard from './components/SavedJobsDashboard';
 
 const RedirectRoot = () => {
   const { user } = useSelector((state) => state.auth);
-  if (user?.role === 'recruiter') return <Navigate to="/admin/companies" replace />;
+  if (user?.role === 'recruiter') return <Navigate to="/admin/dashboard" replace />;
   return <LearningHome />;
 };
 
 const router = createBrowserRouter([
-  // Public Routes
+  // Public Routes (No Layout/Navbar)
   { path: '/login', element: <Login /> },
   { path: '/signup', element: <Signup /> },
+  { path: '/admin/login', element: <AdminLogin /> },
   { path: '*', element: <NotFound /> },
 
   // Layout Routes
@@ -86,64 +84,56 @@ const router = createBrowserRouter([
       { path: '/joball', element: <Jobs /> },
       { path: '/description/:id', element: <JobDescription /> },
       { path: '/browse', element: <Browse /> },
-      { path: '/profile', element: <Profile /> },
+      { path: '/profile', element: <ProtectedRoute><Profile /></ProtectedRoute> },
+      { path: '/dashboard', element: <ProtectedRoute><UserDashboard /></ProtectedRoute> },
+      { path: '/dashboard/quiz', element: <ProtectedRoute><QuizDashboardUser /></ProtectedRoute> },
+      { path: '/dashboard/jobs', element: <ProtectedRoute><JobDashboardUser /></ProtectedRoute> },
+      { path: '/dashboard/saved-jobs', element: <ProtectedRoute><SavedJobsDashboard /></ProtectedRoute> },
       { path: '/resumeCheck', element: <ResumeCheck /> },
       { path: '/learning', element: <LearningHome /> },
       { path: '/internship', element: <Internship /> },
-      { path: '/onlineCoding', element: <ProblemSlove /> },
+      { path: '/onlineCoding', element: <ProtectedRoute><ProblemSlove /></ProtectedRoute> },
       { path: '/learningVideo', element: <ProtectedRoute><StudyRoadmap /></ProtectedRoute> },
+      { path: '/watchDemo', element: <WatchDemo /> },
       { path: '/category', element: <ProtectedRoute><Category /></ProtectedRoute> },
-      { path: '/quizCategory', element: <ProtectedRoute><QuizCategory /></ProtectedRoute> },
 
       // Quiz Routes
       { path: '/quiz', element: <QuizHome /> },
+      { path: '/quizCategory', element: <ProtectedRoute><QuizDashboard /></ProtectedRoute> },
+      { path: '/quiz-dashboard', element: <ProtectedRoute><QuizDashboard /></ProtectedRoute> },
+      { path: '/quiz/:id', element: <ProtectedRoute><QuizTake /></ProtectedRoute> },
 
-      { path: '/htmlQuiz', element: <HtmlQuiz /> },
-      { path: '/cssQuiz', element: <CssQuiz /> },
-      { path: '/firebaseQuiz', element: <FirebaseQuiz /> },
-      { path: '/mongodbQuiz', element: <MongoDBQuiz /> },
-      { path: '/mySqlQuiz', element: <MySQLQuiz /> },
-      { path: '/angularQuiz', element: <AngularQuiz /> },
-      { path: '/reactQuiz', element: <ReactQuiz /> },
-      { path: '/bootstrapQuiz', element: <BootstrapQuiz /> },
-      { path: '/tailwindQuiz', element: <TailwindQuiz /> },
-      { path: '/materialUIQuiz', element: <MaterialUIQuiz /> },
-      { path: '/djangoQuiz', element: <DjangoQuiz /> },
-      { path: '/nodejsQuiz', element: <NodeJSQuiz /> },
-      { path: '/springBootQuiz', element: <SpringBootQuiz /> },
-      { path: '/cQuiz', element: <CQuiz /> },
-      { path: '/cppQuiz', element: <CPPQuiz /> },
-      { path: '/javaQuiz', element: <JavaQuiz /> },
-      { path: '/pythonQuiz', element: <PythonQuiz /> },
-      { path: '/javaScriptQuiz', element: <JSQuiz /> },
-      { path: '/typescriptQuiz', element: <TSQuiz /> },
-      { path: '/gitHubQuiz', element: <GitHubQuiz /> },
-      { path: '/dockerQuiz', element: <DockerQuiz /> },
-      { path: '/reactNativeQuiz', element: <ReactNativeQuiz /> },
-      { path: '/flutterQuiz', element: <FlutterQuiz /> },
+      //ATS Checker Route
+      { path: '/atschecker', element: <ATSChecker /> },
+      { path: '/atschecker/review', element: <ProtectedRoute><ResumeReview /></ProtectedRoute> },
+
 
       // Resume Routes
       { path: "/resume", element: <ResumeHome /> },
-      { path: '/templates', element: <ResumeTemplates /> },
-      { path: '/resumebuilder', element: <ProtectedRoute><ResumeBuilder /></ProtectedRoute> },
-      { path: '/resume/:id', element: <ResumeDetails /> },
-      { path: '/all-resumes', element: <AllResumes /> },
-      { path: '/edit-resume/:id', element: <ResumeEdit /> },
+      { path: '/resume-templates', element: <ResumeTemplates /> },
+      { path: '/resume-builder', element: <ProtectedRoute><ResumeBuilder /></ProtectedRoute> },
+      { path: '/resume/:id', element: <ProtectedRoute><ResumeDetails /></ProtectedRoute> },
+      { path: '/all-resumes', element: <ProtectedRoute><AllResumes /></ProtectedRoute> },
+      { path: '/edit-resume/:id', element: <ProtectedRoute><EditResume /></ProtectedRoute> },
 
       // Kanban Routes
       { path: "/KanbanBoard", element: <KanbanBoardHome /> },
-      { path: "/taskForm", element:  <ProtectedRoute><CreateTask /></ProtectedRoute> },
-      { path: "/Taskkanbanboard", element: <KanbanBoard /> },
-      { path: "/getTask/:id?", element: <GetTask /> },
-      { path: "/updateTask/:id?", element: <UpdateTask /> },
+      { path: "/taskForm", element: <ProtectedRoute><CreateTask /></ProtectedRoute> },
+      { path: "/Taskkanbanboard", element: <ProtectedRoute><KanbanBoard /></ProtectedRoute> },
+      { path: "/getTask/:id?", element: <ProtectedRoute><GetTask /></ProtectedRoute> },
+      { path: "/updateTask/:id?", element: <ProtectedRoute><UpdateTask /></ProtectedRoute> },
 
       // Admin Routes
-      { path: '/admin/companies', element: <ProtectedRoute><Companies /></ProtectedRoute> },
-      { path: '/admin/companies/create', element: <ProtectedRoute><CompanyCreate /></ProtectedRoute> },
-      { path: '/admin/companies/:id', element: <ProtectedRoute><CompanySetup /></ProtectedRoute> },
-      { path: '/admin/jobs', element: <ProtectedRoute><AdminJobs /></ProtectedRoute> },
-      { path: '/admin/jobs/create', element: <ProtectedRoute><PostJob /></ProtectedRoute> },
-      { path: '/admin/jobs/:id/applicants', element: <ProtectedRoute><Applicants /></ProtectedRoute> },
+      { path: '/admin/dashboard', element: <ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute> },
+      { path: '/admin/companies', element: <ProtectedRoute adminOnly><Companies /></ProtectedRoute> },
+      { path: '/admin/companies/create', element: <ProtectedRoute adminOnly><CompanyCreate /></ProtectedRoute> },
+      { path: '/admin/companies/:id', element: <ProtectedRoute adminOnly><CompanySetup /></ProtectedRoute> },
+      { path: '/admin/jobs', element: <ProtectedRoute adminOnly><AdminJobs /></ProtectedRoute> },
+      { path: '/admin/jobs/create', element: <ProtectedRoute adminOnly><PostJob /></ProtectedRoute> },
+      { path: '/admin/jobs/:id/applicants', element: <ProtectedRoute adminOnly><Applicants /></ProtectedRoute> },
+      { path: '/admin/quizzes', element: <ProtectedRoute adminOnly><AdminQuizzes /></ProtectedRoute> },
+      { path: '/admin/quizzes/create', element: <ProtectedRoute adminOnly><CreateQuiz /></ProtectedRoute> },
+      { path: '/admin/quizzes/edit/:id', element: <ProtectedRoute adminOnly><EditQuiz /></ProtectedRoute> },
     ],
   },
 ]);

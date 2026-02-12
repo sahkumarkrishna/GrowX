@@ -33,11 +33,11 @@ git push -u origin main
    - **Runtime:** Node
    - **Build Command:** 
      ```
-     cd backend && npm install && cd ../frontend && npm install && npm run build
+     npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
      ```
    - **Start Command:** 
      ```
-     cd backend && npm start
+     npm start --prefix backend
      ```
    - **Plan:** Free
 

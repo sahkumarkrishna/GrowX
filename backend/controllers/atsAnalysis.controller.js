@@ -183,6 +183,30 @@ export const checkATS = async (req, res) => {
   }
 };
 
+export const getAllATS = async (req, res) => {
+  try {
+    const records = await ATSAnalysis.find()
+      .populate('user', 'fullname email profile')
+      .select('-resumeText -jobDescription')
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ records, success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: 'Server error', success: false });
+  }
+};
+
+export const deleteATS = async (req, res) => {
+  try {
+    const record = await ATSAnalysis.findByIdAndDelete(req.params.id);
+    if (!record) return res.status(404).json({ message: 'Record not found', success: false });
+    return res.status(200).json({ message: 'Deleted successfully', success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: 'Server error', success: false });
+  }
+};
+
 export const getUserATSHistory = async (req, res) => {
   try {
     const history = await ATSAnalysis.find({ user: req.id })

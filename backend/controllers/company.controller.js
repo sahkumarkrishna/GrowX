@@ -1,4 +1,5 @@
 import { Company } from "../models/company.model.js";
+import { Job } from "../models/job.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
@@ -73,6 +74,36 @@ export const getCompanyById = async (req, res) => {
         console.log(error);
     }
 }
+export const deleteCompany = async (req, res) => {
+    try {
+        const company = await Company.findById(req.params.id);
+        if (!company) {
+            return res.status(404).json({ message: "Company not found.", success: false });
+        }
+
+        // Only the owner can delete
+        if (company.userId.toString() !== req.id) {
+            return res.status(403).json({ message: "Not authorized to delete this company.", success: false });
+        }
+
+        // Delete logo from cloudinary if exists
+        if (company.logo) {
+            const publicId = company.logo.split('/').pop().split('.')[0];
+            await cloudinary.uploader.destroy(publicId).catch(() => {});
+        }
+
+        // Delete all jobs linked to this company
+        await Job.deleteMany({ company: company._id });
+
+        await Company.findByIdAndDelete(req.params.id);
+
+        return res.status(200).json({ message: "Company deleted successfully.", success: true });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Internal server error", success: false });
+    }
+};
+
 export const updateCompany = async (req, res) => {
   try {
     const { name, description, website, location } = req.body;

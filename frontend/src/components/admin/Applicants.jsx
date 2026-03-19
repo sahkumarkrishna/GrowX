@@ -4,74 +4,105 @@ import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { setAllApplicants } from '@/redux/applicationSlice';
-import { Users, Briefcase } from 'lucide-react';
-import { IoMdArrowRoundBack } from 'react-icons/io';
+import { Users, Briefcase, CheckCircle2, XCircle, Clock, ArrowLeft, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import AdminLayout from './AdminLayout';
 
-const APPLICATION_API = import.meta.env.VITE_APPLICATION_API;
+const APPLICATION_API = import.meta.env.VITE_APPLICATION_API || 'http://localhost:8000/api/v1/application';
 
 const Applicants = () => {
-  const params = useParams();
+  const params   = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { applicants } = useSelector((store) => store.application);
+  const { applicants } = useSelector(s => s.application);
 
   useEffect(() => {
-    const fetchAllApplicants = async () => {
+    const fetch = async () => {
       try {
-        const res = await axios.get(`${APPLICATION_API}/${params.id}/applicants`, {
-          withCredentials: true,
-        });
+        const res = await axios.get(`${APPLICATION_API}/${params.id}/applicants`, { withCredentials: true });
         dispatch(setAllApplicants(res.data.job));
-      } catch (error) {
-        console.log(error);
-      }
+      } catch (err) { console.log(err); }
     };
+    fetch();
+  }, [params.id]);
 
-    fetchAllApplicants();
-  }, []);
+  const apps     = applicants?.applications || [];
+  const accepted = apps.filter(a => a.status === 'accepted').length;
+  const rejected = apps.filter(a => a.status === 'rejected').length;
+  const pending  = apps.filter(a => !a.status || a.status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-10">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ scale: 1.05, x: -5 }}
-          onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
-        >
-          <IoMdArrowRoundBack size={24} />
-          Back
-        </motion.button>
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto">
 
-        {/* Header */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-              <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900">
-                Applicants
-                <span className="ml-2 text-lg sm:text-xl md:text-2xl text-purple-600">
-                  ({applicants?.applications?.length || 0})
-                </span>
-              </h1>
-              <p className="text-xs sm:text-sm text-gray-600 flex items-center gap-1.5 mt-1">
-                <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
-                Review and manage job applications
-              </p>
+        {/* ── Hero Banner ── */}
+        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <div className="relative overflow-hidden rounded-3xl p-8 shadow-2xl"
+            style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%)' }}>
+
+            {/* BG circles */}
+            <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
+              style={{ background: 'radial-gradient(circle, #fff, transparent)', transform: 'translate(30%, -30%)' }} />
+            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10"
+              style={{ background: 'radial-gradient(circle, #fff, transparent)', transform: 'translate(-30%, 30%)' }} />
+
+            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+              <div className="flex items-center gap-5">
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0"
+                  style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}>
+                  <Users className="w-9 h-9 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-black text-white mb-1">Job Applicants</h1>
+                  <p className="text-purple-200 text-sm">Review candidates and send decisions via email</p>
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    <span className="text-xs font-bold px-3 py-1 rounded-full"
+                      style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>
+                      {apps.length} Total
+                    </span>
+                    <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"
+                      style={{ background: 'rgba(52,211,153,0.25)', color: '#6ee7b7' }}>
+                      <CheckCircle2 size={11} /> {accepted} Accepted
+                    </span>
+                    <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"
+                      style={{ background: 'rgba(239,68,68,0.25)', color: '#fca5a5' }}>
+                      <XCircle size={11} /> {rejected} Rejected
+                    </span>
+                    <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"
+                      style={{ background: 'rgba(251,191,36,0.25)', color: '#fde68a' }}>
+                      <Clock size={11} /> {pending} Pending
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all"
+                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)' }}>
+                <ArrowLeft size={16} /> Back
+              </motion.button>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Table */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+        {/* ── Email notice ── */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="flex items-center gap-3 px-5 py-3 rounded-2xl mb-6 text-sm font-medium"
+          style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb' }}>
+          <Mail size={16} className="flex-shrink-0" />
+          Accepting or rejecting an applicant automatically sends them an email notification.
+        </motion.div>
+
+        {/* ── Table Card ── */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          className="bg-white rounded-3xl shadow-xl overflow-hidden"
+          style={{ border: '1px solid #f1f5f9' }}>
           <ApplicantsTable />
-        </div>
+        </motion.div>
+
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

@@ -68,7 +68,7 @@ export default function ResumeBuilder() {
   const handleSaveResume = async () => {
     try {
       const newResume = { personalInfo, education, technicalSkills, experience, projects, achievements, certifications };
-      const res = await axios.post(`${API_URL}`, newResume);
+      const res = await axios.post(`${API_URL}`, newResume, { withCredentials: true });
       const resumeId = res.data?.data?._id;
       setSavedResumeId(resumeId);
       toast.success("✅ Resume Saved!");

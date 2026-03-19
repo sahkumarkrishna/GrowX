@@ -46,30 +46,7 @@ const Navbar = () => {
     if (user?.role === 'recruiter') {
       return (
         <>
-          <li>
-            <Link to="/admin/dashboard" className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium transition-all hover:scale-105">
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link to="/admin/companies" className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium transition-all hover:scale-105">
-              <Building2 className="h-4 w-4" />
-              Companies
-            </Link>
-          </li>
-          <li>
-            <Link to="/admin/jobs" className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium transition-all hover:scale-105">
-              <Briefcase className="h-4 w-4" />
-              Jobs
-            </Link>
-          </li>
-          <li>
-            <Link to="/admin/quizzes" className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium transition-all hover:scale-105">
-              <Brain className="h-4 w-4" />
-              Quizzes
-            </Link>
-          </li>
+
         </>
       );
     } else {
@@ -210,30 +187,7 @@ const Navbar = () => {
         <ul className="flex flex-col gap-1 font-medium p-4 pb-2">
           {user?.role === 'recruiter' ? (
             <>
-              <li>
-                <Link to="/admin/dashboard" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
-                  <LayoutDashboard className="h-5 w-5" />
-                  Dashboard
-                </Link>
-              </li>
-              <li>
-                <Link to="/admin/companies" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
-                  <Building2 className="h-5 w-5" />
-                  Companies
-                </Link>
-              </li>
-              <li>
-                <Link to="/admin/jobs" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
-                  <Briefcase className="h-5 w-5" />
-                  Jobs
-                </Link>
-              </li>
-              <li>
-                <Link to="/admin/quizzes" onClick={() => setMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
-                  <Brain className="h-5 w-5" />
-                  Quizzes
-                </Link>
-              </li>
+
             </>
           ) : (
             <>

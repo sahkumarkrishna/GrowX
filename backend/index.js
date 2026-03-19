@@ -17,6 +17,7 @@ import quizRoute from "./routes/quiz.route.js";
 import quizResultRoute from "./routes/quizResult.route.js";
 import savedJobRoute from "./routes/savedJob.route.js";
 import atsAnalysisRoute from "./routes/atsAnalysis.route.js";
+import internshipRoute from "./routes/internship.route.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -83,6 +84,7 @@ app.use("/api/v1/quiz", quizRoute);
 app.use("/api/v1/quiz-result", quizResultRoute);
 app.use("/api/v1/saved-job", savedJobRoute);
 app.use("/api/v1/ats", atsAnalysisRoute);
+app.use("/api/v1/internship", internshipRoute);
 
 // Serve frontend (after API routes)
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
@@ -101,3 +103,8 @@ app.listen(PORT, async () => {
 
 
 
+
+
+
+
+// responsive desing setup support all device like mobile etc,Now apply the same optimistic delete fix to AdminJobs and AdminQuizzes:

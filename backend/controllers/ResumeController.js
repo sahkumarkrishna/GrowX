@@ -3,13 +3,23 @@ import Resume from "../models/ResumeModel.js";
 // ---------------- CREATE RESUME ----------------
 export const createResume = async (req, res) => {
   try {
-    const resume = new Resume(req.body);
+    const resume = new Resume({ ...req.body, user: req.id });
     await resume.save();
     res.status(201).json({
       success: true,
       message: "Resume created successfully",
       data: resume,
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ---------------- GET MY RESUMES ----------------
+export const getMyResumes = async (req, res) => {
+  try {
+    const resumes = await Resume.find({ user: req.id }).populate("user", "fullname email");
+    res.status(200).json({ success: true, data: resumes });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

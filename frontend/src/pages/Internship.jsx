@@ -1,5 +1,6 @@
 
 import HeroSection from './Internship/HeroSection';
+import Apply from './Internship/Apply';
 import About from './Internship/About';
 import StatsSection from './Internship/StatsSection';
 import ConnectivitySection from './Internship/ConnectivitySection';
@@ -24,6 +25,7 @@ const Internship = () => {
             <FeedbackSection/>
             <FAQSection />
             <Certificate />
+            <Apply />
             <Contact/>
 
 

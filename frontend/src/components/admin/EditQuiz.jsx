@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Upload, CheckCircle2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,182 +9,162 @@ import { Textarea } from '@/components/ui/textarea';
 import { IoMdArrowRoundBack } from 'react-icons/io';
 import axios from 'axios';
 import { toast } from 'sonner';
+import AdminLayout from './AdminLayout';
+
+const CATEGORIES = ["HTML","CSS","JavaScript","TypeScript","React","Angular","Vue","Node.js","Express","Django","Spring Boot","Flask","MongoDB","MySQL","PostgreSQL","Firebase","Python","Java","C","C++","Go","Rust","React Native","Flutter","Swift","Kotlin","Git","GitHub","Docker","Kubernetes","AWS","Azure","GCP","DSA","System Design","OOP","Database Design","Other"];
+const OPTION_LABELS = ['A','B','C','D','E','F','G','H'];
+const BLANK_QUESTION = () => ({ questionText:'', options:[{optionText:''},{optionText:''},{optionText:''},{optionText:''}], correctAnswer:0, marks:1, difficulty:'Easy' });
 
 const EditQuiz = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const fileRef  = useRef(null);
+
+  const [loading,      setLoading]      = useState(true);
+  const [saving,       setSaving]       = useState(false);
+  const [imageFile,    setImageFile]    = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    category: '',
-    categoryImage: '',
-    level: 'Beginner',
-    timeLimit: 10,
-    questions: []
+    title:'', description:'', category:'', level:'Beginner', timeLimit:10, questions:[]
   });
 
-  const QUIZ_API = `${import.meta.env.VITE_USER_API?.replace('/user', '/quiz') || 'http://localhost:8000/api/v1/quiz'}`;
-  const optionLabels = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
-  const categories = ["HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue", "Node.js", "Express", "Django", "Spring Boot", "Flask", "MongoDB", "MySQL", "PostgreSQL", "Firebase", "Python", "Java", "C", "C++", "Go", "Rust", "React Native", "Flutter", "Swift", "Kotlin", "Git", "GitHub", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "DSA", "System Design", "OOP", "Database Design", "Other"];
+  const QUIZ_API = import.meta.env.VITE_USER_API?.replace('/user','/quiz') || 'http://localhost:8000/api/v1/quiz';
 
-  useEffect(() => {
-    fetchQuiz();
-  }, [id]);
+  useEffect(() => { fetchQuiz(); }, [id]);
 
   const fetchQuiz = async () => {
     try {
       const res = await axios.get(`${QUIZ_API}/${id}`);
-      setFormData(res.data.quiz);
-      setLoading(false);
-    } catch (error) {
+      const q = res.data.quiz;
+      setFormData({ title:q.title, description:q.description, category:q.category, level:q.level, timeLimit:q.timeLimit, questions:q.questions });
+      setImagePreview(q.categoryImage || '');
+    } catch {
       toast.error('Failed to load quiz');
       navigate('/admin/quizzes');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
     try {
-      await axios.put(`${QUIZ_API}/${id}`, formData, { withCredentials: true });
+      const fd = new FormData();
+      fd.append('title',       formData.title);
+      fd.append('description', formData.description);
+      fd.append('category',    formData.category);
+      fd.append('level',       formData.level);
+      fd.append('timeLimit',   formData.timeLimit);
+      fd.append('questions',   JSON.stringify(formData.questions));
+      if (imageFile) fd.append('file', imageFile);
+
+      await axios.put(`${QUIZ_API}/${id}`, fd, {
+        withCredentials: true,
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       toast.success('Quiz updated successfully ✅');
       navigate('/admin/quizzes');
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update quiz');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update quiz');
+    } finally {
+      setSaving(false);
     }
   };
 
-  const addQuestion = () => {
-    setFormData({
-      ...formData,
-      questions: [...formData.questions, { questionText: '', options: [{ optionText: '' }, { optionText: '' }, { optionText: '' }, { optionText: '' }], correctAnswer: 0, marks: 1, difficulty: 'Easy' }]
-    });
-  };
+  // ── question helpers ──
+  const set = (fn) => setFormData(prev => ({ ...prev, questions: fn(prev.questions) }));
+  const addQuestion    = ()        => set(qs => [...qs, BLANK_QUESTION()]);
+  const removeQuestion = (qi)      => set(qs => qs.filter((_,i) => i !== qi));
+  const updateQ        = (qi,k,v)  => set(qs => { const n=[...qs]; n[qi]={...n[qi],[k]:v}; return n; });
+  const addOption      = (qi)      => set(qs => { const n=[...qs]; n[qi].options.push({optionText:''}); return n; });
+  const removeOption   = (qi,oi)   => set(qs => {
+    const n=[...qs];
+    n[qi].options = n[qi].options.filter((_,i)=>i!==oi);
+    if (n[qi].correctAnswer >= n[qi].options.length) n[qi].correctAnswer = 0;
+    return n;
+  });
+  const updateOption   = (qi,oi,v) => set(qs => { const n=[...qs]; n[qi].options[oi].optionText=v; return n; });
 
-  const removeQuestion = (qIdx) => {
-    const newQuestions = formData.questions.filter((_, idx) => idx !== qIdx);
-    setFormData({ ...formData, questions: newQuestions });
-  };
-
-  const addOption = (qIdx) => {
-    const newQuestions = [...formData.questions];
-    newQuestions[qIdx].options.push({ optionText: '' });
-    setFormData({ ...formData, questions: newQuestions });
-  };
-
-  const removeOption = (qIdx, oIdx) => {
-    const newQuestions = [...formData.questions];
-    newQuestions[qIdx].options = newQuestions[qIdx].options.filter((_, idx) => idx !== oIdx);
-    if (newQuestions[qIdx].correctAnswer >= newQuestions[qIdx].options.length) {
-      newQuestions[qIdx].correctAnswer = 0;
-    }
-    setFormData({ ...formData, questions: newQuestions });
-  };
-
-  const updateQuestion = (qIdx, field, value) => {
-    const newQuestions = [...formData.questions];
-    newQuestions[qIdx][field] = value;
-    setFormData({ ...formData, questions: newQuestions });
-  };
-
-  const updateOption = (qIdx, oIdx, value) => {
-    const newQuestions = [...formData.questions];
-    newQuestions[qIdx].options[oIdx].optionText = value;
-    setFormData({ ...formData, questions: newQuestions });
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600"></div>
+  if (loading) return (
+    <AdminLayout>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-purple-600" />
       </div>
-    );
-  }
+    </AdminLayout>
+  );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4">
+    <AdminLayout>
       <div className="max-w-5xl mx-auto">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ scale: 1.05, x: -5 }}
-          onClick={() => navigate('/admin/quizzes')}
-          className="mb-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
-        >
-          <IoMdArrowRoundBack size={24} />
-          Back
-        </motion.button>
-
         <Card className="shadow-2xl border-2 border-purple-200">
           <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
             <CardTitle className="text-2xl">✏️ Edit Quiz</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Basic Info */}
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Quiz Title *</label>
-                  <Input
-                    placeholder="Enter quiz title"
-                    value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="border-2 focus:border-purple-500"
-                    required
-                  />
+                  <Input placeholder="Enter quiz title" value={formData.title} required
+                    onChange={e => setFormData(p=>({...p,title:e.target.value}))}
+                    className="border-2 focus:border-purple-500" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Description</label>
-                  <Textarea
-                    placeholder="Enter quiz description"
-                    value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="border-2 focus:border-purple-500"
-                    rows={3}
-                  />
+                  <Textarea placeholder="Enter quiz description" rows={3} value={formData.description}
+                    onChange={e => setFormData(p=>({...p,description:e.target.value}))}
+                    className="border-2 focus:border-purple-500" />
                 </div>
+
+                {/* Image Upload */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Category Image *</label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const reader = new FileReader();
-                        reader.onloadend = () => {
-                          setFormData({ ...formData, categoryImage: reader.result });
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="border-2 focus:border-purple-500"
-                  />
-                  {formData.categoryImage && (
-                    <img src={formData.categoryImage} alt="Preview" className="mt-2 w-20 h-20 object-cover rounded-lg" />
-                  )}
+                  <label className="block text-sm font-bold text-gray-700 mb-2">Category Image</label>
+                  <label className="flex items-center gap-4 p-4 border-2 border-dashed border-purple-200 hover:border-purple-500 rounded-2xl cursor-pointer bg-purple-50/50 hover:bg-purple-50 transition-all group">
+                    {imagePreview ? (
+                      <img src={imagePreview} alt="preview" className="w-16 h-16 object-cover rounded-xl" />
+                    ) : (
+                      <div className="w-16 h-16 rounded-xl bg-purple-100 flex items-center justify-center">
+                        <Upload size={24} className="text-purple-500" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-bold text-gray-700 group-hover:text-purple-600 transition-colors">
+                        {imageFile ? imageFile.name : 'Click to change image'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">PNG · JPG · WEBP</p>
+                    </div>
+                    {imageFile && <CheckCircle2 size={20} className="text-emerald-500 ml-auto" />}
+                    <input ref={fileRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                  </label>
                 </div>
               </div>
 
+              {/* Meta */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Category *</label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border-2 rounded-lg focus:border-purple-500 outline-none"
-                    required
-                  >
+                  <select value={formData.category} required
+                    onChange={e => setFormData(p=>({...p,category:e.target.value}))}
+                    className="w-full px-3 py-2 border-2 rounded-lg focus:border-purple-500 outline-none">
                     <option value="">Select Category</option>
-                    {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Level *</label>
-                  <select
-                    value={formData.level}
-                    onChange={(e) => setFormData({ ...formData, level: e.target.value })}
-                    className="w-full px-3 py-2 border-2 rounded-lg focus:border-purple-500 outline-none"
-                  >
+                  <select value={formData.level}
+                    onChange={e => setFormData(p=>({...p,level:e.target.value}))}
+                    className="w-full px-3 py-2 border-2 rounded-lg focus:border-purple-500 outline-none">
                     <option value="Beginner">🟢 Beginner</option>
                     <option value="Intermediate">🟡 Intermediate</option>
                     <option value="Advanced">🔴 Advanced</option>
@@ -192,57 +172,42 @@ const EditQuiz = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">Time Limit (min) *</label>
-                  <Input
-                    type="number"
-                    min="1"
-                    placeholder="10"
-                    value={formData.timeLimit}
-                    onChange={(e) => setFormData({ ...formData, timeLimit: parseInt(e.target.value) })}
-                    className="border-2 focus:border-purple-500"
-                    required
-                  />
+                  <Input type="number" min="1" value={formData.timeLimit} required
+                    onChange={e => setFormData(p=>({...p,timeLimit:parseInt(e.target.value)}))}
+                    className="border-2 focus:border-purple-500" />
                 </div>
               </div>
 
+              {/* Questions */}
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-xl font-bold text-gray-800">📝 Questions</h3>
-                  <Button type="button" onClick={addQuestion} variant="outline" className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50">
+                  <Button type="button" onClick={addQuestion} variant="outline"
+                    className="border-2 border-purple-500 text-purple-600 hover:bg-purple-50">
                     <Plus className="w-4 h-4 mr-2" /> Add Question
                   </Button>
                 </div>
-                
-                {formData.questions.map((q, qIdx) => (
-                  <Card key={qIdx} className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
+
+                {formData.questions.map((q, qi) => (
+                  <Card key={qi} className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200">
                     <div className="flex justify-between items-start mb-4">
-                      <h4 className="text-lg font-bold text-purple-700">Question {qIdx + 1}</h4>
+                      <h4 className="text-lg font-bold text-purple-700">Question {qi + 1}</h4>
                       {formData.questions.length > 1 && (
-                        <Button type="button" onClick={() => removeQuestion(qIdx)} variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
+                        <Button type="button" onClick={() => removeQuestion(qi)} variant="ghost" size="sm" className="text-red-500">
                           <X className="w-4 h-4" />
                         </Button>
                       )}
                     </div>
-                    
                     <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-2">Question Text *</label>
-                        <Textarea
-                          placeholder="Enter your question here"
-                          value={q.questionText}
-                          onChange={(e) => updateQuestion(qIdx, 'questionText', e.target.value)}
-                          className="border-2 focus:border-purple-500"
-                          required
-                        />
-                      </div>
-                      
+                      <Textarea placeholder="Enter your question here" value={q.questionText} required
+                        onChange={e => updateQ(qi,'questionText',e.target.value)}
+                        className="border-2 focus:border-purple-500" />
+
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-bold text-gray-700 mb-2">Difficulty</label>
-                          <select
-                            value={q.difficulty}
-                            onChange={(e) => updateQuestion(qIdx, 'difficulty', e.target.value)}
-                            className="w-full px-3 py-2 border-2 rounded-lg focus:border-purple-500 outline-none"
-                          >
+                          <select value={q.difficulty} onChange={e => updateQ(qi,'difficulty',e.target.value)}
+                            className="w-full px-3 py-2 border-2 rounded-lg focus:border-purple-500 outline-none">
                             <option value="Easy">😊 Easy</option>
                             <option value="Medium">😐 Medium</option>
                             <option value="Hard">😰 Hard</option>
@@ -250,51 +215,36 @@ const EditQuiz = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-bold text-gray-700 mb-2">Marks</label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={q.marks}
-                            onChange={(e) => updateQuestion(qIdx, 'marks', parseInt(e.target.value))}
-                            className="border-2 focus:border-purple-500"
-                          />
+                          <Input type="number" min="1" value={q.marks}
+                            onChange={e => updateQ(qi,'marks',parseInt(e.target.value))}
+                            className="border-2 focus:border-purple-500" />
                         </div>
                       </div>
 
                       <div>
                         <div className="flex justify-between items-center mb-3">
-                          <label className="block text-sm font-bold text-gray-700">Options (Select correct answer)</label>
-                          <Button type="button" onClick={() => addOption(qIdx)} variant="outline" size="sm" className="text-xs">
+                          <label className="block text-sm font-bold text-gray-700">Options (select correct)</label>
+                          <Button type="button" onClick={() => addOption(qi)} variant="outline" size="sm" className="text-xs">
                             <Plus className="w-3 h-3 mr-1" /> Add Option
                           </Button>
                         </div>
                         <div className="space-y-2">
-                          {q.options.map((opt, oIdx) => (
-                            <div key={oIdx} className="flex items-center gap-2">
-                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-600 text-white font-bold text-sm flex-shrink-0">
-                                {optionLabels[oIdx]}
+                          {q.options.map((opt, oi) => (
+                            <div key={oi} className="flex items-center gap-2">
+                              <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-bold text-sm flex items-center justify-center flex-shrink-0">
+                                {OPTION_LABELS[oi]}
                               </div>
-                              <Input
-                                placeholder={`Option ${optionLabels[oIdx]}`}
-                                value={opt.optionText}
-                                onChange={(e) => updateOption(qIdx, oIdx, e.target.value)}
-                                className="flex-1 border-2 focus:border-purple-500"
-                                required
-                              />
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="radio"
-                                  name={`correct-${qIdx}`}
-                                  checked={q.correctAnswer === oIdx}
-                                  onChange={() => updateQuestion(qIdx, 'correctAnswer', oIdx)}
-                                  className="w-5 h-5 cursor-pointer accent-green-600"
-                                  title="Mark as correct answer"
-                                />
-                                {q.options.length > 2 && (
-                                  <Button type="button" onClick={() => removeOption(qIdx, oIdx)} variant="ghost" size="sm" className="text-red-500 hover:text-red-700">
-                                    <X className="w-4 h-4" />
-                                  </Button>
-                                )}
-                              </div>
+                              <Input placeholder={`Option ${OPTION_LABELS[oi]}`} value={opt.optionText} required
+                                onChange={e => updateOption(qi,oi,e.target.value)}
+                                className="flex-1 border-2 focus:border-purple-500" />
+                              <input type="radio" name={`correct-${qi}`} checked={q.correctAnswer===oi}
+                                onChange={() => updateQ(qi,'correctAnswer',oi)}
+                                className="w-5 h-5 cursor-pointer accent-green-600" title="Mark as correct" />
+                              {q.options.length > 2 && (
+                                <Button type="button" onClick={() => removeOption(qi,oi)} variant="ghost" size="sm" className="text-red-500">
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -305,14 +255,15 @@ const EditQuiz = () => {
                 ))}
               </div>
 
-              <Button type="submit" className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg py-6">
-                💾 Update Quiz
+              <Button type="submit" disabled={saving}
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-lg py-6">
+                {saving ? 'Saving...' : '💾 Update Quiz'}
               </Button>
             </form>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

@@ -1,4 +1,3 @@
-// routes/resumeRoutes.js
 import express from "express";
 import {
   createResume,
@@ -6,15 +5,17 @@ import {
   getResumeById,
   updateResume,
   deleteResume,
+  getMyResumes,
 } from "../controllers/ResumeController.js";
+import isAuthenticated from "../middlewares/isAuthenticated.js";
 
 const router = express.Router();
 
-router.post("/", createResume);   // ✅ now create works
-router.get("/", getAllResumes);
+router.post("/", isAuthenticated, createResume);
+router.get("/", getAllResumes);                          // admin: all resumes
+router.get("/my", isAuthenticated, getMyResumes);       // user: own resumes
 router.get("/:id", getResumeById);
-router.put("/update/:id", updateResume);
-
-router.delete("/:id", deleteResume);
+router.put("/update/:id", isAuthenticated, updateResume);
+router.delete("/:id", isAuthenticated, deleteResume);
 
 export default router;

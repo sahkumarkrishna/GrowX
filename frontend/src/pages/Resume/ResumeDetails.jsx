@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { IoMdArrowRoundBack } from "react-icons/io";
 import { FaDownload, FaEdit, FaPrint, FaShare } from "react-icons/fa";
@@ -12,6 +12,8 @@ import ResumeTemplate from "./ResumeTemplate.jsx";
 export default function ResumeDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isAdmin = searchParams.get('admin') === 'true';
   const API_URL = import.meta.env.VITE_API_URL;
   const [resume, setResume] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -98,63 +100,68 @@ export default function ResumeDetails() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 py-8 px-4 -mt-16">
-      {/* Floating Action Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-5xl mx-auto mb-6 sticky top-4 z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-4"
-      >
-        <div className="flex flex-wrap gap-3 items-center justify-between">
-          <motion.button
-            whileHover={{ scale: 1.05, x: -5 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate(-1)}
-            className="flex items-center gap-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white px-5 py-3 rounded-xl font-bold hover:shadow-lg transition-all"
-          >
-            <IoMdArrowRoundBack size={20} />
-            Back
-          </motion.button>
+      {!isAdmin && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-5xl mx-auto mb-6 sticky top-4 z-10 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-4"
+        >
+          <div className="flex flex-wrap gap-3 items-center justify-between">
+            {!isAdmin && (
+              <motion.button
+                whileHover={{ scale: 1.05, x: -5 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate(-1)}
+                className="flex items-center gap-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white px-5 py-3 rounded-xl font-bold hover:shadow-lg transition-all"
+              >
+                <IoMdArrowRoundBack size={20} />
+                Back
+              </motion.button>
+            )}
 
-          <div className="flex gap-3 flex-wrap">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate(`/edit-resume/${id}`)}
-              className="flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-            >
-              <FaEdit /> Edit
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handlePrint}
-              className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-            >
-              <FaPrint /> Print
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleDownloadPDF}
-              disabled={downloading}
-              className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <FaDownload /> {downloading ? "Downloading..." : "Download PDF"}
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleShare}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-            >
-              <FaShare /> Share
-            </motion.button>
+            {!isAdmin && (
+              <div className="flex gap-3 flex-wrap">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate(`/edit-resume/${id}`)}
+                  className="flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+                >
+                  <FaEdit /> Edit
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handlePrint}
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+                >
+                  <FaPrint /> Print
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleDownloadPDF}
+                  disabled={downloading}
+                  className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FaDownload /> {downloading ? "Downloading..." : "Download PDF"}
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleShare}
+                  className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-5 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
+                >
+                  <FaShare /> Share
+                </motion.button>
+              </div>
+            )}
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Resume Display */}
       <motion.div

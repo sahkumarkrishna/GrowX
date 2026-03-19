@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "nodemailer": "^8.0.3",
-    "streamifier": "^0.1.1"
-  }
-}

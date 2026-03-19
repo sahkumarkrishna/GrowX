@@ -15,7 +15,7 @@ const QUIZ_API       = import.meta.env.VITE_USER_API?.replace('/user', '/quiz') 
 const JOB_API        = import.meta.env.VITE_JOB_API                                   || 'http://localhost:8000/api/v1/job';
 const INTERNSHIP_API = import.meta.env.VITE_USER_API?.replace('/user', '/internship') || 'http://localhost:8000/api/v1/internship';
 const ATS_API        = import.meta.env.VITE_USER_API?.replace('/user', '/ats')        || 'http://localhost:8000/api/v1/ats';
-const RESUME_API     = 'http://localhost:8000/api/resumes';
+const RESUME_API     = import.meta.env.VITE_USER_API?.replace('/user', '/resumes')     || 'http://localhost:8000/api/v1/resumes';
 
 /* ── Mini stat pill ─────────────────────────────────────────── */
 const Pill = ({ label, value, color }) => (

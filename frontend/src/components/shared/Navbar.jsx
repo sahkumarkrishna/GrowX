@@ -43,7 +43,7 @@ const Navbar = () => {
   };
 
   const renderLinks = () => {
-    if (user?.role === 'recruiter') {
+    if (user?.role === 'admin') {
       return (
         <>
 
@@ -143,7 +143,7 @@ const Navbar = () => {
                     </div>
                   </div>
                   <div className="flex flex-col gap-2">
-                    {user?.role !== 'recruiter' && (
+                    {user?.role !== 'admin' && (
                       <>
                         <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors font-medium">
                           <LayoutDashboard className="h-4 w-4" /> Dashboard
@@ -185,7 +185,7 @@ const Navbar = () => {
       {/* Mobile Nav */}
       <div className={`lg:hidden fixed inset-x-0 top-16 bg-white shadow-2xl transition-all duration-300 overflow-y-auto z-40 border-t border-gray-200 ${menuOpen ? "max-h-[calc(100vh-4rem)] opacity-100" : "max-h-0 opacity-0"}`}>
         <ul className="flex flex-col gap-1 font-medium p-4 pb-2">
-          {user?.role === 'recruiter' ? (
+          {user?.role === 'admin' ? (
             <>
 
             </>

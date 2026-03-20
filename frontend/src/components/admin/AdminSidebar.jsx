@@ -88,7 +88,7 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const handleLogout = async () => {
     try {
-      const res = await axios.post(`${USER_API}/logout`, {}, { withCredentials: true });
+      const res = await axios.get(`${USER_API}/logout`, { withCredentials: true });
       if (res.data.success) {
         dispatch(setUser(null));
         navigate('/');

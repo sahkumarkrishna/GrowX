@@ -43,6 +43,7 @@ import MainLayout from './Layout/MainLayout';
 
 // Pages
 const LearningHome    = lazy(() => import('./pages/HomeLearning'));
+const LearningDashboard = lazy(() => import('./pages/LearningDashboard'));
 const Internship      = lazy(() => import('./pages/Internship'));
 const ATSChecker      = lazy(() => import('./pages/ATSChecker'));
 const ResumeReview    = lazy(() => import('./pages/ATSChecker/ResumeReview'));
@@ -100,7 +101,7 @@ const S = (Component) => (
 
 const RedirectRoot = () => {
   const { user } = useSelector((state) => state.auth);
-  if (user?.role === 'recruiter') return <Navigate to="/admin/dashboard" replace />;
+  if (user?.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
   return (
     <Suspense fallback={<PageLoader />}>
       <LearningHome />
@@ -187,6 +188,9 @@ const router = createBrowserRouter([
   { path: '/admin/quiz-access',        element: <Suspense fallback={<PageLoader />}><ProtectedRoute adminOnly><AdminQuizAccess /></ProtectedRoute></Suspense> },
   { path: '/admin/job-applications',   element: <Suspense fallback={<PageLoader />}><ProtectedRoute adminOnly><AdminJobApplications /></ProtectedRoute></Suspense> },
   { path: '/admin/internships',        element: <Suspense fallback={<PageLoader />}><ProtectedRoute adminOnly><AdminInternships /></ProtectedRoute></Suspense> },
+
+  // Learning Dashboard (with sidebar)
+  { path: '/learning-dashboard',       element: <Suspense fallback={<PageLoader />}><ProtectedRoute><LearningDashboard /></ProtectedRoute></Suspense> },
 ]);
 
 function App() {

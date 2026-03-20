@@ -25,7 +25,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   }
 
   // Check admin-only routes
-  if (adminOnly && user.role !== 'recruiter') {
+  if (adminOnly && user.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 

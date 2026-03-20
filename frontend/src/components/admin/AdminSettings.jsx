@@ -137,7 +137,7 @@ const AdminSettings = () => {
                   {/* Badges */}
                   <div className="flex flex-wrap gap-2 justify-center mt-3">
                     <span className="bg-violet-100 text-violet-700 text-xs px-3 py-1 rounded-full font-bold capitalize">
-                      {user?.role || 'recruiter'}
+                      {user?.role || 'admin'}
                     </span>
                     <span className="bg-emerald-100 text-emerald-700 text-xs px-3 py-1 rounded-full font-bold">
                       ● Online

@@ -41,7 +41,7 @@ const AdminLogin = () => {
 
     try {
       const res = await axios.post(`${USER_API}/login`, 
-        { ...input, role: 'recruiter' },
+        { ...input, role: 'admin' },
         {
           headers: { 'Content-Type': 'application/json' },
           withCredentials: true,
@@ -49,7 +49,7 @@ const AdminLogin = () => {
       );
 
       if (res.data.success) {
-        if (res.data.user.role === 'recruiter') {
+        if (res.data.user.role === 'admin') {
           dispatch(setUser(res.data.user));
           navigate('/admin/dashboard');
           toast.success('Admin login successful!');

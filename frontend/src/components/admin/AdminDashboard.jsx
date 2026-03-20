@@ -95,6 +95,28 @@ const AdminDashboard = () => {
   const { user } = useSelector(s => s.auth);
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [completedTasks, setCompletedTasks] = useState(() => {
+    const saved = localStorage.getItem(`admin_dashboard_completions_${user?._id}`);
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  const dashboardTasks = [
+    { id: 'quizzes', label: 'Manage Quizzes', icon: Brain, color: '#fb923c' },
+    { id: 'jobs', label: 'Post Jobs', icon: Briefcase, color: '#2dd4bf' },
+    { id: 'internships', label: 'Review Internships', icon: GraduationCap, color: '#facc15' },
+    { id: 'ats', label: 'Review ATS Checks', icon: FileSearch, color: '#f87171' },
+    { id: 'resumes', label: 'View Resumes', icon: FileText, color: '#4ade80' },
+    { id: 'users', label: 'Manage Users', icon: Users, color: '#8b5cf6' },
+  ];
+
+  const toggleTaskComplete = (taskId) => {
+    const updated = { ...completedTasks, [taskId]: !completedTasks[taskId] };
+    setCompletedTasks(updated);
+    localStorage.setItem(`admin_dashboard_completions_${user?._id}`, JSON.stringify(updated));
+    toast.success(updated[taskId] ? '✅ Task marked complete!' : '⏳ Task marked incomplete');
+  };
+
+  const completionPercentage = Math.round((Object.values(completedTasks).filter(Boolean).length / dashboardTasks.length) * 100);
 
   useEffect(() => {
     const fetch = async () => {
@@ -187,6 +209,76 @@ const AdminDashboard = () => {
             <StatCard key={c.title} {...c} navigate={navigate} delay={0.05 * i} />
           ))}
         </div>
+
+        {/* ── Dashboard Completion Tracker ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <div className="rounded-3xl border overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.07)' }}>
+            <div className="flex items-center justify-between px-5 py-4 border-b bg-gradient-to-r from-purple-900/30 to-blue-900/30" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <div className="flex items-center gap-3">
+                <Award size={18} style={{ color: '#fbbf24' }} />
+                <div>
+                  <span className="text-sm font-bold text-white">Learning Path Progress</span>
+                  <p className="text-xs text-white/60 mt-0.5">Mark tasks as you complete them</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-black" style={{ color: '#fbbf24' }}>{completionPercentage}%</p>
+                <p className="text-xs text-white/60">{Object.values(completedTasks).filter(Boolean).length}/{dashboardTasks.length}</p>
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="px-5 py-4 border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+              <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completionPercentage}%` }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="h-full bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full"
+                />
+              </div>
+            </div>
+
+            {/* Task Grid */}
+            <div className="p-5">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+                {dashboardTasks.map((task) => {
+                  const Task = task.icon;
+                  const isCompleted = completedTasks[task.id];
+                  return (
+                    <motion.button
+                      key={task.id}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => toggleTaskComplete(task.id)}
+                      className={`flex flex-col items-center gap-2 p-3 rounded-2xl transition-all border-2 ${
+                        isCompleted
+                          ? 'bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/50'
+                          : 'bg-white/5 border-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="relative">
+                        <Task size={20} style={{ color: task.color }} />
+                        {isCompleted && (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
+                          >
+                            <CheckCircle size={14} className="text-white" />
+                          </motion.div>
+                        )}
+                      </div>
+                      <span className={`text-xs font-semibold text-center leading-tight ${isCompleted ? 'text-green-400' : 'text-white/70'}`}>
+                        {task.label}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* ── Sections Grid ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

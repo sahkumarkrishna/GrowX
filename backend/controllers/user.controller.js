@@ -63,8 +63,12 @@ export const register = async (req, res) => {
       profile: { profilePhoto: profilePhotoUrl },
       emailVerificationToken: verificationToken,
       emailVerificationExpiry: tokenExpiry,
-      isEmailVerified: false,
+      isEmailVerified: false, // Temporarily set to true for live testing
     });
+
+    // TEMPORARY: Auto-verify for live testing (remove after testing)
+    newUser.isEmailVerified = true;
+    await newUser.save();
 
     // Send verification email after successful registration
     (async () => {

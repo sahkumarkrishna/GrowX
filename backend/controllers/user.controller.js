@@ -64,7 +64,7 @@ export const register = async (req, res) => {
       profile: { profilePhoto: profilePhotoUrl },
       emailVerificationToken: verificationToken,
       emailVerificationExpiry: tokenExpiry,
-      isEmailVerified: process.env.NODE_ENV !== 'production', // Skip verification in development
+      isEmailVerified: process.env.NODE_ENV !== 'production' || process.env.SKIP_EMAIL_VERIFICATION === 'true',
     });
 
     // Send verification email after successful registration
@@ -152,8 +152,8 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Incorrect email or password", success: false });
 
-    // Check if email is verified
-    if (!user.isEmailVerified) {
+    // Check if email is verified (or bypass via env var in dev/test)
+    if (!user.isEmailVerified && process.env.SKIP_EMAIL_VERIFICATION !== 'true') {
       return res.status(403).json({ 
         message: "Please verify your email before logging in. Check your inbox for the verification link.", 
         success: false,

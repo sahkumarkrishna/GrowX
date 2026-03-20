@@ -42,8 +42,8 @@ import ProtectedRoute from './components/shared/ProtectedRoute';
 import MainLayout from './Layout/MainLayout';
 
 // Pages
-const LearningHome    = lazy(() => import('./pages/HomeLearning'));
-const LearningDashboard = lazy(() => import('./pages/LearningDashboard'));
+const LearningDashboard = lazy(() => import('./pages/HomeLearning'));
+
 const Internship      = lazy(() => import('./pages/Internship'));
 const ATSChecker      = lazy(() => import('./pages/ATSChecker'));
 const ResumeReview    = lazy(() => import('./pages/ATSChecker/ResumeReview'));
@@ -90,13 +90,6 @@ const PageLoader = () => (
       </div>
     </div>
   </div>
-);
-
-// ── Wrap with Suspense ──
-const S = (Component) => (
-  <Suspense fallback={<PageLoader />}>
-    <Component />
-  </Suspense>
 );
 
 const RedirectRoot = () => {

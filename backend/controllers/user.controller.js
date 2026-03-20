@@ -64,7 +64,7 @@ export const register = async (req, res) => {
       profile: { profilePhoto: profilePhotoUrl },
       emailVerificationToken: verificationToken,
       emailVerificationExpiry: tokenExpiry,
-      isEmailVerified: false,
+      isEmailVerified: process.env.NODE_ENV !== 'production', // Skip verification in development
     });
 
     // Send verification email after successful registration

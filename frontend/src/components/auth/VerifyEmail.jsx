@@ -56,6 +56,19 @@ const VerifyEmail = () => {
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(manualEmail)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    // Token validation (should be 32 characters)
+    if (manualToken.trim().length !== 32) {
+      toast.error('Verification code must be exactly 32 characters');
+      return;
+    }
+
     try {
       setVerifyingManual(true);
       const res = await axios.get(`${USER_API}/verify-email?token=${manualToken}&email=${manualEmail}`);

@@ -61,6 +61,13 @@ const Login = () => {
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(input.email)) {
+      toast.error("Please enter a valid email address");
+      return;
+    }
+
     try {
       dispatch(setLoading(true));
 

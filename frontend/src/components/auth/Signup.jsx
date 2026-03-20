@@ -32,8 +32,45 @@ const Signup = () => {
     setInput({ ...input, file: e.target.files?.[0] });
   };
 
+  // Email validation function
+  const isValidEmail = (email) => {
+    // Proper email regex pattern
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+      return false;
+    }
+
+    // Check email doesn't have very short local part (before @)
+    const [localPart] = email.split('@');
+    if (localPart.length < 3) {
+      return false;
+    }
+
+    // Check for valid domain structure (has at least 2 parts: domain.tld)
+    const domainPart = email.split('@')[1];
+    const domainParts = domainPart.split('.');
+    if (domainParts.length < 2) {
+      return false;
+    }
+
+    // Check TLD is at least 2 characters
+    const tld = domainParts[domainParts.length - 1];
+    if (tld.length < 2) {
+      return false;
+    }
+
+    return true;
+  };
+
   const submitHandler = async (e) => {
     e.preventDefault();
+
+    // Validate email format
+    if (!isValidEmail(input.email)) {
+      toast.error('Please enter a valid email address (e.g., yourname@domain.com)');
+      return;
+    }
 
     const formData = new FormData();
     formData.append('fullname', input.fullname);

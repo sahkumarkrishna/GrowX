@@ -17,6 +17,25 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required", success: false });
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format", success: false });
+    }
+
+    // Check email local part is not too short
+    const [localPart] = email.split('@');
+    if (localPart.length < 3) {
+      return res.status(400).json({ message: "Email local part must be at least 3 characters", success: false });
+    }
+
+    // Check domain structure
+    const domainPart = email.split('@')[1];
+    const domainParts = domainPart.split('.');
+    if (domainParts.length < 2 || domainParts[domainParts.length - 1].length < 2) {
+      return res.status(400).json({ message: "Please enter a valid email address (e.g., yourname@domain.com)", success: false });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "User already exists with this email", success: false });
@@ -121,6 +140,12 @@ export const login = async (req, res) => {
 
     if (!email || !password || !role) {
       return res.status(400).json({ message: "All fields are required", success: false });
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Invalid email format", success: false });
     }
 
     const user = await User.findOne({ email });

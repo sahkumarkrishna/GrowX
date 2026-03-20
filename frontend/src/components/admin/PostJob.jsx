@@ -11,7 +11,7 @@ import { Loader2, Briefcase, MapPin, DollarSign, Users, Clock, Building2, FileTe
 import { motion } from 'framer-motion';
 import AdminLayout from './AdminLayout';
 
-const JOB_API = import.meta.env.VITE_JOB_API;
+const JOB_API = import.meta.env.VITE_JOB_API || 'http://localhost:8000/api/v1/job';
 
 const Field = ({ label, icon: Icon, iconColor, children }) => (
   <div className="space-y-2">
@@ -40,13 +40,35 @@ const PostJob = () => {
   const handleSubmit = async e => {
     e.preventDefault();
     if (!input.companyId) return toast.error('Please select a company.');
+
+    const payload = {
+      title: input.title.trim(),
+      description: input.description.trim(),
+      requirements: input.requirements.trim(),
+      salary: Number(input.salary),
+      location: input.location.trim(),
+      jobType: input.jobType.trim(),
+      experience: Number(input.experience),
+      position: Number(input.position),
+      companyId: input.companyId,
+    };
+
+    if (!payload.title || !payload.description || !payload.requirements || !payload.salary || !payload.location || !payload.jobType || !payload.experience || !payload.position) {
+      return toast.error('Please complete all required fields with valid values.');
+    }
+
     try {
       setLoading(true);
-      const res = await axios.post(`${JOB_API}/post`, input, { headers: { 'Content-Type': 'application/json' }, withCredentials: true });
-      if (res.data.success) { toast.success(res.data.message); navigate('/admin/jobs'); }
+      const res = await axios.post(`${JOB_API}/post`, payload, { headers: { 'Content-Type': 'application/json' }, withCredentials: true });
+      if (res.data.success) {
+        toast.success(res.data.message);
+        navigate('/admin/jobs');
+      }
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Error posting job');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -118,9 +140,9 @@ const PostJob = () => {
                   className="h-12 border-2 border-gray-200 focus:border-amber-500 rounded-xl bg-gray-50 focus:bg-white transition-all" required />
               </Field>
 
-              <Field label="Experience Level" icon={FileText} iconColor="#6366f1">
-                <Input name="experience" value={input.experience} onChange={handleInputChange}
-                  placeholder="e.g. 3-5 years"
+              <Field label="Experience Level (years)" icon={FileText} iconColor="#6366f1">
+                <Input type="number" min="0" name="experience" value={input.experience} onChange={handleInputChange}
+                  placeholder="e.g. 3"
                   className="h-12 border-2 border-gray-200 focus:border-indigo-500 rounded-xl bg-gray-50 focus:bg-white transition-all" required />
               </Field>
 

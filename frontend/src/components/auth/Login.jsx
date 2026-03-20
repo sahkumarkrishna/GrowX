@@ -7,7 +7,7 @@ import axios from "axios";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import { setLoading, setUser } from "@/redux/authSlice";
-import { Loader2, Mail, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { Loader2, Mail, Lock, ArrowRight, Sparkles, AlertCircle, MailCheck } from "lucide-react";
 
 const Login = () => {
   const [input, setInput] = useState({
@@ -15,17 +15,42 @@ const Login = () => {
     password: "",
     role: "student",
   });
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
+  const [resendLoading, setResendLoading] = useState(false);
 
   const { loading, user } = useSelector((store) => store.auth);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const location = useLocation();
 
-  const USER_API_END_POINT = import.meta.env.VITE_USER_API;
+  const USER_API_END_POINT = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
   const from = location.state?.from?.pathname || "/";
 
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
+  };
+
+  const resendVerificationEmail = async () => {
+    if (!unverifiedEmail) return;
+    
+    try {
+      setResendLoading(true);
+      const res = await axios.post(`${USER_API_END_POINT}/resend-verification-email`, 
+        { email: unverifiedEmail },
+        { headers: { "Content-Type": "application/json" }, withCredentials: true }
+      );
+
+      if (res.data.success) {
+        toast.success("Verification email resent successfully!");
+        toast.success("Check your inbox for the new verification link.");
+      } else {
+        toast.error(res.data.message || "Failed to resend email");
+      }
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to resend verification email");
+    } finally {
+      setResendLoading(false);
+    }
   };
 
   const submitHandler = async (e) => {
@@ -52,7 +77,14 @@ const Login = () => {
         toast.error(res.data.message || "Login failed!");
       }
     } catch (error) {
-      toast.error(error?.response?.data?.message || "Login failed!");
+      const errorMessage = error?.response?.data?.message || "Login failed!";
+      toast.error(errorMessage);
+      
+      // If email is not verified, show additional info and set state
+      if (error?.response?.status === 403 && !error?.response?.data?.isEmailVerified) {
+        setUnverifiedEmail(input.email);
+        toast.error("Please verify your email to login.");
+      }
     } finally {
       dispatch(setLoading(false));
     }
@@ -124,6 +156,32 @@ const Login = () => {
               )}
             </Button>
           </form>
+
+          {/* Email Verification Alert */}
+          {unverifiedEmail && (
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="font-semibold text-amber-900">Email Not Verified</p>
+                  <p className="text-sm text-amber-800 mt-1">
+                    {unverifiedEmail} hasn't been verified yet.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={resendVerificationEmail}
+                disabled={resendLoading}
+                className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2"
+              >
+                {resendLoading ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
+                ) : (
+                  <><MailCheck className="w-4 h-4" /> Resend Verification Email</>
+                )}
+              </Button>
+            </div>
+          )}
 
           {/* Bottom Links */}
           <div className="space-y-4">

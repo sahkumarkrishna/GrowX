@@ -5,6 +5,7 @@ import { lazy, Suspense } from 'react';
 // ── Lazy Imports ──
 const Login           = lazy(() => import('./components/auth/Login'));
 const Signup          = lazy(() => import('./components/auth/Signup'));
+const VerifyEmail     = lazy(() => import('./components/auth/VerifyEmail'));
 const AdminLogin      = lazy(() => import('./components/auth/AdminLogin'));
 const Jobs            = lazy(() => import('./components/Jobs'));
 const Browse          = lazy(() => import('./components/Browse'));
@@ -107,6 +108,7 @@ const router = createBrowserRouter([
   // Public Routes
   { path: '/login',       element: <Suspense fallback={<PageLoader />}><Login /></Suspense> },
   { path: '/signup',      element: <Suspense fallback={<PageLoader />}><Signup /></Suspense> },
+  { path: '/verify-email', element: <Suspense fallback={<PageLoader />}><VerifyEmail /></Suspense> },
   { path: '/admin/login', element: <Suspense fallback={<PageLoader />}><AdminLogin /></Suspense> },
   { path: '*',            element: <Suspense fallback={<PageLoader />}><NotFound /></Suspense> },
 

@@ -6,21 +6,26 @@ export const postJob = async (req, res) => {
         const { title, description, requirements, salary, location, jobType, experience, position, companyId } = req.body;
         const userId = req.id;
 
-        if (!title || !description || !requirements || !salary || !location || !jobType || !experience || !position || !companyId) {
+        const experienceNum = Number(experience);
+        const positionNum = Number(position);
+        const salaryNum = Number(salary);
+
+        if (!title || !description || !requirements || !salaryNum || !location || !jobType || !experienceNum || !positionNum || !companyId) {
             return res.status(400).json({
-                message: "Somethin is missing.",
+                message: "Please provide all required fields with valid values.",
                 success: false
-            })
-        };
+            });
+        }
+
         const job = await Job.create({
             title,
             description,
             requirements: requirements.split(","),
-            salary: Number(salary),
+            salary: salaryNum,
             location,
             jobType,
-            experienceLevel: experience,
-            position,
+            experienceLevel: experienceNum,
+            position: positionNum,
             company: companyId,
             created_by: userId
         });
@@ -30,7 +35,12 @@ export const postJob = async (req, res) => {
             success: true
         });
     } catch (error) {
-        console.log(error);
+        console.error('postJob error:', error);
+        return res.status(500).json({
+            message: 'Internal server error while creating job.',
+            success: false,
+            error: error.message,
+        });
     }
 }
 // student k liye

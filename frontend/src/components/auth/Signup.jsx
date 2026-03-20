@@ -19,7 +19,7 @@ const Signup = () => {
     file: ''
   });
 
-  const USER_API_END_POINT = import.meta.env.VITE_USER_API;
+  const USER_API_END_POINT = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
   const { loading, user } = useSelector(store => store.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -52,6 +52,7 @@ const Signup = () => {
 
       if (res.data.success) {
         toast.success(res.data.message);
+        toast.success(`Check your email (${input.email}) for the verification link. It expires in 24 hours.`);
         navigate('/login');
       } else toast.error(res.data.message || 'Signup failed.');
     } catch (error) {

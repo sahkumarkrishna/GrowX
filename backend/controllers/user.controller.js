@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Application } from "../models/application.model.js";
+import { sendEmail } from "../utils/mailer.js";
 
 // ============================
 // REGISTER
@@ -30,6 +31,10 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Generate email verification token (valid for 24 hours)
+    const verificationToken = Math.random().toString(36).substr(2, 32);
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
     const newUser = await User.create({
       fullname,
       email,
@@ -37,9 +42,70 @@ export const register = async (req, res) => {
       password: hashedPassword,
       role,
       profile: { profilePhoto: profilePhotoUrl },
+      emailVerificationToken: verificationToken,
+      emailVerificationExpiry: tokenExpiry,
+      isEmailVerified: false,
     });
 
-    return res.status(201).json({ message: "Account created successfully", success: true, user: newUser });
+    // Send verification email after successful registration
+    (async () => {
+      try {
+        const expiryTime = new Date(tokenExpiry).toLocaleString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}&email=${email}`;
+        await sendEmail({
+          to: email,
+          subject: "Verify Your GrowX Email",
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 600px; margin: 0 auto; padding: 20px; background: #f3f4f6; border-radius: 12px;">
+              <div style="background: linear-gradient(135deg, #7c3aed, #2563eb); padding: 30px; border-radius: 12px; color: white; text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 24px;">🔐 Email Verification</h2>
+              </div>
+              
+              <h3 style="color: #1f2937; margin-top: 0;">Welcome, ${fullname}!</h3>
+              <p style="color: #6b7280; line-height: 1.6;">Thank you for joining GrowX. Please verify your email address to complete your registration and unlock all features.</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationLink}" style="background: linear-gradient(135deg, #7c3aed, #2563eb); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">✓ Verify Email</a>
+              </div>
+              
+              <p style="color: #9ca3af; font-size: 13px; margin: 20px 0;">Or paste this code in the verification page:</p>
+              <div style="background: white; border: 3px dashed #7c3aed; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 20px;">
+                <code style="font-size: 16px; font-weight: bold; color: #7c3aed; letter-spacing: 1px; word-break: break-all;">${verificationToken}</code>
+              </div>
+              
+              <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #d97706; font-weight: bold; margin: 0;">⏰ Expires: ${expiryTime} UTC</p>
+              </div>
+              
+              <p style="color: #6b7280; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                If you didn't create this account, please ignore this email.
+              </p>
+              
+              <p style="color: #9ca3af; font-size: 12px; margin-top: 20px; text-align: center;">© 2024 GrowX · Your Career Growth Platform</p>
+            </div>
+          `,
+        });
+      } catch (emailError) {
+        console.error("Verification email failed:", emailError);
+      }
+    })();
+
+    return res.status(201).json({ 
+      message: "Account created successfully. Please verify your email to login.", 
+      success: true, 
+      user: {
+        _id: newUser._id,
+        fullname: newUser.fullname,
+        email: newUser.email,
+        isEmailVerified: newUser.isEmailVerified,
+      }
+    });
   } catch (error) {
     console.error("Register Error:", error);
     res.status(500).json({ message: "Internal server error", success: false });
@@ -60,6 +126,16 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "Incorrect email or password", success: false });
 
+    // Check if email is verified
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ 
+        message: "Please verify your email before logging in. Check your inbox for the verification link.", 
+        success: false,
+        isEmailVerified: false,
+        email: user.email
+      });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Incorrect email or password", success: false });
 
@@ -74,6 +150,7 @@ export const login = async (req, res) => {
       phoneNumber: user.phoneNumber,
       role: user.role,
       profile: user.profile,
+      isEmailVerified: user.isEmailVerified,
     };
 
     return res
@@ -85,6 +162,175 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "Internal server error", success: false });
   }
 };
+
+// ============================
+// VERIFY EMAIL
+// ============================
+export const verifyEmail = async (req, res) => {
+  try {
+    const { token, email } = req.query;
+
+    if (!token || !email) {
+      return res.status(400).json({ message: "Invalid verification link", success: false });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found", success: false });
+    }
+
+    // Check if email is already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email already verified. You can login now.", success: false });
+    }
+
+    // Check if token matches and is not expired
+    if (user.emailVerificationToken !== token || new Date() > user.emailVerificationExpiry) {
+      return res.status(400).json({ message: "Verification link expired or invalid. Please register again.", success: false });
+    }
+
+    // Verify email
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null;
+    user.emailVerificationExpiry = null;
+    await user.save();
+
+    // Send confirmation email
+    (async () => {
+      try {
+        await sendEmail({
+          to: email,
+          subject: "Email Verified - Welcome to GrowX!",
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 600px; margin: 0 auto; padding: 20px; background: #f3f4f6; border-radius: 12px;">
+              <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; border-radius: 12px; color: white; text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 24px;">✅ Email Verified!</h2>
+              </div>
+              
+              <h3 style="color: #1f2937; margin-top: 0;">Great news, ${user.fullname}!</h3>
+              <p style="color: #6b7280; line-height: 1.6;">Your email has been successfully verified. You can now login to your GrowX account and start exploring all features.</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Go to Login</a>
+              </div>
+              
+              <p style="color: #6b7280; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                You're all set! Start your journey with GrowX by exploring job opportunities, building your resume, and taking quizzes.
+              </p>
+              
+              <p style="color: #9ca3af; font-size: 12px; margin-top: 20px;">© 2024 GrowX · Your Career Growth Platform</p>
+            </div>
+          `,
+        });
+      } catch (emailError) {
+        console.error("Confirmation email failed:", emailError);
+      }
+    })();
+
+    return res.status(200).json({ 
+      message: "Email verified successfully! You can now login.", 
+      success: true,
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+      }
+    });
+  } catch (error) {
+    console.error("Verify Email Error:", error);
+    res.status(500).json({ message: "Internal server error", success: false });
+  }
+}
+
+// ============================
+// RESEND VERIFICATION EMAIL
+// ============================
+export const resendVerificationEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required", success: false });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found", success: false });
+    }
+
+    // Check if already verified
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email already verified. You can login now.", success: false });
+    }
+
+    // Generate new verification token (valid for 24 hours)
+    const verificationToken = Math.random().toString(36).substr(2, 32);
+    const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    user.emailVerificationToken = verificationToken;
+    user.emailVerificationExpiry = tokenExpiry;
+    await user.save();
+
+    // Send verification email
+    (async () => {
+      try {
+        const expiryTime = new Date(tokenExpiry).toLocaleString('en-US', { 
+          month: 'short', 
+          day: 'numeric', 
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}&email=${email}`;
+        await sendEmail({
+          to: email,
+          subject: "Verify Your GrowX Email - New Verification Link",
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #1f2937; max-width: 600px; margin: 0 auto; padding: 20px; background: #f3f4f6; border-radius: 12px;">
+              <div style="background: linear-gradient(135deg, #7c3aed, #2563eb); padding: 30px; border-radius: 12px; color: white; text-align: center; margin-bottom: 20px;">
+                <h2 style="margin: 0; font-size: 24px;">🔐 Email Verification</h2>
+              </div>
+              
+              <h3 style="color: #1f2937; margin-top: 0;">New Verification Link</h3>
+              <p style="color: #6b7280; line-height: 1.6;">Here's your new verification link. Click the button below to verify your email and get started with GrowX.</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${verificationLink}" style="background: linear-gradient(135deg, #7c3aed, #2563eb); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">✓ Verify Email</a>
+              </div>
+              
+              <p style="color: #9ca3af; font-size: 13px; margin: 20px 0;">Or paste this code in the verification page:</p>
+              <div style="background: white; border: 3px dashed #7c3aed; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 20px;">
+                <code style="font-size: 16px; font-weight: bold; color: #7c3aed; letter-spacing: 1px; word-break: break-all;">${verificationToken}</code>
+              </div>
+              
+              <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 12px; margin-bottom: 20px; text-align: center;">
+                <p style="color: #d97706; font-weight: bold; margin: 0;">⏰ Expires: ${expiryTime} UTC</p>
+              </div>
+              
+              <p style="color: #6b7280; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                If you didn't request this, please ignore this email.
+              </p>
+              
+              <p style="color: #9ca3af; font-size: 12px; margin-top: 20px; text-align: center;">© 2024 GrowX · Your Career Growth Platform</p>
+            </div>
+          `,
+        });
+      } catch (emailError) {
+        console.error("Resend verification email failed:", emailError);
+      }
+    })();
+
+    return res.status(200).json({ 
+      message: "Verification email sent successfully. Check your inbox.", 
+      success: true,
+      email: user.email
+    });
+  } catch (error) {
+    console.error("Resend Verification Email Error:", error);
+    res.status(500).json({ message: "Internal server error", success: false });
+  }
+}
 
 // ============================
 // LOGOUT

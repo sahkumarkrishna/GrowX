@@ -5,6 +5,7 @@ import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Application } from "../models/application.model.js";
 import { sendEmail } from "../utils/mailer.js";
+import crypto from "crypto";
 
 // ============================
 // REGISTER
@@ -290,7 +291,7 @@ export const resendVerificationEmail = async (req, res) => {
     }
 
     // Generate new verification token (valid for 24 hours)
-    const verificationToken = Math.random().toString(36).substr(2, 32);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
     const tokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     user.emailVerificationToken = verificationToken;

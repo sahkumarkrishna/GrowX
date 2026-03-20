@@ -76,7 +76,7 @@ export const register = async (req, res) => {
           hour: '2-digit',
           minute: '2-digit'
         });
-        const verificationLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}&email=${email}`;
+        const verificationLink = `${process.env.FRONTEND_URL || 'https://growx.onrender.com'}/verify-email?token=${verificationToken}&email=${email}`;
         await sendEmail({
           to: email,
           subject: "Verify Your GrowX Email",
@@ -236,7 +236,7 @@ export const verifyEmail = async (req, res) => {
               <p style="color: #6b7280; line-height: 1.6;">Your email has been successfully verified. You can now login to your GrowX account and start exploring all features.</p>
               
               <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Go to Login</a>
+                <a href="${process.env.FRONTEND_URL || 'https://growx.onrender.com'}/login" style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 12px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">Go to Login</a>
               </div>
               
               <p style="color: #6b7280; margin-top: 30px; border-top: 1px solid #e5e7eb; padding-top: 20px;">

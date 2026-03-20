@@ -42,6 +42,7 @@ import ProtectedRoute from './components/shared/ProtectedRoute';
 import MainLayout from './Layout/MainLayout';
 
 // Pages
+const LearningHome    = lazy(() => import('./pages/HomeLearning'));
 const LearningDashboard = lazy(() => import('./pages/HomeLearning'));
 
 const Internship      = lazy(() => import('./pages/Internship'));

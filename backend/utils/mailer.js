@@ -23,6 +23,23 @@ const createTransporter = () => {
   });
 };
 
+// ── Verify SMTP connection on startup ─────────────────────────────────────────
+export const verifyMailer = async () => {
+  if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
+    console.error("❌ Mailer: MAIL_USER or MAIL_PASS is not set in .env");
+    return;
+  }
+  try {
+    const t = createTransporter();
+    await t.verify();
+    console.log(`✅ Mailer ready — sending as ${process.env.MAIL_USER}`);
+  } catch (err) {
+    console.error("❌ Mailer connection failed:", err.message);
+    console.error("   → Check MAIL_USER and MAIL_PASS in your .env");
+    console.error("   → MAIL_PASS must be a Gmail App Password, not your real password");
+  }
+};
+
 // ── Generic send with retry ────────────────────────────────────────────────────
 export const sendEmail = async ({ to, subject, html }, retries = 2) => {
   const transporter = createTransporter();

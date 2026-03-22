@@ -1,109 +1,214 @@
-import React, { useEffect } from 'react';
-import ApplicantsTable from './ApplicantsTable';
-import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { setAllApplicants } from '@/redux/applicationSlice';
-import { Users, Briefcase, CheckCircle2, XCircle, Clock, ArrowLeft, Mail } from 'lucide-react';
-import { motion } from 'framer-motion';
-import AdminLayout from './AdminLayout';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { lazy, Suspense } from 'react';
 
-const APPLICATION_API = import.meta.env.VITE_APPLICATION_API || 'http://localhost:8000/api/v1/application';
+// ── Auth Pages ────────────────────────────────────────────────────────────────
+const Login          = lazy(() => import('./components/auth/Login'));
+const Signup         = lazy(() => import('./components/auth/Signup'));
+const VerifyEmail    = lazy(() => import('./components/auth/VerifyEmail'));
+const ForgotPassword = lazy(() => import('./components/auth/ForgotPassword'));  // ← ADDED
+const ResetPassword  = lazy(() => import('./components/auth/ResetPassword'));   // ← ADDED
+const AdminLogin     = lazy(() => import('./components/auth/AdminLogin'));
 
-const Applicants = () => {
-  const params   = useParams();
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
-  const { applicants } = useSelector(s => s.application);
+// ── Public Pages ──────────────────────────────────────────────────────────────
+const Jobs           = lazy(() => import('./components/Jobs'));
+const Browse         = lazy(() => import('./components/Browse'));
+const Profile        = lazy(() => import('./components/Profile'));
+const JobDescription = lazy(() => import('./components/JobDescription'));
+const JobHome        = lazy(() => import('./components/JobHome'));
+const ResumeCheck    = lazy(() => import('./components/ResumeCheck'));
+const NotFound       = lazy(() => import('./components/PageNot'));
 
-  useEffect(() => {
-    const fetch = async () => {
-      try {
-        const res = await axios.get(`${APPLICATION_API}/${params.id}/applicants`, { withCredentials: true });
-        dispatch(setAllApplicants(res.data.job));
-      } catch (err) { console.log(err); }
-    };
-    fetch();
-  }, [params.id]);
+// ── Admin Pages ───────────────────────────────────────────────────────────────
+const Companies            = lazy(() => import('./components/admin/Companies'));
+const CompanyCreate        = lazy(() => import('./components/admin/CompanyCreate'));
+const CompanySetup         = lazy(() => import('./components/admin/CompanySetup'));
+const AdminJobs            = lazy(() => import('./components/admin/AdminJobs'));
+const PostJob              = lazy(() => import('./components/admin/PostJob'));
+const Applicants           = lazy(() => import('./components/admin/Applicants'));
+const AdminQuizzes         = lazy(() => import('./components/admin/AdminQuizzes'));
+const CreateQuiz           = lazy(() => import('./components/admin/CreateQuiz'));
+const EditQuiz             = lazy(() => import('./components/admin/EditQuiz'));
+const AdminDashboard       = lazy(() => import('./components/admin/AdminDashboard'));
+const AdminSettings        = lazy(() => import('./components/admin/AdminSettings'));
+const AdminSaved           = lazy(() => import('./components/admin/AdminSaved'));
+const AdminUsers           = lazy(() => import('./components/admin/AdminUsers'));
+const AdminAllJobs         = lazy(() => import('./components/admin/AdminAllJobs'));
+const AdminAllQuizzes      = lazy(() => import('./components/admin/AdminAllQuizzes'));
+const AdminAnalytics       = lazy(() => import('./components/admin/AdminAnalytics'));
+const AdminATS             = lazy(() => import('./components/admin/AdminATS'));
+const AdminResumes         = lazy(() => import('./components/admin/AdminResumes'));
+const AdminQuizAccess      = lazy(() => import('./components/admin/AdminQuizAccess'));
+const AdminJobApplications = lazy(() => import('./components/admin/AdminJobApplications'));
+const AdminInternships     = lazy(() => import('./components/admin/AdminInternships'));
 
-  const apps     = applicants?.applications || [];
-  const accepted = apps.filter(a => a.status === 'accepted').length;
-  const rejected = apps.filter(a => a.status === 'rejected').length;
-  const pending  = apps.filter(a => !a.status || a.status === 'pending').length;
+// ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
+import ProtectedRoute from './components/shared/ProtectedRoute';
+import MainLayout     from './Layout/MainLayout';
 
-  return (
-    <AdminLayout>
-      <div className="max-w-7xl mx-auto">
+// ── Feature Pages ─────────────────────────────────────────────────────────────
+const LearningHome      = lazy(() => import('./pages/HomeLearning'));
+const LearningDashboard = lazy(() => import('./pages/HomeLearning'));
 
-        {/* ── Hero Banner ── */}
-        <motion.div initial={{ opacity: 0, y: -16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <div className="relative overflow-hidden rounded-3xl p-8 shadow-2xl"
-            style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%)' }}>
+const Internship      = lazy(() => import('./pages/Internship'));
+const ATSChecker      = lazy(() => import('./pages/ATSChecker'));
+const ResumeReview    = lazy(() => import('./pages/ATSChecker/ResumeReview'));
+const StudyRoadmap    = lazy(() => import('./pages/Learning/VideoDashboard'));
+const WatchDemo       = lazy(() => import('./pages/Learning/WatchDemo'));
+const ProblemSlove    = lazy(() => import('./pages/ProblemSlove'));
+const Category        = lazy(() => import('./pages/Internship/Category'));
+const QuizHome        = lazy(() => import('./pages/QuizHome'));
+const QuizDashboard   = lazy(() => import('./pages/Quiz/QuizDashboard'));
+const QuizTake        = lazy(() => import('./pages/Quiz/QuizTake'));
+const ResumeTemplates = lazy(() => import('./pages/Resume/ResumeTemplates'));
+const ResumeBuilder   = lazy(() => import('./pages/Resume/ResumeBuilder'));
+const ResumeDetails   = lazy(() => import('./pages/Resume/ResumeDetails'));
+const AllResumes      = lazy(() => import('./pages/Resume/AllResumes'));
+const EditResume      = lazy(() => import('./pages/Resume/EditResume'));
+const ResumeHome      = lazy(() => import('./pages/ResumeHome'));
+const KanbanBoardHome = lazy(() => import('./pages/KanbanHero'));
+const CreateTask      = lazy(() => import('./pages/KanbanBoard/Tasks/CreateTask'));
+const KanbanBoard     = lazy(() => import('./pages/KanbanBoard/Tasks/KanbanBoard'));
+const GetTask         = lazy(() => import('./pages/KanbanBoard/Tasks/GetTask'));
+const UpdateTask      = lazy(() => import('./pages/KanbanBoard/Tasks/UpdateTask'));
 
-            {/* BG circles */}
-            <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
-              style={{ background: 'radial-gradient(circle, #fff, transparent)', transform: 'translate(30%, -30%)' }} />
-            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-10"
-              style={{ background: 'radial-gradient(circle, #fff, transparent)', transform: 'translate(-30%, 30%)' }} />
+// ── User Dashboard ────────────────────────────────────────────────────────────
+const UserDashboard      = lazy(() => import('./components/UserDashboard'));
+const QuizDashboardUser  = lazy(() => import('./components/QuizDashboardUser'));
+const JobDashboardUser   = lazy(() => import('./components/JobDashboardUser'));
+const SavedJobsDashboard = lazy(() => import('./components/SavedJobsDashboard'));
 
-            <div className="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-              <div className="flex items-center gap-5">
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl flex-shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(8px)' }}>
-                  <Users className="w-9 h-9 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-black text-white mb-1">Job Applicants</h1>
-                  <p className="text-purple-200 text-sm">Review candidates and send decisions via email</p>
-                  <div className="flex flex-wrap gap-2 mt-3">
-                    <span className="text-xs font-bold px-3 py-1 rounded-full"
-                      style={{ background: 'rgba(255,255,255,0.2)', color: '#fff' }}>
-                      {apps.length} Total
-                    </span>
-                    <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"
-                      style={{ background: 'rgba(52,211,153,0.25)', color: '#6ee7b7' }}>
-                      <CheckCircle2 size={11} /> {accepted} Accepted
-                    </span>
-                    <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"
-                      style={{ background: 'rgba(239,68,68,0.25)', color: '#fca5a5' }}>
-                      <XCircle size={11} /> {rejected} Rejected
-                    </span>
-                    <span className="text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1"
-                      style={{ background: 'rgba(251,191,36,0.25)', color: '#fde68a' }}>
-                      <Clock size={11} /> {pending} Pending
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-bold transition-all"
-                style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)' }}>
-                <ArrowLeft size={16} /> Back
-              </motion.button>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* ── Email notice ── */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="flex items-center gap-3 px-5 py-3 rounded-2xl mb-6 text-sm font-medium"
-          style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb' }}>
-          <Mail size={16} className="flex-shrink-0" />
-          Accepting or rejecting an applicant automatically sends them an email notification.
-        </motion.div>
-
-        {/* ── Table Card ── */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          className="bg-white rounded-3xl shadow-xl overflow-hidden"
-          style={{ border: '1px solid #f1f5f9' }}>
-          <ApplicantsTable />
-        </motion.div>
-
+// ─────────────────────────────────────────────────────────────────────────────
+// Page Loader  (shown while lazy chunks are loading)
+// ─────────────────────────────────────────────────────────────────────────────
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-purple-50">
+    <div className="text-center">
+      <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500
+                      flex items-center justify-center shadow-xl animate-pulse">
+        <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10"
+                  stroke="currentColor" strokeWidth="4" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+        </svg>
       </div>
-    </AdminLayout>
+      <div className="flex gap-1.5 justify-center">
+        {[0, 1, 2].map(i => (
+          <div key={i}
+               className="w-2 h-2 rounded-full bg-purple-500 animate-bounce"
+               style={{ animationDelay: `${i * 0.15}s` }} />
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Root redirect — admin goes to /admin/dashboard, others see LearningHome
+// ─────────────────────────────────────────────────────────────────────────────
+const RedirectRoot = () => {
+  const { user } = useSelector((state) => state.auth);
+  if (user?.role === 'recruiter' || user?.role === 'admin') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <LearningHome />
+    </Suspense>
   );
 };
 
-export default Applicants;
+// ─────────────────────────────────────────────────────────────────────────────
+// Wrap helper — keeps route definitions concise
+// ─────────────────────────────────────────────────────────────────────────────
+const W = ({ children }) => <Suspense fallback={<PageLoader />}>{children}</Suspense>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Router
+// ─────────────────────────────────────────────────────────────────────────────
+const router = createBrowserRouter([
+
+  // ── Auth / Public (no layout) ──────────────────────────────────────────────
+  { path: '/login',                    element: <W><Login /></W> },
+  { path: '/signup',                   element: <W><Signup /></W> },
+  { path: '/verify-email/:token',      element: <W><VerifyEmail /></W> },      // ← :token param
+  { path: '/forgot-password',          element: <W><ForgotPassword /></W> },   // ← NEW
+  { path: '/reset-password/:token',    element: <W><ResetPassword /></W> },    // ← NEW
+  { path: '/admin/login',              element: <W><AdminLogin /></W> },
+  { path: '*',                         element: <W><NotFound /></W> },
+
+  // ── Main Layout (Navbar + footer) ─────────────────────────────────────────
+  {
+    path: '/',
+    element: <W><MainLayout /></W>,
+    children: [
+      { index: true,              element: <RedirectRoot /> },
+      { path: 'job',              element: <W><JobHome /></W> },
+      { path: 'joball',           element: <W><Jobs /></W> },
+      { path: 'description/:id', element: <W><JobDescription /></W> },
+      { path: 'browse',           element: <W><Browse /></W> },
+      { path: 'resumeCheck',      element: <W><ResumeCheck /></W> },
+      { path: 'learning',         element: <W><LearningHome /></W> },
+      { path: 'internship',       element: <W><Internship /></W> },
+      { path: 'watchDemo',        element: <W><WatchDemo /></W> },
+      { path: 'quiz',             element: <W><QuizHome /></W> },
+      { path: 'atschecker',       element: <W><ATSChecker /></W> },
+      { path: 'resume',           element: <W><ResumeHome /></W> },
+      { path: 'resume-templates', element: <W><ResumeTemplates /></W> },
+      { path: 'KanbanBoard',      element: <W><KanbanBoardHome /></W> },
+
+      // Protected
+      { path: 'profile',          element: <W><ProtectedRoute><Profile /></ProtectedRoute></W> },
+      { path: 'dashboard',        element: <W><ProtectedRoute><UserDashboard /></ProtectedRoute></W> },
+      { path: 'dashboard/quiz',   element: <W><ProtectedRoute><QuizDashboardUser /></ProtectedRoute></W> },
+      { path: 'dashboard/jobs',   element: <W><ProtectedRoute><JobDashboardUser /></ProtectedRoute></W> },
+      { path: 'dashboard/saved-jobs', element: <W><ProtectedRoute><SavedJobsDashboard /></ProtectedRoute></W> },
+      { path: 'onlineCoding',     element: <W><ProtectedRoute><ProblemSlove /></ProtectedRoute></W> },
+      { path: 'learningVideo',    element: <W><ProtectedRoute><StudyRoadmap /></ProtectedRoute></W> },
+      { path: 'category',         element: <W><ProtectedRoute><Category /></ProtectedRoute></W> },
+      { path: 'quizCategory',     element: <W><ProtectedRoute><QuizDashboard /></ProtectedRoute></W> },
+      { path: 'quiz-dashboard',   element: <W><ProtectedRoute><QuizDashboard /></ProtectedRoute></W> },
+      { path: 'quiz/:id',         element: <W><ProtectedRoute><QuizTake /></ProtectedRoute></W> },
+      { path: 'atschecker/review',element: <W><ProtectedRoute><ResumeReview /></ProtectedRoute></W> },
+      { path: 'resume-builder',   element: <W><ProtectedRoute><ResumeBuilder /></ProtectedRoute></W> },
+      { path: 'resume/:id',       element: <W><ProtectedRoute><ResumeDetails /></ProtectedRoute></W> },
+      { path: 'all-resumes',      element: <W><ProtectedRoute><AllResumes /></ProtectedRoute></W> },
+      { path: 'edit-resume/:id',  element: <W><ProtectedRoute><EditResume /></ProtectedRoute></W> },
+      { path: 'taskForm',         element: <W><ProtectedRoute><CreateTask /></ProtectedRoute></W> },
+      { path: 'Taskkanbanboard',  element: <W><ProtectedRoute><KanbanBoard /></ProtectedRoute></W> },
+      { path: 'getTask/:id?',     element: <W><ProtectedRoute><GetTask /></ProtectedRoute></W> },
+      { path: 'updateTask/:id?',  element: <W><ProtectedRoute><UpdateTask /></ProtectedRoute></W> },
+
+      // Learning Dashboard
+      { path: 'learning-dashboard', element: <W><ProtectedRoute><LearningDashboard /></ProtectedRoute></W> },
+    ],
+  },
+
+  // ── Admin Routes (NO MainLayout — no navbar, no padding) ──────────────────
+  { path: '/admin/dashboard',           element: <W><ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute></W> },
+  { path: '/admin/companies',           element: <W><ProtectedRoute adminOnly><Companies /></ProtectedRoute></W> },
+  { path: '/admin/companies/create',    element: <W><ProtectedRoute adminOnly><CompanyCreate /></ProtectedRoute></W> },
+  { path: '/admin/companies/:id',       element: <W><ProtectedRoute adminOnly><CompanySetup /></ProtectedRoute></W> },
+  { path: '/admin/jobs',                element: <W><ProtectedRoute adminOnly><AdminJobs /></ProtectedRoute></W> },
+  { path: '/admin/jobs/create',         element: <W><ProtectedRoute adminOnly><PostJob /></ProtectedRoute></W> },
+  { path: '/admin/jobs/:id/applicants', element: <W><ProtectedRoute adminOnly><Applicants /></ProtectedRoute></W> },
+  { path: '/admin/quizzes',             element: <W><ProtectedRoute adminOnly><AdminQuizzes /></ProtectedRoute></W> },
+  { path: '/admin/quizzes/create',      element: <W><ProtectedRoute adminOnly><CreateQuiz /></ProtectedRoute></W> },
+  { path: '/admin/quizzes/edit/:id',    element: <W><ProtectedRoute adminOnly><EditQuiz /></ProtectedRoute></W> },
+  { path: '/admin/settings',            element: <W><ProtectedRoute adminOnly><AdminSettings /></ProtectedRoute></W> },
+  { path: '/admin/saved',               element: <W><ProtectedRoute adminOnly><AdminSaved /></ProtectedRoute></W> },
+  { path: '/admin/users',               element: <W><ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute></W> },
+  { path: '/admin/all-jobs',            element: <W><ProtectedRoute adminOnly><AdminAllJobs /></ProtectedRoute></W> },
+  { path: '/admin/all-quizzes',         element: <W><ProtectedRoute adminOnly><AdminAllQuizzes /></ProtectedRoute></W> },
+  { path: '/admin/analytics',           element: <W><ProtectedRoute adminOnly><AdminAnalytics /></ProtectedRoute></W> },
+  { path: '/admin/ats',                 element: <W><ProtectedRoute adminOnly><AdminATS /></ProtectedRoute></W> },
+  { path: '/admin/resumes',             element: <W><ProtectedRoute adminOnly><AdminResumes /></ProtectedRoute></W> },
+  { path: '/admin/quiz-access',         element: <W><ProtectedRoute adminOnly><AdminQuizAccess /></ProtectedRoute></W> },
+  { path: '/admin/job-applications',    element: <W><ProtectedRoute adminOnly><AdminJobApplications /></ProtectedRoute></W> },
+  { path: '/admin/internships',         element: <W><ProtectedRoute adminOnly><AdminInternships /></ProtectedRoute></W> },
+]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+export default function App() {
+  return <RouterProvider router={router} />;
+}

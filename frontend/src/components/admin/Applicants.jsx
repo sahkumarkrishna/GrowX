@@ -3,51 +3,51 @@ import { useSelector } from 'react-redux';
 import { lazy, Suspense } from 'react';
 
 // ── Auth Pages ────────────────────────────────────────────────────────────────
-const Login          = lazy(() => import('./components/auth/Login'));
-const Signup         = lazy(() => import('./components/auth/Signup'));
-const VerifyEmail    = lazy(() => import('./components/auth/VerifyEmail'));
-const ForgotPassword = lazy(() => import('./components/auth/ForgotPassword'));  // ← ADDED
-const ResetPassword  = lazy(() => import('./components/auth/ResetPassword'));   // ← ADDED
-const AdminLogin     = lazy(() => import('./components/auth/AdminLogin'));
+const Login          = lazy(() => import('../../components/auth/Login'));
+const Signup         = lazy(() => import('../../components/auth/Signup'));
+const VerifyEmail    = lazy(() => import('../../components/auth/VerifyEmail'));
+const ForgotPassword = lazy(() => import('../../components/auth/ForgotPassword'));  // ← ADDED
+const ResetPassword  = lazy(() => import('../../components/auth/ResetPassword'));   // ← ADDED
+const AdminLogin     = lazy(() => import('../../components/auth/AdminLogin'));
 
 // ── Public Pages ──────────────────────────────────────────────────────────────
-const Jobs           = lazy(() => import('./components/Jobs'));
-const Browse         = lazy(() => import('./components/Browse'));
-const Profile        = lazy(() => import('./components/Profile'));
-const JobDescription = lazy(() => import('./components/JobDescription'));
-const JobHome        = lazy(() => import('./components/JobHome'));
-const ResumeCheck    = lazy(() => import('./components/ResumeCheck'));
-const NotFound       = lazy(() => import('./components/PageNot'));
+const Jobs           = lazy(() => import('../../components/Jobs'));
+const Browse         = lazy(() => import('../../components/Browse'));
+const Profile        = lazy(() => import('../../components/Profile'));
+const JobDescription = lazy(() => import('../../components/JobDescription'));
+const JobHome        = lazy(() => import('../../components/JobHome'));
+const ResumeCheck    = lazy(() => import('../../components/ResumeCheck'));
+const NotFound       = lazy(() => import('../../components/PageNot'));
 
 // ── Admin Pages ───────────────────────────────────────────────────────────────
-const Companies            = lazy(() => import('./components/admin/Companies'));
-const CompanyCreate        = lazy(() => import('./components/admin/CompanyCreate'));
-const CompanySetup         = lazy(() => import('./components/admin/CompanySetup'));
-const AdminJobs            = lazy(() => import('./components/admin/AdminJobs'));
-const PostJob              = lazy(() => import('./components/admin/PostJob'));
-const Applicants           = lazy(() => import('./components/admin/Applicants'));
-const AdminQuizzes         = lazy(() => import('./components/admin/AdminQuizzes'));
-const CreateQuiz           = lazy(() => import('./components/admin/CreateQuiz'));
-const EditQuiz             = lazy(() => import('./components/admin/EditQuiz'));
-const AdminDashboard       = lazy(() => import('./components/admin/AdminDashboard'));
-const AdminSettings        = lazy(() => import('./components/admin/AdminSettings'));
-const AdminSaved           = lazy(() => import('./components/admin/AdminSaved'));
-const AdminUsers           = lazy(() => import('./components/admin/AdminUsers'));
-const AdminAllJobs         = lazy(() => import('./components/admin/AdminAllJobs'));
-const AdminAllQuizzes      = lazy(() => import('./components/admin/AdminAllQuizzes'));
-const AdminAnalytics       = lazy(() => import('./components/admin/AdminAnalytics'));
-const AdminATS             = lazy(() => import('./components/admin/AdminATS'));
-const AdminResumes         = lazy(() => import('./components/admin/AdminResumes'));
-const AdminQuizAccess      = lazy(() => import('./components/admin/AdminQuizAccess'));
-const AdminJobApplications = lazy(() => import('./components/admin/AdminJobApplications'));
-const AdminInternships     = lazy(() => import('./components/admin/AdminInternships'));
+const Companies            = lazy(() => import('../../components/admin/Companies'));
+const CompanyCreate        = lazy(() => import('../../components/admin/CompanyCreate'));
+const CompanySetup         = lazy(() => import('../../components/admin/CompanySetup'));
+const AdminJobs            = lazy(() => import('../../components/admin/AdminJobs'));
+const PostJob              = lazy(() => import('../../components/admin/PostJob'));
+const Applicants           = lazy(() => import('../../components/admin/Applicants'));
+const AdminQuizzes         = lazy(() => import('../../components/admin/AdminQuizzes'));
+const CreateQuiz           = lazy(() => import('../../components/admin/CreateQuiz'));
+const EditQuiz             = lazy(() => import('../../components/admin/EditQuiz'));
+const AdminDashboard       = lazy(() => import('../../components/admin/AdminDashboard'));
+const AdminSettings        = lazy(() => import('../../components/admin/AdminSettings'));
+const AdminSaved           = lazy(() => import('../../components/admin/AdminSaved'));
+const AdminUsers           = lazy(() => import('../../components/admin/AdminUsers'));
+const AdminAllJobs         = lazy(() => import('../../components/admin/AdminAllJobs'));
+const AdminAllQuizzes      = lazy(() => import('../../components/admin/AdminAllQuizzes'));
+const AdminAnalytics       = lazy(() => import('../../components/admin/AdminAnalytics'));
+const AdminATS             = lazy(() => import('../../components/admin/AdminATS'));
+const AdminResumes         = lazy(() => import('../../components/admin/AdminResumes'));
+const AdminQuizAccess      = lazy(() => import('../../components/admin/AdminQuizAccess'));
+const AdminJobApplications = lazy(() => import('../../components/admin/AdminJobApplications'));
+const AdminInternships     = lazy(() => import('../../components/admin/AdminInternships'));
 
 // ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import MainLayout     from '../../Layout/MainLayout';
 
 // ── Feature Pages ─────────────────────────────────────────────────────────────
-const LearningHome      = lazy(() => import('./pages/HomeLearning'));
+const LearningHome      = lazy(() => import('../../pages/HomeLearning'));
 const LearningDashboard = lazy(() => import('./pages/HomeLearning'));
 
 const Internship      = lazy(() => import('./pages/Internship'));

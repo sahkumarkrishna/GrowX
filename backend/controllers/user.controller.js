@@ -13,9 +13,10 @@ import {
 } from "../utils/mailer.js";
 
 // ── helpers ────────────────────────────────────────────────────────────────────
+// Only skip verification when EXPLICITLY set to "true" in .env
+// Never auto-skip based on NODE_ENV — that prevents emails in development too
 const isSkipVerification = () =>
-  process.env.SKIP_EMAIL_VERIFICATION === "true" ||
-  process.env.NODE_ENV === "development";
+  process.env.SKIP_EMAIL_VERIFICATION === "true";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -116,15 +117,15 @@ export const register = async (req, res) => {
 
     console.log(`✅ New user registered: ${email} | verified=${newUser.isEmailVerified}`);
 
-    if (!newUser.isEmailVerified) {
-      fireEmail(sendVerificationEmail, email, fullname, token, expiry);
-    }
+    // Always send the email — SKIP_EMAIL_VERIFICATION only allows login without clicking the link
+    // The email is always fired so the user gets a confirmation in their inbox
+    fireEmail(sendVerificationEmail, email, fullname, token, expiry);
 
     return res.status(201).json({
       success: true,
       email,
       message: newUser.isEmailVerified
-        ? "Account created! You can log in now."
+        ? "Account created! A confirmation email has been sent to your inbox."
         : "Account created! Please check your email to verify your account.",
       user: {
         _id:             newUser._id,

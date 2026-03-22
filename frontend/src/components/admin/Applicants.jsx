@@ -44,7 +44,7 @@ const AdminInternships     = lazy(() => import('./components/admin/AdminInternsh
 
 // ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
 import ProtectedRoute from './components/shared/ProtectedRoute';
-import MainLayout     from './Layout/MainLayout';
+import MainLayout     from '../../Layout/MainLayout';
 
 // ── Feature Pages ─────────────────────────────────────────────────────────────
 const LearningHome      = lazy(() => import('./pages/HomeLearning'));

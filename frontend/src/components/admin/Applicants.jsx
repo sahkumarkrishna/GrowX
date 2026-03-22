@@ -43,40 +43,40 @@ const AdminJobApplications = lazy(() => import('../../components/admin/AdminJobA
 const AdminInternships     = lazy(() => import('../../components/admin/AdminInternships'));
 
 // ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
-import ProtectedRoute from './components/shared/ProtectedRoute';
+import ProtectedRoute from '../../components/shared/ProtectedRoute';
 import MainLayout     from '../../Layout/MainLayout';
 
 // ── Feature Pages ─────────────────────────────────────────────────────────────
 const LearningHome      = lazy(() => import('../../pages/HomeLearning'));
-const LearningDashboard = lazy(() => import('./pages/HomeLearning'));
+const LearningDashboard = lazy(() => import('../../pages/HomeLearning'));
 
-const Internship      = lazy(() => import('./pages/Internship'));
-const ATSChecker      = lazy(() => import('./pages/ATSChecker'));
-const ResumeReview    = lazy(() => import('./pages/ATSChecker/ResumeReview'));
-const StudyRoadmap    = lazy(() => import('./pages/Learning/VideoDashboard'));
-const WatchDemo       = lazy(() => import('./pages/Learning/WatchDemo'));
-const ProblemSlove    = lazy(() => import('./pages/ProblemSlove'));
-const Category        = lazy(() => import('./pages/Internship/Category'));
-const QuizHome        = lazy(() => import('./pages/QuizHome'));
-const QuizDashboard   = lazy(() => import('./pages/Quiz/QuizDashboard'));
-const QuizTake        = lazy(() => import('./pages/Quiz/QuizTake'));
-const ResumeTemplates = lazy(() => import('./pages/Resume/ResumeTemplates'));
-const ResumeBuilder   = lazy(() => import('./pages/Resume/ResumeBuilder'));
-const ResumeDetails   = lazy(() => import('./pages/Resume/ResumeDetails'));
-const AllResumes      = lazy(() => import('./pages/Resume/AllResumes'));
-const EditResume      = lazy(() => import('./pages/Resume/EditResume'));
-const ResumeHome      = lazy(() => import('./pages/ResumeHome'));
-const KanbanBoardHome = lazy(() => import('./pages/KanbanHero'));
-const CreateTask      = lazy(() => import('./pages/KanbanBoard/Tasks/CreateTask'));
-const KanbanBoard     = lazy(() => import('./pages/KanbanBoard/Tasks/KanbanBoard'));
-const GetTask         = lazy(() => import('./pages/KanbanBoard/Tasks/GetTask'));
-const UpdateTask      = lazy(() => import('./pages/KanbanBoard/Tasks/UpdateTask'));
+const Internship      = lazy(() => import('../../pages/Internship'));
+const ATSChecker      = lazy(() => import('../../pages/ATSChecker'));
+const ResumeReview    = lazy(() => import('../../pages/ATSChecker/ResumeReview'));
+const StudyRoadmap    = lazy(() => import('../../pages/Learning/VideoDashboard'));
+const WatchDemo       = lazy(() => import('../../pages/Learning/WatchDemo'));
+const ProblemSlove    = lazy(() => import('../../pages/ProblemSlove'));
+const Category        = lazy(() => import('../../pages/Internship/Category'));
+const QuizHome        = lazy(() => import('../../pages/QuizHome'));
+const QuizDashboard   = lazy(() => import('../../pages/Quiz/QuizDashboard'));
+const QuizTake        = lazy(() => import('../../pages/Quiz/QuizTake'));
+const ResumeTemplates = lazy(() => import('../../pages/Resume/ResumeTemplates'));
+const ResumeBuilder   = lazy(() => import('../../pages/Resume/ResumeBuilder'));
+const ResumeDetails   = lazy(() => import('../../pages/Resume/ResumeDetails'));
+const AllResumes      = lazy(() => import('../../pages/Resume/AllResumes'));
+const EditResume      = lazy(() => import('../../pages/Resume/EditResume'));
+const ResumeHome      = lazy(() => import('../../pages/ResumeHome'));
+const KanbanBoardHome = lazy(() => import('../../pages/KanbanHero'));
+const CreateTask      = lazy(() => import('../../pages/KanbanBoard/Tasks/CreateTask'));
+const KanbanBoard     = lazy(() => import('../../pages/KanbanBoard/Tasks/KanbanBoard'));
+const GetTask         = lazy(() => import('../../pages/KanbanBoard/Tasks/GetTask'));
+const UpdateTask      = lazy(() => import('../../pages/KanbanBoard/Tasks/UpdateTask'));
 
 // ── User Dashboard ────────────────────────────────────────────────────────────
-const UserDashboard      = lazy(() => import('./components/UserDashboard'));
-const QuizDashboardUser  = lazy(() => import('./components/QuizDashboardUser'));
-const JobDashboardUser   = lazy(() => import('./components/JobDashboardUser'));
-const SavedJobsDashboard = lazy(() => import('./components/SavedJobsDashboard'));
+const UserDashboard      = lazy(() => import('../../components/UserDashboard'));
+const QuizDashboardUser  = lazy(() => import('../../components/QuizDashboardUser'));
+const JobDashboardUser   = lazy(() => import('../../components/JobDashboardUser'));
+const SavedJobsDashboard = lazy(() => import('../../components/SavedJobsDashboard'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page Loader  (shown while lazy chunks are loading)

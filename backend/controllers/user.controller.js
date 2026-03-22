@@ -6,9 +6,7 @@ import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Application } from "../models/application.model.js";
 import {
-    sendEmail,
     sendVerificationEmail,
-    sendResendVerificationEmail,
     sendWelcomeEmail,
     sendForgotPasswordEmail,
     sendPasswordResetSuccessEmail,
@@ -34,15 +32,13 @@ export const register = async (req, res) => {
         if (localPart.length < 3) {
             return res.status(400).json({ message: "Email local part must be at least 3 characters", success: false });
         }
-        const domainPart  = email.split("@")[1];
-        const domainParts = domainPart.split(".");
+        const domainParts = email.split("@")[1].split(".");
         if (domainParts.length < 2 || domainParts[domainParts.length - 1].length < 2) {
             return res.status(400).json({ message: "Please enter a valid email address (e.g., yourname@domain.com)", success: false });
         }
 
         const existingUser = await User.findOne({ email });
         if (existingUser) {
-            // Already registered but not verified — let frontend show resend
             if (!existingUser.isEmailVerified) {
                 return res.status(409).json({
                     message: "Email registered but not verified yet.",
@@ -54,18 +50,24 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "User already exists with this email", success: false });
         }
 
+        // ── FIX: Cloudinary wrapped in try/catch ──────────────────────────────
+        // If Cloudinary env vars are missing on Render, the whole register
+        // would crash. Now it gracefully skips the photo upload.
         let profilePhotoUrl = "";
         if (req.file) {
-            const fileUri = getDataUri(req.file);
-            const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
-            profilePhotoUrl = cloudResponse.secure_url;
+            try {
+                const fileUri = getDataUri(req.file);
+                const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+                profilePhotoUrl = cloudResponse.secure_url;
+            } catch (cloudErr) {
+                console.error("Cloudinary upload failed (continuing without photo):", cloudErr.message);
+                // Don't block registration — photo is optional
+            }
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Token valid for 24 hours
-        const verificationToken  = crypto.randomBytes(32).toString("hex");
-        const tokenExpiry        = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const hashedPassword    = await bcrypt.hash(password, 10);
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const tokenExpiry       = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
         const newUser = await User.create({
             fullname,
@@ -76,18 +78,31 @@ export const register = async (req, res) => {
             profile: { profilePhoto: profilePhotoUrl },
             emailVerificationToken:  verificationToken,
             emailVerificationExpiry: tokenExpiry,
-            // Auto-verify only in development
-            isEmailVerified: process.env.NODE_ENV !== "production" &&
-                             process.env.SKIP_EMAIL_VERIFICATION === "true",
+            // In production email must be verified. In dev you can skip it.
+            isEmailVerified:
+                process.env.NODE_ENV !== "production" &&
+                process.env.SKIP_EMAIL_VERIFICATION === "true",
         });
 
-        // Send verification email (non-blocking)
-        sendVerificationEmail(email, fullname, verificationToken, tokenExpiry).catch(
-            (err) => console.error("Verification email failed:", err)
-        );
+        // ── FIX: Await email + surface errors to frontend ─────────────────────
+        // Previously fire-and-forget — user got "success" but email silently
+        // failed. Now we await and tell the user if something went wrong.
+        try {
+            await sendVerificationEmail(email, fullname, verificationToken, tokenExpiry);
+        } catch (mailErr) {
+            console.error("Verification email failed:", mailErr.message);
+            // User was created — delete them so they can try again later
+            // (otherwise they're stuck: account exists but no verification link)
+            await User.findByIdAndDelete(newUser._id);
+            return res.status(500).json({
+                message: "Account created but we couldn't send the verification email. Please try again in a few minutes.",
+                success: false,
+                emailError: true,
+            });
+        }
 
         return res.status(201).json({
-            message: "Account created! Please verify your email to login.",
+            message: "Account created! Please check your email to verify your account.",
             success: true,
             email,
             user: {
@@ -122,12 +137,12 @@ export const login = async (req, res) => {
         const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: "Incorrect email or password", success: false });
 
-        // Block unverified users
+        // ── FIX: Return notVerified:true so frontend shows resend button ──────
         if (!user.isEmailVerified && process.env.SKIP_EMAIL_VERIFICATION !== "true") {
             return res.status(403).json({
                 message: "Please verify your email before logging in.",
                 success: false,
-                notVerified: true,
+                notVerified: true,        // ← frontend Login.jsx checks this
                 email: user.email,
             });
         }
@@ -135,17 +150,19 @@ export const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: "Incorrect email or password", success: false });
 
-        if (role !== user.role) return res.status(400).json({ message: "Incorrect role for this account", success: false });
+        if (role !== user.role) {
+            return res.status(400).json({ message: "Incorrect role for this account", success: false });
+        }
 
         const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: "1d" });
 
         const safeUser = {
-            _id: user._id,
-            fullname: user.fullname,
-            email: user.email,
-            phoneNumber: user.phoneNumber,
-            role: user.role,
-            profile: user.profile,
+            _id:             user._id,
+            fullname:        user.fullname,
+            email:           user.email,
+            phoneNumber:     user.phoneNumber,
+            role:            user.role,
+            profile:         user.profile,
             isEmailVerified: user.isEmailVerified,
         };
 
@@ -177,9 +194,9 @@ export const verifyEmail = async (req, res) => {
         }
 
         if (user.isEmailVerified) {
-            return res.status(400).json({
+            return res.status(200).json({
                 message: "Email already verified. You can login now.",
-                success: false,
+                success: true,
                 alreadyDone: true,
             });
         }
@@ -197,9 +214,9 @@ export const verifyEmail = async (req, res) => {
         user.emailVerificationExpiry = null;
         await user.save();
 
-        // Send welcome email (non-blocking)
+        // Welcome email — non-blocking (don't fail verification if this fails)
         sendWelcomeEmail(email, user.fullname).catch(
-            (err) => console.error("Welcome email failed:", err)
+            (err) => console.error("Welcome email failed:", err.message)
         );
 
         return res.status(200).json({
@@ -223,19 +240,27 @@ export const resendVerificationEmail = async (req, res) => {
         if (!email) return res.status(400).json({ message: "Email is required", success: false });
 
         const user = await User.findOne({ email });
-        if (!user)               return res.status(404).json({ message: "User not found", success: false });
+        if (!user) return res.status(404).json({ message: "User not found with this email", success: false });
         if (user.isEmailVerified) return res.status(400).json({ message: "Email already verified. You can login now.", success: false });
 
-        const verificationToken  = crypto.randomBytes(32).toString("hex");
-        const tokenExpiry        = new Date(Date.now() + 24 * 60 * 60 * 1000);
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const tokenExpiry       = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         user.emailVerificationToken  = verificationToken;
         user.emailVerificationExpiry = tokenExpiry;
         await user.save();
 
-        sendResendVerificationEmail(email, user.fullname, verificationToken, tokenExpiry).catch(
-            (err) => console.error("Resend email failed:", err)
-        );
+        // ── FIX: Await + return real error to frontend ────────────────────────
+        try {
+            await sendVerificationEmail(email, user.fullname, verificationToken, tokenExpiry);
+        } catch (mailErr) {
+            console.error("Resend email failed:", mailErr.message);
+            return res.status(500).json({
+                message: "Failed to send verification email. Please check your inbox or try again in a few minutes.",
+                success: false,
+                emailError: true,
+            });
+        }
 
         return res.status(200).json({
             message: "Verification email sent! Check your inbox.",
@@ -251,30 +276,37 @@ export const resendVerificationEmail = async (req, res) => {
 // ============================
 // FORGOT PASSWORD
 // POST /forgot-password
-// body: { email }
 // ============================
 export const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).json({ message: "Email is required", success: false });
 
-        // Always return same success message to prevent email enumeration
         const genericOk = { success: true, message: "If that email is registered, a reset link has been sent." };
 
         const user = await User.findOne({ email });
         if (!user) return res.status(200).json(genericOk);
 
-        // Generate reset token — expires in 15 minutes
         const resetToken   = crypto.randomBytes(32).toString("hex");
-        const resetExpires = new Date(Date.now() + 15 * 60 * 1000);
+        const resetExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 min
 
         user.resetPasswordToken   = resetToken;
         user.resetPasswordExpires = resetExpires;
         await user.save();
 
-        sendForgotPasswordEmail(email, user.fullname, resetToken, resetExpires).catch(
-            (err) => console.error("Forgot password email failed:", err)
-        );
+        try {
+            await sendForgotPasswordEmail(email, user.fullname, resetToken, resetExpires);
+        } catch (mailErr) {
+            console.error("Forgot password email failed:", mailErr.message);
+            // Clear the token so user can try again
+            user.resetPasswordToken   = null;
+            user.resetPasswordExpires = null;
+            await user.save();
+            return res.status(500).json({
+                message: "Failed to send reset email. Please try again in a few minutes.",
+                success: false,
+            });
+        }
 
         return res.status(200).json(genericOk);
     } catch (error) {
@@ -286,7 +318,6 @@ export const forgotPassword = async (req, res) => {
 // ============================
 // RESET PASSWORD
 // POST /reset-password/:token
-// body: { password }
 // ============================
 export const resetPassword = async (req, res) => {
     try {
@@ -302,7 +333,7 @@ export const resetPassword = async (req, res) => {
 
         const user = await User.findOne({
             resetPasswordToken:   token,
-            resetPasswordExpires: { $gt: new Date() },   // not expired
+            resetPasswordExpires: { $gt: new Date() },
         });
 
         if (!user) {
@@ -318,9 +349,9 @@ export const resetPassword = async (req, res) => {
         user.resetPasswordExpires = null;
         await user.save();
 
-        // Send success notification (non-blocking)
+        // Confirmation email — non-blocking
         sendPasswordResetSuccessEmail(user.email, user.fullname).catch(
-            (err) => console.error("Reset success email failed:", err)
+            (err) => console.error("Reset success email failed:", err.message)
         );
 
         return res.status(200).json({
@@ -338,7 +369,9 @@ export const resetPassword = async (req, res) => {
 // ============================
 export const logout = async (req, res) => {
     try {
-        return res.status(200).cookie("token", "", { maxAge: 0 }).json({ message: "Logged out successfully", success: true });
+        return res.status(200)
+            .cookie("token", "", { maxAge: 0 })
+            .json({ message: "Logged out successfully", success: true });
     } catch (error) {
         console.error("Logout Error:", error);
         res.status(500).json({ message: "Internal server error", success: false });
@@ -346,7 +379,7 @@ export const logout = async (req, res) => {
 };
 
 // ============================
-// GET ALL USERS  (Admin only)
+// GET ALL USERS  (Admin)
 // ============================
 export const getAllUsers = async (req, res) => {
     try {
@@ -359,7 +392,7 @@ export const getAllUsers = async (req, res) => {
 };
 
 // ============================
-// GET USER BY ID  (Admin only)
+// GET USER BY ID  (Admin)
 // ============================
 export const getUserById = async (req, res) => {
     try {
@@ -373,7 +406,7 @@ export const getUserById = async (req, res) => {
 };
 
 // ============================
-// DELETE USER  (Admin only)
+// DELETE USER  (Admin)
 // ============================
 export const deleteUser = async (req, res) => {
     try {
@@ -400,7 +433,7 @@ export const deleteUser = async (req, res) => {
 };
 
 // ============================
-// TOGGLE USER STATUS  (Admin only)
+// TOGGLE USER STATUS  (Admin)
 // ============================
 export const toggleUserStatus = async (req, res) => {
     try {
@@ -439,35 +472,43 @@ export const updateProfile = async (req, res) => {
 
         const photoFile = req.files?.file?.[0];
         if (photoFile) {
-            if (user.profile?.profilePhoto) {
-                const oldId = user.profile.profilePhoto.split("/").pop().split(".")[0];
-                await cloudinary.uploader.destroy(oldId).catch(() => {});
+            try {
+                if (user.profile?.profilePhoto) {
+                    const oldId = user.profile.profilePhoto.split("/").pop().split(".")[0];
+                    await cloudinary.uploader.destroy(oldId).catch(() => {});
+                }
+                const fileUri = getDataUri(photoFile);
+                const cloud   = await cloudinary.uploader.upload(fileUri.content, { folder: "profile_photos" });
+                user.profile.profilePhoto = cloud.secure_url;
+            } catch (cloudErr) {
+                console.error("Profile photo upload failed:", cloudErr.message);
             }
-            const fileUri = getDataUri(photoFile);
-            const cloud   = await cloudinary.uploader.upload(fileUri.content, { folder: "profile_photos" });
-            user.profile.profilePhoto = cloud.secure_url;
         }
 
         const resumeFile = req.files?.resume?.[0];
         if (resumeFile) {
-            const fileUri = getDataUri(resumeFile);
-            const cloud   = await cloudinary.uploader.upload(fileUri.content, {
-                resource_type: "raw",
-                folder: "resumes",
-            });
-            user.profile.resume             = cloud.secure_url;
-            user.profile.resumeOriginalName = resumeFile.originalname;
+            try {
+                const fileUri = getDataUri(resumeFile);
+                const cloud   = await cloudinary.uploader.upload(fileUri.content, {
+                    resource_type: "raw",
+                    folder: "resumes",
+                });
+                user.profile.resume             = cloud.secure_url;
+                user.profile.resumeOriginalName = resumeFile.originalname;
+            } catch (cloudErr) {
+                console.error("Resume upload failed:", cloudErr.message);
+            }
         }
 
         await user.save();
 
         const safeUser = {
-            _id: user._id,
-            fullname: user.fullname,
-            email: user.email,
+            _id:         user._id,
+            fullname:    user.fullname,
+            email:       user.email,
             phoneNumber: user.phoneNumber,
-            role: user.role,
-            profile: user.profile,
+            role:        user.role,
+            profile:     user.profile,
         };
 
         return res.status(200).json({ message: "Profile updated successfully", user: safeUser, success: true });

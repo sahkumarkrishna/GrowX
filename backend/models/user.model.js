@@ -14,41 +14,52 @@ const userSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
-    password:{
-        type:String,
-        required:true,
+    password: {
+        type: String,
+        required: true,
     },
-    role:{
-        type:String,
-        enum:['student','recruiter'],
-        required:true
+    role: {
+        type: String,
+        enum: ['student', 'recruiter'],
+        required: true
     },
-    profile:{
-        bio:{type:String},
-        skills:[{type:String}],
-        resume:{type:String},
-        resumeOriginalName:{type:String},
-        company:{type:mongoose.Schema.Types.ObjectId, ref:'Company'}, 
-        profilePhoto:{
-            type:String,
-            default:""
-        }
+    profile: {
+        bio:                { type: String },
+        skills:             [{ type: String }],
+        resume:             { type: String },
+        resumeOriginalName: { type: String },
+        company:            { type: mongoose.Schema.Types.ObjectId, ref: 'Company' },
+        profilePhoto:       { type: String, default: "" }
     },
-    isActive:{
+    isActive: {
         type: Boolean,
         default: true
     },
-    isEmailVerified:{
+
+    // ── Email Verification ─────────────────────────────────────────────────
+    isEmailVerified: {
         type: Boolean,
         default: false
     },
-    emailVerificationToken:{
+    emailVerificationToken: {
         type: String,
         default: null
     },
-    emailVerificationExpiry:{
+    emailVerificationExpiry: {
         type: Date,
         default: null
     },
-},{timestamps:true});
+
+    // ── Password Reset ─────────────────────────────────────────────────────
+    resetPasswordToken: {          // ← ADDED
+        type: String,
+        default: null
+    },
+    resetPasswordExpires: {        // ← ADDED
+        type: Date,
+        default: null
+    },
+
+}, { timestamps: true });
+
 export const User = mongoose.model('User', userSchema);

@@ -75,19 +75,21 @@ const UpdateTask = lazy(() => import('./pages/KanbanBoard/Tasks/UpdateTask'));
 // ── User Dashboard (with sidebar layout) ─────────────────────────────────────
 const UserLayout = lazy(() => import('./components/user/UserLayout'));
 const UserDashboard = lazy(() => import('./components/user/UserDashboard'));
-const jobPage = lazy(() => import('./components/user/Jobpage'));
+
+const JobPage = lazy(() => import('./components/user/Jobpage'));
 const QuizPage = lazy(() => import('./components/user/QuizPage'));
 const ResumePage = lazy(() => import('./components/user/ResumePage'));
 const InternshipPage = lazy(() => import('./components/user/InternshipPage'));
 const ATSPage = lazy(() => import('./components/user/ATSPage'));
+
 const UserProfilePage = lazy(() => import('./components/user/UserProfilePage'));
 // Analytics pages
 const InternshipAnalytics = lazy(() => import('./components/user/analytics/Internshipanalytic'));
 const ATSAnalytics = lazy(() => import('./components/user/analytics/Atsanalytics'));
 const QuizAnalytics = lazy(() => import('./components/user/analytics/Quizanalytics'));
 const ResumeAnalytics = lazy(() => import('./components/user/analytics/Resumeanalytics'));
-const DashboardAnalytics = lazy(() => import('./components/user/analytics/DashboardAnalytics'));
-const JobAnalytics = lazy(() => import('./components/user/analytics/JobAnalytics'));
+const DashboardAnalytics = lazy(() => import('./components/user/analytics/Dashboardanalytics'));
+const JobAnalytics = lazy(() => import('./components/user/analytics/Jobanalytics'));
 // keep old ones for backward compat
 const QuizDashboardUser = lazy(() => import('./components/QuizDashboardUser'));
 const JobDashboardUser = lazy(() => import('./components/JobDashboardUser'));

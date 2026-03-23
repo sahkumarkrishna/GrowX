@@ -1,303 +1,399 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
-import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '../ui/button';
 import { Avatar, AvatarImage } from '../ui/avatar';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { LogOut, User2, Menu, X, Sparkles, GraduationCap, Brain, Trello, FileText, Briefcase, Building2, Search, LayoutDashboard } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { setUser } from '@/redux/authSlice';
 import { toast } from 'sonner';
 import GrowXLogo from './GrowXLogo';
+import {
+  GraduationCap, Brain, Trello, FileText, Briefcase,
+  Search, LayoutDashboard, LogOut, User2, Sparkles,
+  Building2, ChevronDown, X, Menu, ScanLine,
+} from 'lucide-react';
 
-const USER_API_END_POINT = import.meta.env.VITE_USER_API;
+const USER_API = import.meta.env.VITE_USER_API;
 
-const navLinks = [
-  { path: '/', label: 'Learning', icon: <GraduationCap className="h-4 w-4" /> },
-  { path: 'quiz', label: "Quiz", icon: <Brain className="h-4 w-4" /> },
-  { path: 'kanbanBoard', label: "Kanban", icon: <Trello className="h-4 w-4" /> },
-  { path: 'resume', label: "Resume", icon: <FileText className="h-4 w-4" /> },
-  { path: '/internship', label: 'Internship', icon: <Briefcase className="h-4 w-4" /> },
-  { path: '/atschecker', label: 'ATSchecker', icon: <Briefcase className="h-4 w-4" /> },
+const MAIN_NAV = [
+  { path: '/',            label: 'Learning',   icon: GraduationCap },
+  { path: '/quiz',        label: 'Quiz',       icon: Brain         },
+  { path: '/resume',      label: 'Resume',     icon: FileText      },
+  { path: '/internship',  label: 'Internship', icon: Briefcase     },
+  { path: '/atschecker',  label: 'ATS',        icon: ScanLine      },
+  { path: '/KanbanBoard', label: 'Kanban',     icon: Trello        },
 ];
 
-const Navbar = () => {
-  const { user } = useSelector(store => store.auth);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [jobportalOpen, setJobportalOpen] = useState(false);
+const JOB_NAV = [
+  { path: '/job',    label: 'Job Portal', icon: Briefcase, sub: 'Browse open positions' },
+  { path: '/joball', label: 'All Jobs',   icon: Building2, sub: 'View every listing'    },
+  { path: '/browse', label: 'Browse',     icon: Search,    sub: 'Search & filter jobs'  },
+];
 
-  const logoutHandler = async () => {
+// ── Jobs dropdown ─────────────────────────────────────────────────────────────
+function JobDropdown() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button onClick={() => setOpen(o => !o)}
+        className={`flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl
+                    transition-all hover:bg-purple-50 hover:text-purple-600
+                    ${open ? 'bg-purple-50 text-purple-600' : 'text-gray-700'}`}>
+        <Search className="w-4 h-4" />
+        Jobs
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full left-0 mt-2 w-56 bg-white rounded-2xl
+                       shadow-xl border border-gray-100 overflow-hidden z-50">
+            {JOB_NAV.map(item => (
+              <NavLink key={item.path} to={item.path} onClick={() => setOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-start gap-3 px-4 py-3 transition-colors
+                   ${isActive ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-50'}`}>
+                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
+                  <item.icon className="w-4 h-4 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold">{item.label}</p>
+                  <p className="text-xs text-gray-400">{item.sub}</p>
+                </div>
+              </NavLink>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Desktop Profile dropdown ──────────────────────────────────────────────────
+function ProfileDropdown({ user, onLogout }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      {/* Only avatar — no name/chevron on desktop */}
+      <button onClick={() => setOpen(o => !o)}
+        className="flex items-center rounded-xl hover:bg-gray-100 transition-colors p-1.5">
+        <Avatar className="w-8 h-8 ring-2 ring-purple-200">
+          <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} alt={user?.fullname} />
+        </Avatar>
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl
+                       shadow-xl border border-gray-100 overflow-hidden z-50">
+
+            {/* User info header */}
+            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-10 h-10 ring-2 ring-purple-200">
+                  <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} />
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-900 truncate">{user?.fullname}</p>
+                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-2">
+              {user?.role !== 'admin' && user?.role !== 'recruiter' && (
+                <>
+                  <Link to="/user/dashboard" onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold
+                               text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                    <LayoutDashboard className="w-4 h-4" /> My Dashboard
+                  </Link>
+               
+                </>
+              )}
+              {(user?.role === 'admin' || user?.role === 'recruiter') && (
+                <Link to="/admin/dashboard" onClick={() => setOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold
+                             text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
+                  <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
+                </Link>
+              )}
+              <button onClick={() => { onLogout(); setOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-semibold
+                           text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
+                <LogOut className="w-4 h-4" /> Logout
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Main Navbar ───────────────────────────────────────────────────────────────
+export default function Navbar() {
+  const { user }  = useSelector(s => s.auth);
+  const dispatch  = useDispatch();
+  const navigate  = useNavigate();
+  const [open, setOpen] = useState(false);  // mobile drawer
+
+  const handleLogout = async () => {
     try {
-      const res = await axios.get(`${USER_API_END_POINT}/logout`, { withCredentials: true });
+      const res = await axios.get(`${USER_API}/logout`, { withCredentials: true });
       if (res.data.success) {
         dispatch(setUser(null));
         navigate('/');
         toast.success(res.data.message);
       }
-    } catch (error) {
-      toast.error(error?.response?.data?.message || 'Logout failed');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Logout failed');
     }
   };
 
-  const renderLinks = () => {
-    if (user?.role === 'admin') {
-      return (
-        <>
-
-        </>
-      );
-    } else {
-      return (
-        <>
-          {navLinks.map(link => (
-            <li key={link.path}>
-              <NavLink
-                to={link.path}
-                className={({ isActive }) => `flex items-center gap-2 font-medium transition-all hover:scale-105 ${isActive ? 'text-purple-600' : 'text-gray-700 hover:text-purple-600'}`}
-              >
-                {link.icon}
-                {link.label}
-              </NavLink>
-            </li>
-          ))}
-          <li className="relative group">
-            <button
-              onClick={() => setJobportalOpen(!jobportalOpen)}
-              className="flex items-center gap-2 text-gray-700 hover:text-purple-600 font-medium transition-all hover:scale-105"
-            >
-              <Search className="h-4 w-4" />
-              Jobportal {jobportalOpen ? <FiChevronUp className="ml-1" /> : <FiChevronDown className="ml-1" />}
-            </button>
-            {jobportalOpen && (
-              <ul className="absolute top-full left-0 mt-2 bg-white shadow-2xl rounded-2xl border-2 border-purple-100 min-w-[180px] z-50 overflow-hidden">
-                <li>
-                  <NavLink to="/job" className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 transition-all">
-                    <Briefcase className="h-4 w-4" />
-                    Job Portal
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/joball" className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 transition-all">
-                    <Building2 className="h-4 w-4" />
-                    All Jobs
-                  </NavLink>
-                </li>
-                <li>
-                  <NavLink to="/browse" className="flex items-center gap-2 px-4 py-3 text-gray-700 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 hover:text-purple-600 transition-all">
-                    <Search className="h-4 w-4" />
-                    Browse
-                  </NavLink>
-                </li>
-              </ul>
-            )}
-          </li>
-        </>
-      );
-    }
-  };
+  useEffect(() => { setOpen(false); }, [navigate]);
 
   return (
-    <nav className="bg-white/95 backdrop-blur-lg shadow-md sticky top-0 z-50 border-b border-gray-100">
-      <div className="flex items-center justify-between mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16">
-        <Link to="/" className="flex-shrink-0">
-          <GrowXLogo size={40} />
-        </Link>
+    <>
+      <nav className="bg-white/95 backdrop-blur-xl sticky top-0 z-50
+                      border-b border-gray-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16
+                        flex items-center justify-between gap-4">
 
-        {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-8">
-          <ul className="flex font-medium items-center gap-6">
-            {renderLinks()}
-          </ul>
+          {/* Logo */}
+          <Link to="/" className="shrink-0">
+            <GrowXLogo size={36} />
+          </Link>
 
-          <div className="flex items-center gap-3">
-            {!user ? (
-              <div className="flex items-center gap-3">
-                <Link to="/login">
-                  <Button variant="outline" className="rounded-full px-6 border-2 hover:border-purple-600 hover:text-purple-600 transition-all">Login</Button>
-                </Link>
-                <Link to="/signup">
-                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full px-6 shadow-lg hover:shadow-xl transition-all">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Signup
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Avatar className="cursor-pointer hover:scale-110 transition-transform ring-2 ring-purple-200 hover:ring-purple-400">
-                    <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} alt={user?.fullname || 'User'} />
-                  </Avatar>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 bg-white border-2 border-gray-200 rounded-xl shadow-2xl">
-                  <div className="flex gap-3 mb-4 pb-4 border-b border-gray-200">
-                    <Avatar className="ring-2 ring-purple-200">
-                      <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} alt={user?.fullname || 'User'} />
-                    </Avatar>
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{user?.fullname}</h4>
-                      <p className="text-sm text-gray-500">{user?.profile?.bio || 'No bio available'}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {user?.role !== 'admin' && (
-                      <>
-                        <Link to="/dashboard" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors font-medium">
-                          <LayoutDashboard className="h-4 w-4" /> Dashboard
-                        </Link>
-                        <Link to="/profile" className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition-colors font-medium">
-                          <User2 className="h-4 w-4" /> View Profile
-                        </Link>
-                      </>
-                    )}
-                    <button onClick={logoutHandler} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors font-medium">
-                      <LogOut className="h-4 w-4" /> Logout
-                    </button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile menu button & user avatar */}
-        <div className="flex lg:hidden items-center gap-3">
-          {user && (
-            <Avatar className="h-8 w-8 ring-2 ring-purple-200">
-              <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} alt={user?.fullname || 'User'} />
-            </Avatar>
-          )}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setMenuOpen(!menuOpen)} 
-            className="hover:bg-purple-50 rounded-full"
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? <X className="h-6 w-6 text-purple-600" /> : <Menu className="h-6 w-6" />}
-          </Button>
-        </div>
-      </div>
-
-      {/* Mobile Nav */}
-      <div className={`lg:hidden fixed inset-x-0 top-16 bg-white shadow-2xl transition-all duration-300 overflow-y-auto z-40 border-t border-gray-200 ${menuOpen ? "max-h-[calc(100vh-4rem)] opacity-100" : "max-h-0 opacity-0"}`}>
-        <ul className="flex flex-col gap-1 font-medium p-4 pb-2">
-          {user?.role === 'admin' ? (
-            <>
-
-            </>
-          ) : (
-            <>
-              {navLinks.map((link) => (
-                <li key={link.path}>
-                  <NavLink 
-                    to={link.path} 
-                    onClick={() => setMenuOpen(false)} 
-                    className={({ isActive }) => `px-4 py-3 rounded-xl font-medium block ${isActive ? "bg-gradient-to-r from-purple-100 to-blue-100 text-purple-600 shadow-sm" : "text-gray-700 hover:bg-purple-50"} transition-all`}
-                  >
-                    {link.label}
-                  </NavLink>
-                </li>
-              ))}
-              <li>
-                <button 
-                  onClick={() => setJobportalOpen(!jobportalOpen)} 
-                  className="flex justify-between items-center w-full px-4 py-3 rounded-xl hover:bg-purple-50 transition-all font-medium text-gray-700"
-                >
-                  Jobportal
-                  {jobportalOpen ? <FiChevronUp className="h-5 w-5" /> : <FiChevronDown className="h-5 w-5" />}
-                </button>
-                {jobportalOpen && (
-                  <ul className="ml-4 mt-1 flex flex-col gap-1 border-l-2 border-purple-200 pl-4">
-                    <li>
-                      <NavLink 
-                        to="/job" 
-                        onClick={() => setMenuOpen(false)} 
-                        className={({ isActive }) => `px-3 py-2.5 rounded-lg text-sm block ${isActive ? "bg-purple-50 text-purple-600" : "hover:bg-purple-50 text-gray-600"}`}
-                      >
-                        Job Portal
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink 
-                        to="/joball" 
-                        onClick={() => setMenuOpen(false)} 
-                        className={({ isActive }) => `px-3 py-2.5 rounded-lg text-sm block ${isActive ? "bg-purple-50 text-purple-600" : "hover:bg-purple-50 text-gray-600"}`}
-                      >
-                        All Jobs
-                      </NavLink>
-                    </li>
-                    <li>
-                      <NavLink 
-                        to="/browse" 
-                        onClick={() => setMenuOpen(false)} 
-                        className={({ isActive }) => `px-3 py-2.5 rounded-lg text-sm block ${isActive ? "bg-purple-50 text-purple-600" : "hover:bg-purple-50 text-gray-600"}`}
-                      >
-                        Browse
-                      </NavLink>
-                    </li>
-                  </ul>
-                )}
-              </li>
-            </>
-          )}
-        </ul>
-
-        {!user ? (
-          <div className="flex flex-col gap-3 p-4 pt-3 border-t border-gray-200 bg-gray-50">
-            <Link to="/login" onClick={() => setMenuOpen(false)}>
-              <Button variant="outline" className="w-full rounded-full border-2 h-11 font-medium">Login</Button>
-            </Link>
-            <Link to="/signup" onClick={() => setMenuOpen(false)}>
-              <Button className="bg-gradient-to-r from-purple-600 to-blue-600 text-white w-full rounded-full h-11 font-medium shadow-lg">
-                <Sparkles className="h-4 w-4 mr-2" />
-                Signup
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-1 p-4 pt-3 border-t border-gray-200 bg-gray-50">
-            <div className="flex items-center gap-3 px-3 py-2 mb-2">
-              <Avatar className="h-10 w-10 ring-2 ring-purple-200">
-                <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} alt={user?.fullname || 'User'} />
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-gray-900 truncate">{user?.fullname}</h4>
-                <p className="text-xs text-gray-500 truncate">{user?.profile?.bio || 'No bio available'}</p>
-              </div>
-            </div>
-            {user?.role !== 'recruiter' && (
+          {/* ── Desktop: nav links (centre) ──────────────────────────── */}
+          <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
+            {user?.role !== 'admin' && user?.role !== 'recruiter' && (
               <>
-                <Link 
-                  to="/dashboard" 
-                  onClick={() => setMenuOpen(false)} 
-                  className="px-4 py-3 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors font-medium block"
-                >
-                  Dashboard
-                </Link>
-                <Link 
-                  to="/profile" 
-                  onClick={() => setMenuOpen(false)} 
-                  className="px-4 py-3 rounded-xl text-gray-700 hover:bg-white hover:text-purple-600 transition-colors font-medium block"
-                >
-                  View Profile
-                </Link>
+                {MAIN_NAV.map(item => (
+                  <NavLink key={item.path} to={item.path}
+                    className={({ isActive }) =>
+                      `flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl
+                       transition-all hover:bg-purple-50 hover:text-purple-600
+                       ${isActive ? 'bg-purple-50 text-purple-600' : 'text-gray-700'}`}>
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </NavLink>
+                ))}
+                <JobDropdown />
               </>
             )}
-            <button 
-              onClick={() => { logoutHandler(); setMenuOpen(false); }} 
-              className="px-4 py-3 rounded-xl text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors font-medium text-left w-full"
-            >
-              Logout
+            {(user?.role === 'admin' || user?.role === 'recruiter') && (
+              <Link to="/admin/dashboard"
+                className="flex items-center gap-2 text-sm font-bold text-purple-600
+                           bg-purple-50 px-4 py-2 rounded-xl">
+                <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
+              </Link>
+            )}
+          </div>
+
+          {/* ── Desktop right: Profile ONLY (or Login/Signup for guests) ── */}
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
+            {!user ? (
+              <>
+                <Link to="/login">
+                  <Button variant="outline"
+                    className="rounded-full px-5 border-2 hover:border-purple-600
+                               hover:text-purple-600 font-semibold text-sm h-9 transition-all">
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button className="rounded-full px-5 h-9 text-sm font-semibold
+                                     text-white shadow-md hover:shadow-lg transition-all"
+                    style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)' }}>
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Sign Up
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              /* Desktop: ONLY the profile avatar icon */
+              <ProfileDropdown user={user} onLogout={handleLogout} />
+            )}
+          </div>
+
+          {/* ── Mobile: ONLY the hamburger Menu icon ────────────────── */}
+          <div className="flex lg:hidden">
+            <button onClick={() => setOpen(o => !o)}
+              className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-700">
+              {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
-        )}
-      </div>
-    </nav>
-  );
-};
+        </div>
+      </nav>
 
-export default Navbar;
+      {/* ── Mobile drawer ─────────────────────────────────────────────── */}
+      <AnimatePresence>
+        {open && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setOpen(false)}
+              className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40 top-16" />
+
+            <motion.div
+              initial={{ opacity: 0, y: -12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.2 }}
+              className="lg:hidden fixed inset-x-0 top-16 z-50 bg-white border-b border-gray-100
+                         shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto">
+
+              <div className="p-4 space-y-1">
+
+                {/* User strip */}
+                {user && (
+                  <div className="flex items-center gap-3 px-3 py-3 mb-3
+                                  bg-gradient-to-r from-purple-50 to-blue-50
+                                  rounded-2xl border border-purple-100">
+                    <Avatar className="w-10 h-10 ring-2 ring-purple-200 shrink-0">
+                      <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} />
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-900 truncate">{user?.fullname}</p>
+                      <p className="text-xs text-gray-500 truncate capitalize">
+                        {user?.role} · {user?.email}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Nav links */}
+                {user?.role !== 'admin' && user?.role !== 'recruiter' && (
+                  <>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 pt-2 pb-1">
+                      Main
+                    </p>
+                    {MAIN_NAV.map(item => (
+                      <NavLink key={item.path} to={item.path}
+                        onClick={() => setOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
+                           transition-all ${isActive
+                             ? 'bg-gradient-to-r from-purple-100 to-blue-50 text-purple-700'
+                             : 'text-gray-700 hover:bg-gray-50'}`}>
+                        <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                          <item.icon className="w-4 h-4 text-purple-600" />
+                        </div>
+                        {item.label}
+                      </NavLink>
+                    ))}
+
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 pt-3 pb-1">
+                      Job Portal
+                    </p>
+                    {JOB_NAV.map(item => (
+                      <NavLink key={item.path} to={item.path}
+                        onClick={() => setOpen(false)}
+                        className={({ isActive }) =>
+                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
+                           transition-all ${isActive
+                             ? 'bg-gradient-to-r from-purple-100 to-blue-50 text-purple-700'
+                             : 'text-gray-700 hover:bg-gray-50'}`}>
+                        <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                          <item.icon className="w-4 h-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p>{item.label}</p>
+                          <p className="text-xs text-gray-400 font-normal">{item.sub}</p>
+                        </div>
+                      </NavLink>
+                    ))}
+                  </>
+                )}
+
+                {(user?.role === 'admin' || user?.role === 'recruiter') && (
+                  <Link to="/admin/dashboard" onClick={() => setOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
+                               text-purple-700 bg-purple-50 border border-purple-100">
+                    <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                      <LayoutDashboard className="w-4 h-4 text-purple-600" />
+                    </div>
+                    Admin Dashboard
+                  </Link>
+                )}
+
+                {/* Account */}
+                {user && (
+                  <>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 pt-3 pb-1">
+                      Account
+                    </p>
+                    {user?.role !== 'admin' && user?.role !== 'recruiter' && (
+                      <>
+                        <Link to="/user/dashboard" onClick={() => setOpen(false)}
+                          className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
+                                     text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                          <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
+                            <LayoutDashboard className="w-4 h-4 text-blue-600" />
+                          </div>
+                          My Dashboard
+                        </Link>
+                        
+                      </>
+                    )}
+                    <button onClick={() => { handleLogout(); setOpen(false); }}
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm font-semibold
+                                 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
+                      <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
+                        <LogOut className="w-4 h-4 text-red-500" />
+                      </div>
+                      Logout
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Guest auth buttons */}
+              {!user && (
+                <div className="p-4 pt-2 border-t border-gray-100 grid grid-cols-2 gap-3">
+                  <Link to="/login" onClick={() => setOpen(false)}>
+                    <Button variant="outline"
+                      className="w-full h-11 rounded-2xl border-2 font-semibold
+                                 hover:border-purple-400 hover:text-purple-600 transition-all">
+                      Login
+                    </Button>
+                  </Link>
+                  <Link to="/signup" onClick={() => setOpen(false)}>
+                    <Button className="w-full h-11 rounded-2xl font-semibold text-white shadow-md"
+                      style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)' }}>
+                      <Sparkles className="w-4 h-4 mr-1.5" /> Sign Up
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

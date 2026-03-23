@@ -74,24 +74,17 @@ const UpdateTask      = lazy(() => import('./pages/KanbanBoard/Tasks/UpdateTask'
 // ── User Dashboard (with sidebar layout) ─────────────────────────────────────
 const UserLayout        = lazy(() => import('./components/user/UserLayout'));
 const UserDashboard     = lazy(() => import('./components/user/UserDashboard'));
-
 const QuizPage          = lazy(() => import('./components/user/QuizPage'));
 const ResumePage        = lazy(() => import('./components/user/ResumePage'));
 const InternshipPage    = lazy(() => import('./components/user/InternshipPage'));
 const ATSPage           = lazy(() => import('./components/user/ATSPage'));
 const UserProfilePage   = lazy(() => import('./components/user/UserProfilePage'));
-const JobPage           = lazy(() => import('./components/user/JobPage'));
 // Analytics pages
 const InternshipAnalytics  = lazy(() => import('./components/user/analytics/InternshipAnalytics'));
 const ATSAnalytics         = lazy(() => import('./components/user/analytics/ATSAnalytics'));
 const QuizAnalytics        = lazy(() => import('./components/user/analytics/QuizAnalytics'));
 const ResumeAnalytics      = lazy(() => import('./components/user/analytics/ResumeAnalytics'));
 const DashboardAnalytics   = lazy(() => import('./components/user/analytics/DashboardAnalytics'));
-const JobAnalytics         = lazy(() => import('./components/user/analytics/JobAnalytics'));
-// keep old ones for backward compat
-const QuizDashboardUser  = lazy(() => import('./components/QuizDashboardUser'));
-const JobDashboardUser   = lazy(() => import('./components/JobDashboardUser'));
-const SavedJobsDashboard = lazy(() => import('./components/SavedJobsDashboard'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page Loader  (shown while lazy chunks are loading)
@@ -174,9 +167,6 @@ const router = createBrowserRouter([
       // Protected
       { path: 'profile',          element: <W><ProtectedRoute><Profile /></ProtectedRoute></W> },
       { path: 'dashboard',        element: <W><ProtectedRoute><Navigate to="/user/dashboard" replace /></ProtectedRoute></W> },
-      { path: 'dashboard/quiz',   element: <W><ProtectedRoute><QuizDashboardUser /></ProtectedRoute></W> },
-      { path: 'dashboard/jobs',   element: <W><ProtectedRoute><JobDashboardUser /></ProtectedRoute></W> },
-      { path: 'dashboard/saved-jobs', element: <W><ProtectedRoute><SavedJobsDashboard /></ProtectedRoute></W> },
       { path: 'onlineCoding',     element: <W><ProtectedRoute><ProblemSlove /></ProtectedRoute></W> },
       { path: 'learningVideo',    element: <W><ProtectedRoute><StudyRoadmap /></ProtectedRoute></W> },
       { path: 'category',         element: <W><ProtectedRoute><Category /></ProtectedRoute></W> },
@@ -204,7 +194,7 @@ const router = createBrowserRouter([
     element: <W><ProtectedRoute><UserLayout /></ProtectedRoute></W>,
     children: [
       { path: 'dashboard',              element: <W><UserDashboard /></W>        },
-      { path: 'jobs',                   element: <W><JobPage /></W>              },
+      { path: 'jobs',                   element: <W><InternshipPage /></W>       },
       { path: 'quiz',                   element: <W><QuizPage /></W>             },
       { path: 'resume',                 element: <W><ResumePage /></W>           },
       { path: 'internship',             element: <W><InternshipPage /></W>       },
@@ -212,7 +202,6 @@ const router = createBrowserRouter([
       { path: 'profile',                element: <W><UserProfilePage /></W>      },
       // Analytics
       { path: 'analytics/dashboard',    element: <W><DashboardAnalytics /></W>  },
-      { path: 'analytics/jobs',         element: <W><JobAnalytics /></W>        },
       { path: 'analytics/internship',   element: <W><InternshipAnalytics /></W> },
       { path: 'analytics/ats',          element: <W><ATSAnalytics /></W>        },
       { path: 'analytics/quiz',         element: <W><QuizAnalytics /></W>       },

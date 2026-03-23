@@ -74,9 +74,9 @@ const UpdateTask      = lazy(() => import('../../pages/KanbanBoard/Tasks/UpdateT
 
 // ── User Dashboard ────────────────────────────────────────────────────────────
 const UserDashboard      = lazy(() => import('../../components/user/UserDashboard'));
-const QuizDashboardUser  = lazy(() => import('../../components/user/QuizDashboardUser'));
-const JobDashboardUser   = lazy(() => import('../../components/user/JobDashboardUser'));
-const SavedJobsDashboard = lazy(() => import('../../components/user/SavedJobsDashboard'));
+const QuizDashboardUser  = lazy(() => import('../../components/QuizDashboardUser'));
+const JobDashboardUser   = lazy(() => import('../../components/JobDashboardUser'));
+const SavedJobsDashboard = lazy(() => import('../../components/SavedJobsDashboard'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page Loader  (shown while lazy chunks are loading)

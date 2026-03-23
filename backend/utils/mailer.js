@@ -1,19 +1,40 @@
 import nodemailer from "nodemailer";
 
 // ── Transporter ────────────────────────────────────────────────────────────────
+// AUTO-SWITCHES based on NODE_ENV:
+//   development → Gmail  (localhost, port 587)
+//   production  → Brevo  (Render, Gmail blocked on Render)
+//
+// Render env vars needed:
+//   MAIL_HOST=smtp-relay.brevo.com
+//   MAIL_PORT=587
+//   MAIL_USER=your@gmail.com
+//   MAIL_PASS=your_brevo_smtp_key
+//
+// Get free Brevo key: https://app.brevo.com → Settings → SMTP & API
+// ──────────────────────────────────────────────────────────────────────────────
 const createTransporter = () => {
   if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
     console.error("❌ MAIL_USER or MAIL_PASS is missing in .env");
     return null;
   }
+
+  const isProd = process.env.NODE_ENV === "production";
+  const host   = process.env.MAIL_HOST || (isProd ? "smtp-relay.brevo.com" : "smtp.gmail.com");
+  const port   = parseInt(process.env.MAIL_PORT || "587");
+
   return nodemailer.createTransport({
-    service: "gmail",
+    host,
+    port,
+    secure: port === 465,
     auth: {
       user: process.env.MAIL_USER,
       pass: process.env.MAIL_PASS,
     },
-    pool: true,
-    maxConnections: 3,
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 15000,
+    greetingTimeout:   15000,
+    socketTimeout:     20000,
   });
 };
 
@@ -23,13 +44,20 @@ export const verifyMailer = async () => {
     console.error("❌ Mailer: MAIL_USER or MAIL_PASS not set");
     return;
   }
+  const isProd = process.env.NODE_ENV === "production";
+  const host   = process.env.MAIL_HOST || (isProd ? "smtp-relay.brevo.com" : "smtp.gmail.com");
   try {
     const t = createTransporter();
     await t.verify();
-    console.log(`✅ Mailer ready — sending as ${process.env.MAIL_USER}`);
+    console.log(`✅ Mailer ready — ${process.env.MAIL_USER} via ${host}`);
   } catch (err) {
     console.error("❌ Mailer connection failed:", err.message);
-    console.error("   → Make sure MAIL_PASS is a Gmail App Password (16 chars)");
+    if (isProd) {
+      console.error("   → Set MAIL_HOST=smtp-relay.brevo.com in Render env vars");
+      console.error("   → Get free SMTP key at https://app.brevo.com");
+    } else {
+      console.error("   → MAIL_PASS must be a Gmail App Password (16 chars, no spaces)");
+    }
   }
 };
 
@@ -62,8 +90,6 @@ export const sendVerificationEmail = async (email, fullname, token, expiry, plai
   const FRONTEND = process.env.FRONTEND_URL || "https://growx.onrender.com";
   const link     = `${FRONTEND}/verify-email?token=${token}&email=${encodeURIComponent(email)}`;
 
-  // Generate QR code image URL using QuickChart (free, no install needed)
-  // QR encodes the verify link so user can scan with phone
   const qrUrl = `https://quickchart.io/qr?text=${encodeURIComponent(link)}&size=160&margin=2`;
 
   const html = `

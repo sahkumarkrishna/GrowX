@@ -28,6 +28,12 @@ const Signup = () => {
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
 
+  // ── Already logged in — redirect immediately, skip render ───────────────────
+  if (user) {
+    navigate('/', { replace: true });
+    return null;
+  }
+
   const changeEventHandler = (e) => setInput({ ...input, [e.target.name]: e.target.value });
   const changeFileHandler  = (e) => setInput({ ...input, file: e.target.files?.[0] });
 
@@ -104,9 +110,7 @@ const Signup = () => {
     }
   };
 
-  useEffect(() => { if (user) navigate('/'); }, [user, navigate]);
-
-  // ── Check your email screen ───────────────────────────────────────────────────
+  // ── Check your email screen ──────────────────────────────────────────────────
   if (sentEmail) {
     return (
       <div className="min-h-screen flex">
@@ -119,45 +123,45 @@ const Signup = () => {
             </p>
           </div>
         </div>
-        <div className="flex-1 flex items-center justify-center p-8 bg-white">
-          <div className="w-full max-w-md space-y-6 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20
+        <div className="flex-1 flex items-center justify-center px-4 py-8 sm:p-8 bg-white overflow-y-auto">
+          <div className="w-full max-w-md space-y-5 sm:space-y-6 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20
                             bg-purple-50 border-2 border-purple-200 rounded-full mx-auto">
-              <MailCheck className="w-10 h-10 text-purple-600" />
+              <MailCheck className="w-8 h-8 sm:w-10 sm:h-10 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-gray-900">Check your inbox!</h2>
-              <p className="mt-3 text-gray-600 text-sm">We sent a verification link to:</p>
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Check your inbox!</h2>
+              <p className="mt-2 sm:mt-3 text-gray-600 text-sm">We sent a verification link to:</p>
               <div className="inline-flex items-center gap-2 bg-purple-50 border-2 border-purple-200
-                              rounded-xl px-5 py-3 mt-3">
+                              rounded-xl px-4 sm:px-5 py-2.5 sm:py-3 mt-2 sm:mt-3 max-w-full">
                 <Mail className="w-4 h-4 text-purple-500 flex-shrink-0" />
-                <span className="font-bold text-purple-700 text-sm">{sentEmail}</span>
+                <span className="font-bold text-purple-700 text-xs sm:text-sm break-all">{sentEmail}</span>
               </div>
-              <p className="mt-4 text-gray-500 text-sm">
+              <p className="mt-3 sm:mt-4 text-gray-500 text-xs sm:text-sm">
                 Click the link to activate your account. Expires in <strong>24 hours</strong>.
               </p>
             </div>
-            <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-left space-y-3">
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 sm:p-5 text-left space-y-2.5 sm:space-y-3">
               {['Open your email app', 'Find the email from GrowX', 'Click "Verify My Email"', 'Come back and sign in!'].map((s, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <span className="w-7 h-7 rounded-full bg-purple-600 text-white text-xs
+                <div key={i} className="flex items-center gap-2.5 sm:gap-3">
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-purple-600 text-white text-xs
                                    font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
-                  <span className="text-gray-700 text-sm">{s}</span>
+                  <span className="text-gray-700 text-xs sm:text-sm">{s}</span>
                 </div>
               ))}
             </div>
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
-              <p className="text-amber-800 text-sm">
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 sm:p-4 text-left">
+              <p className="text-amber-800 text-xs sm:text-sm">
                 <strong>📁 Not in inbox?</strong> Check your <strong>spam / junk folder</strong>.
               </p>
             </div>
             <Button onClick={handleResend} disabled={resendLoading}
-              className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600
+              className="w-full h-11 sm:h-12 bg-gradient-to-r from-purple-600 to-blue-600
                          hover:from-purple-700 hover:to-blue-700 text-white font-semibold
-                         shadow-lg hover:shadow-xl transition-all">
+                         text-sm shadow-lg hover:shadow-xl transition-all">
               {resendLoading
-                ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Resending...</>
-                : <><MailCheck className="mr-2 h-5 w-5" /> Resend Verification Email</>}
+                ? <><Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> Resending...</>
+                : <><MailCheck className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Resend Verification Email</>}
             </Button>
             {resentCount > 0 && (
               <p className="text-green-600 text-xs">
@@ -176,7 +180,7 @@ const Signup = () => {
     );
   }
 
-  // ── Signup form ───────────────────────────────────────────────────────────────
+  // ── Signup form ──────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex">
 
@@ -208,16 +212,16 @@ const Signup = () => {
       </div>
 
       {/* Right: form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:p-8 bg-white overflow-y-auto">
+        <div className="w-full max-w-md space-y-6 sm:space-y-8">
 
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16
-                            bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4">
-              <Sparkles className="w-8 h-8 text-white" />
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16
+                            bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-3 sm:mb-4">
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">Create Account</h2>
-            <p className="mt-2 text-gray-600">Start your learning journey today</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Create Account</h2>
+            <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Start your learning journey today</p>
           </div>
 
           {/* Login / Sign Up toggle */}
@@ -238,73 +242,77 @@ const Signup = () => {
             ))}
           </div>
 
-          <form onSubmit={submitHandler} className="space-y-5">
+          <form onSubmit={submitHandler} className="space-y-4 sm:space-y-5">
             <div>
               <Label className="text-sm font-medium text-gray-700">Full Name</Label>
-              <div className="mt-2 relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="mt-1.5 sm:mt-2 relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <Input name="fullname" value={input.fullname} onChange={changeEventHandler}
                   placeholder="John Doe" required
-                  className="pl-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                  className="pl-9 sm:pl-10 h-11 sm:h-12 text-sm border-gray-300
+                             focus:border-purple-500 focus:ring-purple-500" />
               </div>
             </div>
 
             <div>
               <Label className="text-sm font-medium text-gray-700">Email</Label>
-              <div className="mt-2 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="mt-1.5 sm:mt-2 relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <Input type="email" name="email" value={input.email} onChange={changeEventHandler}
                   placeholder="you@example.com" required
-                  className="pl-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                  className="pl-9 sm:pl-10 h-11 sm:h-12 text-sm border-gray-300
+                             focus:border-purple-500 focus:ring-purple-500" />
               </div>
             </div>
 
             <div>
               <Label className="text-sm font-medium text-gray-700">Phone</Label>
-              <div className="mt-2 relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="mt-1.5 sm:mt-2 relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <Input name="phoneNumber" value={input.phoneNumber} onChange={changeEventHandler}
                   placeholder="9876543210" required
-                  className="pl-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                  className="pl-9 sm:pl-10 h-11 sm:h-12 text-sm border-gray-300
+                             focus:border-purple-500 focus:ring-purple-500" />
               </div>
             </div>
 
             <div>
               <Label className="text-sm font-medium text-gray-700">Password</Label>
-              <div className="mt-2 relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="mt-1.5 sm:mt-2 relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <Input type={showPass ? 'text' : 'password'} name="password"
                   value={input.password} onChange={changeEventHandler}
                   placeholder="Min 8 characters" required minLength={8}
-                  className="pl-10 pr-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                  className="pl-9 sm:pl-10 pr-10 h-11 sm:h-12 text-sm border-gray-300
+                             focus:border-purple-500 focus:ring-purple-500" />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2
                              text-gray-400 hover:text-gray-600 transition-colors">
-                  {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPass ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </button>
               </div>
             </div>
 
-            <div>
+            {/* Profile photo — hidden on small screens, shown from sm up */}
+            <div className="hidden sm:block">
               <Label className="text-sm font-medium text-gray-700">Profile Photo (Optional)</Label>
-              <div className="mt-2">
+              <div className="mt-1.5 sm:mt-2">
                 <Input type="file" accept="image/*" onChange={changeFileHandler}
-                  className="h-12 cursor-pointer border-gray-300 focus:border-purple-500" />
+                  className="h-11 sm:h-12 cursor-pointer border-gray-300 focus:border-purple-500 text-sm" />
               </div>
             </div>
 
             <Button type="submit" disabled={loading}
-              className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600
+              className="w-full h-11 sm:h-12 bg-gradient-to-r from-blue-600 to-purple-600
                          hover:from-blue-700 hover:to-purple-700 text-white font-semibold
-                         text-base shadow-lg hover:shadow-xl transition-all">
+                         text-sm sm:text-base shadow-lg hover:shadow-xl transition-all">
               {loading
-                ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Creating account...</>
-                : <>Create Account <ArrowRight className="ml-2 h-5 w-5" /></>}
+                ? <><Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> Creating account...</>
+                : <>Create Account <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" /></>}
             </Button>
           </form>
 
-          <div className="space-y-4">
-            
+          <div className="space-y-3 sm:space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -315,8 +323,8 @@ const Signup = () => {
             </div>
             <Link to="/admin/login" className="block">
               <Button type="button" variant="outline"
-                className="w-full h-11 border-2 border-slate-700 text-slate-700
-                           hover:bg-slate-700 hover:text-white transition-all font-semibold">
+                className="w-full h-10 sm:h-11 border-2 border-slate-700 text-slate-700
+                           hover:bg-slate-700 hover:text-white transition-all font-semibold text-sm">
                 Admin Login
               </Button>
             </Link>

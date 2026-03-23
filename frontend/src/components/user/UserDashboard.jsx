@@ -84,7 +84,7 @@ export default function UserDashboard() {
 
   const statCards = [
     { label: 'Applications', value: apps.length,    sub: 'Jobs applied',     icon: Briefcase,    color: '#a78bfa', glow: 'rgba(167,139,250,0.4)', route: '/user/internship'  },
-    { label: 'Jobs Open',    value: jobCount,        sub: 'Available now',    icon: TrendingUp,   color: '#60a5fa', glow: 'rgba(96,165,250,0.4)',  route: '/jobs'             },
+    { label: 'Jobs Open',    value: jobCount,        sub: 'Available now',    icon: TrendingUp,   color: '#60a5fa', glow: 'rgba(96,165,250,0.4)',  route: '/user/jobs'             },
     { label: 'Quizzes',      value: quizDone,        sub: 'Completed',        icon: Brain,        color: '#34d399', glow: 'rgba(52,211,153,0.4)',  route: '/user/quiz'        },
     { label: 'ATS Avg',      value: avgAts ? `${avgAts}%` : '—', sub: 'Resume score', icon: ScanLine, color: '#f87171', glow: 'rgba(248,113,113,0.4)', route: '/user/ats' },
     { label: 'Profile',      value: `${pct}%`,       sub: pct===100?'Complete ✓':'Incomplete', icon: UserCircle, color: '#fbbf24', glow: 'rgba(251,191,36,0.4)', route: '/user/profile' },

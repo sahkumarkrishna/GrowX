@@ -24,7 +24,7 @@ const menuGroups = [
   {
     label: 'Career',
     items: [
-      { icon: Briefcase,     label: 'Jobs',        path: '/user/jobs',                     color: '#2dd4bf', glow: 'rgba(45,212,191,0.35)'   },
+      { icon: Briefcase,     label: 'Jobs',        path: '/user/jobs',                color: '#2dd4bf', glow: 'rgba(45,212,191,0.35)'   },
       { icon: Brain,         label: 'Quiz',        path: '/user/quiz',                color: '#34d399', glow: 'rgba(52,211,153,0.35)'   },
       { icon: FileText,      label: 'Resume',      path: '/user/resume',              color: '#67e8f9', glow: 'rgba(103,232,249,0.35)'  },
       { icon: GraduationCap, label: 'Internship',  path: '/user/internship',          color: '#f59e0b', glow: 'rgba(245,158,11,0.35)'   },

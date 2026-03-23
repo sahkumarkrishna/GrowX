@@ -27,6 +27,12 @@ const Login = () => {
   const location  = useLocation();
   const from      = location.state?.from?.pathname || "/";
 
+  // ── Already logged in — redirect immediately, skip render ───────────────────
+  if (user) {
+    navigate(user.role === "recruiter" ? "/admin/dashboard" : from, { replace: true });
+    return null;
+  }
+
   const changeEventHandler = (e) => setInput({ ...input, [e.target.name]: e.target.value });
 
   // ── Resend verification ──────────────────────────────────────────────────────
@@ -88,37 +94,35 @@ const Login = () => {
     }
   };
 
-  useEffect(() => { if (user) navigate("/"); }, [user, navigate]);
-
   return (
     <div className="min-h-screen flex">
 
       {/* ── Left: Form ── */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md space-y-8">
+      <div className="flex-1 flex items-center justify-center px-4 py-8 sm:p-8 bg-white overflow-y-auto">
+        <div className="w-full max-w-md space-y-6 sm:space-y-8">
 
           {/* Brand */}
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16
-                            bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl mb-4">
-              <Sparkles className="w-8 h-8 text-white" />
+            <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16
+                            bg-gradient-to-br from-purple-600 to-blue-600 rounded-2xl mb-3 sm:mb-4">
+              <Sparkles className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">Welcome Back</h2>
-            <p className="mt-2 text-gray-600">Sign in to continue your journey</p>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Welcome Back</h2>
+            <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Sign in to continue your journey</p>
           </div>
 
           {/* Login / Sign Up toggle */}
           <div className="flex bg-gray-100 rounded-xl p-1">
             {[
-              { label: 'Login',   path: '/login'  },
-              { label: 'Sign Up', path: '/signup' },
+              { label: "Login",   path: "/login"  },
+              { label: "Sign Up", path: "/signup" },
             ].map((item) => (
               <button key={item.label} type="button"
                 onClick={() => navigate(item.path)}
                 className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                  item.label === 'Login'
-                    ? 'bg-white shadow text-purple-600 font-semibold'
-                    : 'text-gray-500 hover:text-gray-700'
+                  item.label === "Login"
+                    ? "bg-white shadow text-purple-600 font-semibold"
+                    : "text-gray-500 hover:text-gray-700"
                 }`}>
                 {item.label}
               </button>
@@ -126,17 +130,18 @@ const Login = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={submitHandler} className="space-y-6">
+          <form onSubmit={submitHandler} className="space-y-4 sm:space-y-6">
             {/* Email */}
             <div>
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                 Email Address
               </Label>
-              <div className="mt-2 relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="mt-1.5 sm:mt-2 relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <Input id="email" type="email" name="email" value={input.email}
                   onChange={changeEventHandler} placeholder="you@example.com" required
-                  className="pl-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                  className="pl-9 sm:pl-10 h-11 sm:h-12 text-sm border-gray-300
+                             focus:border-purple-500 focus:ring-purple-500" />
               </div>
             </div>
 
@@ -147,42 +152,43 @@ const Login = () => {
                   Password
                 </Label>
                 <Link to="/forgot-password"
-                  className="text-sm font-semibold text-purple-600 hover:text-purple-700">
+                  className="text-xs sm:text-sm font-semibold text-purple-600 hover:text-purple-700">
                   Forgot password?
                 </Link>
               </div>
-              <div className="mt-2 relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <div className="mt-1.5 sm:mt-2 relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                 <Input id="password" type={showPass ? "text" : "password"}
                   name="password" value={input.password}
                   onChange={changeEventHandler} placeholder="Enter your password" required
-                  className="pl-10 pr-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                  className="pl-9 sm:pl-10 pr-10 h-11 sm:h-12 text-sm border-gray-300
+                             focus:border-purple-500 focus:ring-purple-500" />
                 <button type="button" onClick={() => setShowPass(p => !p)}
                   className="absolute right-3 top-1/2 -translate-y-1/2
                              text-gray-400 hover:text-gray-600 transition-colors">
-                  {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPass ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Eye className="h-4 w-4 sm:h-5 sm:w-5" />}
                 </button>
               </div>
             </div>
 
             <Button type="submit" disabled={loading}
-              className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600
+              className="w-full h-11 sm:h-12 bg-gradient-to-r from-purple-600 to-blue-600
                          hover:from-purple-700 hover:to-blue-700 text-white font-semibold
-                         text-base shadow-lg hover:shadow-xl transition-all">
+                         text-sm sm:text-base shadow-lg hover:shadow-xl transition-all">
               {loading
-                ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Signing in...</>
-                : <>Sign In <ArrowRight className="ml-2 h-5 w-5" /></>}
+                ? <><Loader2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5 animate-spin" /> Signing in...</>
+                : <>Sign In <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" /></>}
             </Button>
           </form>
 
           {/* Unverified banner */}
           {unverifiedEmail && (
-            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
-                <div className="flex-1">
-                  <p className="font-semibold text-amber-900">Email Not Verified</p>
-                  <p className="text-sm text-amber-800 mt-1">
+            <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-3 sm:p-4 space-y-3">
+              <div className="flex items-start gap-2 sm:gap-3">
+                <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-amber-900 text-sm">Email Not Verified</p>
+                  <p className="text-xs sm:text-sm text-amber-800 mt-1 break-all">
                     <strong>{unverifiedEmail}</strong> hasn't been verified.
                     Check inbox or resend below.
                   </p>
@@ -193,12 +199,12 @@ const Login = () => {
               </div>
               {resentOk && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-2">
-                  <p className="text-green-700 text-sm font-medium">✅ New link sent!</p>
+                  <p className="text-green-700 text-xs sm:text-sm font-medium">✅ New link sent!</p>
                 </div>
               )}
               <Button onClick={resendVerification} disabled={resendLoading}
                 className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold
-                           py-2.5 rounded-lg flex items-center justify-center gap-2">
+                           py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm">
                 {resendLoading
                   ? <><Loader2 className="w-4 h-4 animate-spin" /> Sending...</>
                   : <><MailCheck className="w-4 h-4" /> Resend Verification Email</>}
@@ -207,8 +213,7 @@ const Login = () => {
           )}
 
           {/* Bottom links */}
-          <div className="space-y-4">
-         
+          <div className="space-y-3 sm:space-y-4">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -219,8 +224,8 @@ const Login = () => {
             </div>
             <Link to="/admin/login" className="block">
               <Button type="button" variant="outline"
-                className="w-full h-11 border-2 border-slate-700 text-slate-700
-                           hover:bg-slate-700 hover:text-white transition-all font-semibold">
+                className="w-full h-10 sm:h-11 border-2 border-slate-700 text-slate-700
+                           hover:bg-slate-700 hover:text-white transition-all font-semibold text-sm">
                 Admin Login
               </Button>
             </Link>

@@ -29,10 +29,10 @@ const Signup = () => {
   const navigate  = useNavigate();
 
   // ── Already logged in — redirect immediately, skip render ───────────────────
-  if (user) {
-    navigate('/', { replace: true });
-    return null;
-  }
+if (user) {
+  navigate('/', { replace: true });
+  return null;
+}
 
   const changeEventHandler = (e) => setInput({ ...input, [e.target.name]: e.target.value });
   const changeFileHandler  = (e) => setInput({ ...input, file: e.target.files?.[0] });
@@ -46,53 +46,56 @@ const Signup = () => {
   };
 
   // ── Submit ───────────────────────────────────────────────────────────────────
-  const submitHandler = async (e) => {
-    e.preventDefault();
-    if (!isValidEmail(input.email)) {
-      toast.error('Enter a valid email address (e.g. name@domain.com)');
-      return;
-    }
-    if (input.password.length < 8) {
-      toast.error('Password must be at least 8 characters.');
-      return;
-    }
+ const submitHandler = async (e) => {
+  e.preventDefault();
 
-    const formData = new FormData();
-    formData.append('fullname',    input.fullname);
-    formData.append('email',       input.email);
-    formData.append('phoneNumber', input.phoneNumber);
-    formData.append('password',    input.password);
-    formData.append('role',        input.role);
-    if (input.file) formData.append('file', input.file);
+  if (loading) return; // 🔥 prevent auto submit
 
-    try {
-      dispatch(setLoading(true));
-      const res = await axios.post(`${USER_API}/register`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true,
-      });
-      if (res.data.success) {
-        const email = res.data.email || input.email;
-        if (res.data.user?.isEmailVerified) {
-          toast.success('Account created! You can log in now.');
-          navigate('/login');
-          return;
-        }
-        setSentEmail(email);
-        if (res.data.resent) toast.info('Verification email resent to ' + email);
+  if (!isValidEmail(input.email)) {
+    toast.error('Enter a valid email');
+    return;
+  }
+
+  if (input.password.length < 8) {
+    toast.error('Password must be at least 8 characters.');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('fullname', input.fullname);
+  formData.append('email', input.email);
+  formData.append('phoneNumber', input.phoneNumber);
+  formData.append('password', input.password);
+  formData.append('role', input.role);
+  if (input.file) formData.append('file', input.file);
+
+  try {
+    dispatch(setLoading(true));
+
+    const res = await axios.post(`${USER_API}/register`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      withCredentials: true,
+    });
+
+    if (res.data.success) {
+      const email = res.data.email || input.email;
+
+      if (res.data.user?.isEmailVerified) {
+        toast.success('Account created!');
+        navigate('/login');
+        return;
       }
-    } catch (err) {
-      const d = err?.response?.data;
-      if (err?.response?.status === 409) {
-        toast.error(d?.message || 'Email already registered.');
-        setTimeout(() => navigate('/login'), 1500);
-      } else {
-        toast.error(d?.message || 'Something went wrong. Please try again.');
-      }
-    } finally {
+
+      setSentEmail(email);
+    } else {
       dispatch(setLoading(false));
     }
-  };
+
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Signup failed');
+    dispatch(setLoading(false));
+  }
+};
 
   // ── Resend ───────────────────────────────────────────────────────────────────
   const handleResend = async () => {

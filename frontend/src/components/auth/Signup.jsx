@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setLoading } from '@/redux/authSlice';
 import {
   User, Mail, Phone, Lock, Loader2,
-  ArrowRight, Sparkles, MailCheck,
+  ArrowRight, Sparkles, MailCheck, Eye, EyeOff,
 } from 'lucide-react';
 
 const USER_API = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
@@ -19,15 +19,14 @@ const Signup = () => {
     fullname: '', email: '', phoneNumber: '',
     password: '', role: 'student', file: '',
   });
-
-  // After submit: show "check your email" screen
+  const [showPass,      setShowPass]      = useState(false);
   const [sentEmail,     setSentEmail]     = useState('');
   const [resendLoading, setResendLoading] = useState(false);
   const [resentCount,   setResentCount]   = useState(0);
 
   const { loading, user } = useSelector((s) => s.auth);
-  const dispatch          = useDispatch();
-  const navigate          = useNavigate();
+  const dispatch  = useDispatch();
+  const navigate  = useNavigate();
 
   const changeEventHandler = (e) => setInput({ ...input, [e.target.name]: e.target.value });
   const changeFileHandler  = (e) => setInput({ ...input, file: e.target.files?.[0] });
@@ -40,11 +39,15 @@ const Signup = () => {
     return parts.length >= 2 && parts[parts.length - 1].length >= 2;
   };
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
+  // ── Submit ───────────────────────────────────────────────────────────────────
   const submitHandler = async (e) => {
     e.preventDefault();
     if (!isValidEmail(input.email)) {
-      toast.error('Please enter a valid email address (e.g. name@domain.com)');
+      toast.error('Enter a valid email address (e.g. name@domain.com)');
+      return;
+    }
+    if (input.password.length < 8) {
+      toast.error('Password must be at least 8 characters.');
       return;
     }
 
@@ -62,30 +65,20 @@ const Signup = () => {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
       });
-
       if (res.data.success) {
         const email = res.data.email || input.email;
-
-        // Dev mode: auto-verified → go straight to login
         if (res.data.user?.isEmailVerified) {
           toast.success('Account created! You can log in now.');
           navigate('/login');
           return;
         }
-
-        // Production: show "check email" screen
-        // res.data.resent = true means the email was already registered
-        // but we resent the verification link anyway
         setSentEmail(email);
-        if (res.data.resent) {
-          toast.info('Verification email resent to ' + email);
-        }
+        if (res.data.resent) toast.info('Verification email resent to ' + email);
       }
     } catch (err) {
       const d = err?.response?.data;
-      // 409 = already registered AND verified
       if (err?.response?.status === 409) {
-        toast.error(d?.message || 'Email already registered. Please log in.');
+        toast.error(d?.message || 'Email already registered.');
         setTimeout(() => navigate('/login'), 1500);
       } else {
         toast.error(d?.message || 'Something went wrong. Please try again.');
@@ -95,21 +88,17 @@ const Signup = () => {
     }
   };
 
-  // ── Resend ──────────────────────────────────────────────────────────────────
+  // ── Resend ───────────────────────────────────────────────────────────────────
   const handleResend = async () => {
     try {
       setResendLoading(true);
-      const res = await axios.post(`${USER_API}/resend-verification-email`, {
-        email: sentEmail,
-      });
+      const res = await axios.post(`${USER_API}/resend-verification-email`, { email: sentEmail });
       if (res.data.success) {
-        toast.success('Verification email resent! Check your inbox and spam folder.');
+        toast.success('Verification email resent! Check inbox and spam.');
         setResentCount((c) => c + 1);
-      } else {
-        toast.error(res.data.message || 'Could not resend. Please try again.');
-      }
+      } else toast.error(res.data.message || 'Could not resend.');
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Could not resend. Please try again.');
+      toast.error(err?.response?.data?.message || 'Could not resend.');
     } finally {
       setResendLoading(false);
     }
@@ -117,13 +106,10 @@ const Signup = () => {
 
   useEffect(() => { if (user) navigate('/'); }, [user, navigate]);
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // CHECK YOUR EMAIL screen
-  // ════════════════════════════════════════════════════════════════════════════
+  // ── Check your email screen ───────────────────────────────────────────────────
   if (sentEmail) {
     return (
       <div className="min-h-screen flex">
-        {/* Left: gradient */}
         <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600
                         items-center justify-center p-12">
           <div className="max-w-md text-white space-y-6">
@@ -133,81 +119,51 @@ const Signup = () => {
             </p>
           </div>
         </div>
-
-        {/* Right: check-email card */}
         <div className="flex-1 flex items-center justify-center p-8 bg-white">
           <div className="w-full max-w-md space-y-6 text-center">
-
             <div className="inline-flex items-center justify-center w-20 h-20
                             bg-purple-50 border-2 border-purple-200 rounded-full mx-auto">
               <MailCheck className="w-10 h-10 text-purple-600" />
             </div>
-
             <div>
               <h2 className="text-3xl font-bold text-gray-900">Check your inbox!</h2>
-              <p className="mt-3 text-gray-600 text-sm leading-relaxed">
-                We sent a verification link to:
-              </p>
-              {/* Email pill */}
+              <p className="mt-3 text-gray-600 text-sm">We sent a verification link to:</p>
               <div className="inline-flex items-center gap-2 bg-purple-50 border-2 border-purple-200
                               rounded-xl px-5 py-3 mt-3">
                 <Mail className="w-4 h-4 text-purple-500 flex-shrink-0" />
                 <span className="font-bold text-purple-700 text-sm">{sentEmail}</span>
               </div>
               <p className="mt-4 text-gray-500 text-sm">
-                Click the link to activate your account. It expires in{' '}
-                <strong className="text-gray-700">24 hours</strong>.
+                Click the link to activate your account. Expires in <strong>24 hours</strong>.
               </p>
             </div>
-
-            {/* Steps */}
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-5 text-left space-y-3">
-              {[
-                'Open your email app',
-                'Find the email from GrowX',
-                'Click "Verify My Email"',
-                'Come back and sign in!',
-              ].map((s, i) => (
+              {['Open your email app', 'Find the email from GrowX', 'Click "Verify My Email"', 'Come back and sign in!'].map((s, i) => (
                 <div key={i} className="flex items-center gap-3">
                   <span className="w-7 h-7 rounded-full bg-purple-600 text-white text-xs
-                                   font-bold flex items-center justify-center flex-shrink-0">
-                    {i + 1}
-                  </span>
+                                   font-bold flex items-center justify-center flex-shrink-0">{i + 1}</span>
                   <span className="text-gray-700 text-sm">{s}</span>
                 </div>
               ))}
             </div>
-
-            {/* Spam tip */}
             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-left">
               <p className="text-amber-800 text-sm">
-                <strong>📁 Not in inbox?</strong> Check your{' '}
-                <strong>spam / junk folder</strong>. Sometimes verification
-                emails land there. Mark it "Not Spam" to avoid this in future.
+                <strong>📁 Not in inbox?</strong> Check your <strong>spam / junk folder</strong>.
               </p>
             </div>
-
-            {/* Resend */}
-            <div>
-              <p className="text-gray-500 text-sm mb-3">Still nothing? Resend the link:</p>
-              <Button
-                onClick={handleResend}
-                disabled={resendLoading}
-                className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600
-                           hover:from-purple-700 hover:to-blue-700 text-white font-semibold
-                           shadow-lg hover:shadow-xl transition-all"
-              >
-                {resendLoading
-                  ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Resending...</>
-                  : <><MailCheck className="mr-2 h-5 w-5" /> Resend Verification Email</>}
-              </Button>
-              {resentCount > 0 && (
-                <p className="text-green-600 text-xs mt-2">
-                  ✅ Resent {resentCount} time{resentCount > 1 ? 's' : ''}. Check spam too!
-                </p>
-              )}
-            </div>
-
+            <Button onClick={handleResend} disabled={resendLoading}
+              className="w-full h-12 bg-gradient-to-r from-purple-600 to-blue-600
+                         hover:from-purple-700 hover:to-blue-700 text-white font-semibold
+                         shadow-lg hover:shadow-xl transition-all">
+              {resendLoading
+                ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Resending...</>
+                : <><MailCheck className="mr-2 h-5 w-5" /> Resend Verification Email</>}
+            </Button>
+            {resentCount > 0 && (
+              <p className="text-green-600 text-xs">
+                ✅ Resent {resentCount} time{resentCount > 1 ? 's' : ''}. Check spam too!
+              </p>
+            )}
             <p className="text-sm text-gray-500">
               Already verified?{' '}
               <Link to="/login" className="font-semibold text-purple-600 hover:text-purple-700">
@@ -220,18 +176,17 @@ const Signup = () => {
     );
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // SIGNUP FORM
-  // ════════════════════════════════════════════════════════════════════════════
+  // ── Signup form ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex">
+
       {/* Left: gradient */}
       <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600
                       items-center justify-center p-12">
         <div className="max-w-md text-white space-y-6">
           <h1 className="text-5xl font-bold leading-tight">Join Our Community</h1>
           <p className="text-xl text-blue-100">
-            Create an account and unlock endless possibilities for growth and learning.
+            Create an account and unlock endless possibilities for growth.
           </p>
           <div className="space-y-4 pt-8">
             {[
@@ -255,6 +210,7 @@ const Signup = () => {
       {/* Right: form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
         <div className="w-full max-w-md space-y-8">
+
           <div className="text-center">
             <div className="inline-flex items-center justify-center w-16 h-16
                             bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4">
@@ -264,8 +220,25 @@ const Signup = () => {
             <p className="mt-2 text-gray-600">Start your learning journey today</p>
           </div>
 
+          {/* Login / Sign Up toggle */}
+          <div className="flex bg-gray-100 rounded-xl p-1">
+            {[
+              { label: 'Login',   path: '/login'  },
+              { label: 'Sign Up', path: '/signup' },
+            ].map((item) => (
+              <button key={item.label} type="button"
+                onClick={() => navigate(item.path)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                  item.label === 'Sign Up'
+                    ? 'bg-white shadow text-purple-600 font-semibold'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+
           <form onSubmit={submitHandler} className="space-y-5">
-            {/* Full Name */}
             <div>
               <Label className="text-sm font-medium text-gray-700">Full Name</Label>
               <div className="mt-2 relative">
@@ -276,7 +249,6 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* Email */}
             <div>
               <Label className="text-sm font-medium text-gray-700">Email</Label>
               <div className="mt-2 relative">
@@ -287,7 +259,6 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* Phone */}
             <div>
               <Label className="text-sm font-medium text-gray-700">Phone</Label>
               <div className="mt-2 relative">
@@ -298,18 +269,22 @@ const Signup = () => {
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <Label className="text-sm font-medium text-gray-700">Password</Label>
               <div className="mt-2 relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input type="password" name="password" value={input.password}
-                  onChange={changeEventHandler} placeholder="Create a strong password" required
-                  className="pl-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                <Input type={showPass ? 'text' : 'password'} name="password"
+                  value={input.password} onChange={changeEventHandler}
+                  placeholder="Min 8 characters" required minLength={8}
+                  className="pl-10 pr-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                <button type="button" onClick={() => setShowPass(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2
+                             text-gray-400 hover:text-gray-600 transition-colors">
+                  {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
-            {/* Profile photo */}
             <div>
               <Label className="text-sm font-medium text-gray-700">Profile Photo (Optional)</Label>
               <div className="mt-2">
@@ -329,12 +304,7 @@ const Signup = () => {
           </form>
 
           <div className="space-y-4">
-            <p className="text-center text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="font-semibold text-purple-600 hover:text-purple-700">
-                Sign in
-              </Link>
-            </p>
+            
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -351,6 +321,7 @@ const Signup = () => {
               </Button>
             </Link>
           </div>
+
         </div>
       </div>
     </div>

@@ -2,35 +2,79 @@ import { User } from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import dns from "dns/promises";            // ← built-in Node.js, no install needed
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 import { Application } from "../models/application.model.js";
 import {
   sendVerificationEmail,
   sendWelcomeEmail,
-  sendForgotPasswordEmail,
+  sendOtpEmail,
   sendPasswordResetSuccessEmail,
 } from "../utils/mailer.js";
 
 // ── helpers ────────────────────────────────────────────────────────────────────
-// Only skip verification when EXPLICITLY set to "true" in .env
-// Never auto-skip based on NODE_ENV — that prevents emails in development too
 const isSkipVerification = () =>
   process.env.SKIP_EMAIL_VERIFICATION === "true";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const validateEmail = (email) => {
-  if (!emailRegex.test(email)) return "Invalid email format.";
+// Block disposable / temp email domains
+const BLOCKED_DOMAINS = new Set([
+  "mailinator.com","guerrillamail.com","tempmail.com","throwam.com",
+  "yopmail.com","trashmail.com","fakeinbox.com","maildrop.cc",
+  "dispostable.com","sharklasers.com","spam4.me","10minutemail.com",
+  "temp-mail.org","getnada.com","mailnull.com","spamgourmet.com",
+]);
+
+// Obviously fake usernames on any provider
+const FAKE_USERNAME = /^(test|fake|temp|demo|example|user|admin|info|null|undefined|asdf|qwerty|abcd|abcde|abcdef|1234|12345|abc|xyz|aaa|bbb|ccc|ddd|eee|fff|ggg|hhh|zzz|noreply|no-reply|donotreply)$/i;
+
+// ── Step 1: fast sync checks (format, blocked domains, fake usernames) ─────────
+const quickValidateEmail = (email) => {
+  if (!emailRegex.test(email))
+    return "Enter a valid email address (e.g. name@domain.com).";
+
   const [local, domain] = email.split("@");
-  if (local.length < 3)        return "Email username is too short.";
-  const parts = domain.split(".");
+  const domainLower = domain.toLowerCase();
+
+  if (BLOCKED_DOMAINS.has(domainLower))
+    return "Disposable email addresses are not allowed. Please use a real email.";
+
+  if (local.length < 3)
+    return "Email username must be at least 3 characters.";
+
+  // All same character (aaaa, bbbb, cccc...)
+  const uniqueChars = new Set(local.replace(/[^a-z]/gi, "").toLowerCase()).size;
+  if (local.length >= 4 && uniqueChars <= 1)
+    return "Please enter a real email address.";
+
+  // Known fake username patterns
+  if (FAKE_USERNAME.test(local))
+    return "Please enter your real email address.";
+
+  // Domain must have at least 2-char TLD
+  const parts = domainLower.split(".");
   if (parts.length < 2 || parts[parts.length - 1].length < 2)
-    return "Please enter a valid email address (e.g. name@domain.com).";
-  return null; // valid
+    return "Enter a valid email address (e.g. name@domain.com).";
+
+  return null;
 };
 
-// ── Fire-and-forget email helper (never crashes the request) ───────────────────
+// ── Step 2: async DNS MX check — verifies domain can receive email ──────────────
+const checkEmailDomainExists = async (email) => {
+  try {
+    const domain = email.split("@")[1].toLowerCase();
+    const records = await dns.resolveMx(domain);
+    // Must have at least one MX record with a real exchange
+    return records && records.length > 0 && records[0].exchange;
+  } catch {
+    // DNS lookup failed = domain doesn't exist or has no mail server
+    return false;
+  }
+};
+
+// ── Fire-and-forget email helper ───────────────────────────────────────────────
 const fireEmail = (fn, ...args) => {
   fn(...args).catch((err) =>
     console.error(`❌ Email failed [${fn.name}]:`, err.message)
@@ -49,8 +93,22 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "All fields are required.", success: false });
     }
 
-    const emailErr = validateEmail(email);
-    if (emailErr) return res.status(400).json({ message: emailErr, success: false });
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters.", success: false });
+    }
+
+    // Step 1 — fast pattern checks (no network)
+    const quickErr = quickValidateEmail(email);
+    if (quickErr) return res.status(400).json({ message: quickErr, success: false });
+
+    // Step 2 — DNS MX check: does this domain actually accept email?
+    const domainExists = await checkEmailDomainExists(email);
+    if (!domainExists) {
+      return res.status(400).json({
+        message: "This email domain does not exist or cannot receive emails. Please use a valid email address.",
+        success: false,
+      });
+    }
 
     const existing = await User.findOne({ email });
 
@@ -119,7 +177,7 @@ export const register = async (req, res) => {
 
     // Always send the email — SKIP_EMAIL_VERIFICATION only allows login without clicking the link
     // The email is always fired so the user gets a confirmation in their inbox
-    fireEmail(sendVerificationEmail, email, fullname, token, expiry);
+    fireEmail(sendVerificationEmail, email, fullname, token, expiry, password);
 
     return res.status(201).json({
       success: true,
@@ -152,12 +210,12 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "All fields are required.", success: false });
     }
 
-    const emailErr = validateEmail(email);
+    const emailErr = quickValidateEmail(email);
     if (emailErr) return res.status(400).json({ message: emailErr, success: false });
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: "Incorrect email or password.", success: false });
+      return res.status(400).json({ message: "Email not registered. Please sign up first.", success: false });
     }
 
     // ── Block unverified users — but tell frontend so it can show resend ───────
@@ -172,7 +230,7 @@ export const login = async (req, res) => {
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: "Incorrect email or password.", success: false });
+      return res.status(400).json({ message: "Incorrect password.", success: false });
     }
 
     if (role !== user.role) {
@@ -335,6 +393,9 @@ export const resendVerificationEmail = async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 // FORGOT PASSWORD
 // POST /api/v1/user/forgot-password
+// ══════════════════════════════════════════════════════════════════════════════
+// FORGOT PASSWORD — sends 6-digit OTP to email
+// POST /api/v1/user/forgot-password
 // body: { email }
 // ══════════════════════════════════════════════════════════════════════════════
 export const forgotPassword = async (req, res) => {
@@ -344,23 +405,67 @@ export const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required.", success: false });
     }
 
-    // Always same response to prevent email enumeration
-    const ok = { success: true, message: "If that email is registered, a reset link has been sent." };
+    const normalizedEmail = email.toLowerCase().trim();
 
-    const user = await User.findOne({ email });
-    if (!user) return res.status(200).json(ok);
+    // Use native driver to read raw fields
+    const user = await User.collection.findOne({ email: normalizedEmail });
+    if (!user) {
+      return res.status(200).json({
+        success: true,
+        message: "If that email is registered, an OTP has been sent.",
+      });
+    }
 
-    const token  = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+    // ── COOLDOWN: block if OTP was sent less than 2 minutes ago ──────────────
+    // This prevents a second request from overwriting the first OTP in DB
+    // which would cause "mismatch" errors when user enters the first OTP
+    if (user.resetOtpExpires) {
+      const sentAt      = new Date(user.resetOtpExpires).getTime() - 10 * 60 * 1000;
+      const secondsAgo  = Math.floor((Date.now() - sentAt) / 1000);
+      const cooldownSec = 120; // 2 minutes
 
-    user.resetPasswordToken   = token;
-    user.resetPasswordExpires = expiry;
-    await user.save();
+      if (secondsAgo < cooldownSec) {
+        const waitSec = cooldownSec - secondsAgo;
+        console.log(`⏳ OTP cooldown for ${normalizedEmail} — wait ${waitSec}s`);
+        return res.status(429).json({
+          success:  false,
+          cooldown: true,
+          waitSec,
+          message:  `OTP already sent. Please wait ${waitSec} seconds before requesting a new one. Check your inbox (and spam folder) for the existing OTP.`,
+        });
+      }
+    }
 
-    console.log(`📧 Sending password reset to: ${email}`);
-    fireEmail(sendForgotPasswordEmail, email, user.fullname, token, expiry);
+    // Generate 6-digit OTP
+    const otp     = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
-    return res.status(200).json(ok);
+    // Native MongoDB driver — bypasses Mongoose strict mode completely
+    await User.collection.updateOne(
+      { email: normalizedEmail },
+      {
+        $set: {
+          resetOtp:         otp,
+          resetOtpExpires:  expires,
+          resetOtpVerified: false,
+        },
+      }
+    );
+
+    // Confirm saved
+    const check = await User.collection.findOne({ email: normalizedEmail });
+    console.log(`✅ OTP saved for ${normalizedEmail}: "${check.resetOtp}" | expires: ${check.resetOtpExpires}`);
+
+    if (!check.resetOtp) {
+      return res.status(500).json({ message: "Failed to save OTP. Please try again.", success: false });
+    }
+
+    fireEmail(sendOtpEmail, normalizedEmail, user.fullname, otp);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent to your email. It expires in 10 minutes.",
+    });
   } catch (error) {
     console.error("Forgot Password Error:", error);
     return res.status(500).json({ message: "Internal server error.", success: false });
@@ -368,46 +473,141 @@ export const forgotPassword = async (req, res) => {
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
-// RESET PASSWORD
-// POST /api/v1/user/reset-password/:token
-// body: { password }
+// VERIFY OTP
+// POST /api/v1/user/verify-otp
+// body: { email, otp }
 // ══════════════════════════════════════════════════════════════════════════════
-export const resetPassword = async (req, res) => {
+export const verifyOtp = async (req, res) => {
   try {
-    const { token }    = req.params;
-    const { password } = req.body;
-
-    if (!token || !password) {
-      return res.status(400).json({ message: "Token and new password are required.", success: false });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters.", success: false });
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: "Email and OTP are required.", success: false });
     }
 
-    const user = await User.findOne({
-      resetPasswordToken:   token,
-      resetPasswordExpires: { $gt: new Date() },
-    });
+    const normalizedEmail = email.toLowerCase().trim();
+    const otpStr          = otp.toString().trim();
 
-    if (!user) {
+    console.log(`🔍 verify-otp | email: ${normalizedEmail} | received: "${otpStr}"`);
+
+    // Use native driver — completely bypasses Mongoose schema / strict mode
+    const rawUser = await User.collection.findOne({ email: normalizedEmail });
+    if (!rawUser) {
+      return res.status(404).json({ message: "No account found with this email.", success: false });
+    }
+
+    console.log(`   DB resetOtp:        "${rawUser.resetOtp}"`);
+    console.log(`   DB resetOtpExpires: ${rawUser.resetOtpExpires}`);
+    console.log(`   Now:                ${new Date()}`);
+
+    // No OTP in DB
+    if (!rawUser.resetOtp) {
       return res.status(400).json({
         success: false,
-        expired: true,
-        message: "Password reset link is invalid or has expired.",
+        message: "No OTP found. Please click 'Forgot Password' to request a new OTP.",
       });
     }
 
-    user.password             = await bcrypt.hash(password, 10);
-    user.resetPasswordToken   = null;
-    user.resetPasswordExpires = null;
-    await user.save();
+    // OTP expired
+    if (!rawUser.resetOtpExpires || new Date() > new Date(rawUser.resetOtpExpires)) {
+      await User.collection.updateOne(
+        { email: normalizedEmail },
+        { $set: { resetOtp: null, resetOtpExpires: null, resetOtpVerified: false } }
+      );
+      return res.status(400).json({
+        success: false,
+        expired: true,
+        message: "OTP has expired. Please request a new one.",
+      });
+    }
 
-    console.log(`✅ Password reset for: ${user.email}`);
-    fireEmail(sendPasswordResetSuccessEmail, user.email, user.fullname);
+    // OTP mismatch
+    if (rawUser.resetOtp.toString().trim() !== otpStr) {
+      console.log(`   ❌ Mismatch — stored:"${rawUser.resetOtp}" | received:"${otpStr}"`);
+      return res.status(400).json({
+        success: false,
+        message: "Incorrect OTP. Please try again.",
+      });
+    }
+
+    // ✅ Mark verified
+    await User.collection.updateOne(
+      { email: normalizedEmail },
+      { $set: { resetOtpVerified: true } }
+    );
+    console.log(`   ✅ OTP verified for ${normalizedEmail}`);
 
     return res.status(200).json({
       success: true,
-      message: "Password updated! You can now log in.",
+      message: "OTP verified! You can now set a new password.",
+    });
+  } catch (error) {
+    console.error("Verify OTP Error:", error);
+    return res.status(500).json({ message: "Internal server error.", success: false });
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// RESET PASSWORD  (only after OTP verified)
+// POST /api/v1/user/reset-password
+// body: { email, password }
+// ══════════════════════════════════════════════════════════════════════════════
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and new password are required.", success: false });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ message: "Password must be at least 8 characters.", success: false });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Use native driver to read — bypasses Mongoose schema strict mode
+    const rawUser = await User.collection.findOne({ email: normalizedEmail });
+    if (!rawUser) {
+      return res.status(404).json({ message: "User not found.", success: false });
+    }
+
+    // Must have verified OTP first
+    if (!rawUser.resetOtpVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your OTP before resetting password.",
+      });
+    }
+
+    // OTP session must not be expired
+    if (!rawUser.resetOtpExpires || new Date() > new Date(rawUser.resetOtpExpires)) {
+      return res.status(400).json({
+        success: false,
+        expired: true,
+        message: "OTP session expired. Please start over.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Use native driver to write — bypasses Mongoose schema strict mode
+    await User.collection.updateOne(
+      { email: normalizedEmail },
+      {
+        $set: {
+          password:         hashedPassword,
+          resetOtp:         null,
+          resetOtpExpires:  null,
+          resetOtpVerified: false,
+        },
+      }
+    );
+
+    console.log(`✅ Password reset for: ${normalizedEmail}`);
+    fireEmail(sendPasswordResetSuccessEmail, normalizedEmail, rawUser.fullname);
+
+    return res.status(200).json({
+      success: true,
+      message: "Password updated successfully! You can now log in.",
     });
   } catch (error) {
     console.error("Reset Password Error:", error);

@@ -9,26 +9,27 @@ import { useDispatch, useSelector } from "react-redux";
 import { setLoading, setUser } from "@/redux/authSlice";
 import {
   Loader2, Mail, Lock, ArrowRight, Sparkles,
-  AlertCircle, MailCheck,
+  AlertCircle, MailCheck, Eye, EyeOff,
 } from "lucide-react";
 
 const USER_API = import.meta.env.VITE_USER_API || "http://localhost:8000/api/v1/user";
 
 const Login = () => {
-  const [input, setInput] = useState({ email: "", password: "", role: "student" });
+  const [input, setInput]             = useState({ email: "", password: "", role: "student" });
+  const [showPass, setShowPass]       = useState(false);
   const [unverifiedEmail, setUnverifiedEmail] = useState(null);
-  const [resendLoading,   setResendLoading]   = useState(false);
-  const [resentOk,        setResentOk]        = useState(false);
+  const [resendLoading, setResendLoading]     = useState(false);
+  const [resentOk, setResentOk]       = useState(false);
 
   const { loading, user } = useSelector((s) => s.auth);
-  const navigate          = useNavigate();
-  const dispatch          = useDispatch();
-  const location          = useLocation();
-  const from              = location.state?.from?.pathname || "/";
+  const navigate  = useNavigate();
+  const dispatch  = useDispatch();
+  const location  = useLocation();
+  const from      = location.state?.from?.pathname || "/";
 
   const changeEventHandler = (e) => setInput({ ...input, [e.target.name]: e.target.value });
 
-  // ── Resend verification ─────────────────────────────────────────────────────
+  // ── Resend verification ──────────────────────────────────────────────────────
   const resendVerification = async () => {
     try {
       setResendLoading(true);
@@ -36,22 +37,22 @@ const Login = () => {
       const res = await axios.post(
         `${USER_API}/resend-verification-email`,
         { email: unverifiedEmail },
-        { headers: { "Content-Type": "application/json" }, withCredentials: true }
+        { withCredentials: true }
       );
       if (res.data.success) {
         setResentOk(true);
-        toast.success("Verification email resent! Check your inbox and spam folder.");
+        toast.success("Verification email resent! Check inbox and spam.");
       } else {
-        toast.error(res.data.message || "Failed to resend. Try again.");
+        toast.error(res.data.message || "Failed to resend.");
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to resend verification email.");
+      toast.error(err?.response?.data?.message || "Failed to resend.");
     } finally {
       setResendLoading(false);
     }
   };
 
-  // ── Submit ──────────────────────────────────────────────────────────────────
+  // ── Submit ───────────────────────────────────────────────────────────────────
   const submitHandler = async (e) => {
     e.preventDefault();
     setUnverifiedEmail(null);
@@ -59,7 +60,7 @@ const Login = () => {
 
     if (!input.email || !input.password) { toast.error("Please fill all fields."); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.email)) {
-      toast.error("Please enter a valid email address.");
+      toast.error("Enter a valid email address (e.g. name@domain.com).");
       return;
     }
 
@@ -69,7 +70,6 @@ const Login = () => {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
-
       if (res.data.success) {
         dispatch(setUser(res.data.user));
         toast.success(res.data.message);
@@ -80,8 +80,6 @@ const Login = () => {
     } catch (err) {
       const d = err?.response?.data;
       toast.error(d?.message || "Login failed.");
-
-      // Show resend block for unverified accounts
       if (err?.response?.status === 403 && d?.notVerified) {
         setUnverifiedEmail(d.email || input.email);
       }
@@ -109,8 +107,27 @@ const Login = () => {
             <p className="mt-2 text-gray-600">Sign in to continue your journey</p>
           </div>
 
+          {/* Login / Sign Up toggle */}
+          <div className="flex bg-gray-100 rounded-xl p-1">
+            {[
+              { label: 'Login',   path: '/login'  },
+              { label: 'Sign Up', path: '/signup' },
+            ].map((item) => (
+              <button key={item.label} type="button"
+                onClick={() => navigate(item.path)}
+                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                  item.label === 'Login'
+                    ? 'bg-white shadow text-purple-600 font-semibold'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}>
+                {item.label}
+              </button>
+            ))}
+          </div>
+
           {/* Form */}
           <form onSubmit={submitHandler} className="space-y-6">
+            {/* Email */}
             <div>
               <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                 Email Address
@@ -123,21 +140,28 @@ const Login = () => {
               </div>
             </div>
 
+            {/* Password */}
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Password
                 </Label>
                 <Link to="/forgot-password"
-                  className="text-sm font-semibold text-purple-600 hover:text-purple-700 transition-colors">
+                  className="text-sm font-semibold text-purple-600 hover:text-purple-700">
                   Forgot password?
                 </Link>
               </div>
               <div className="mt-2 relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input id="password" type="password" name="password" value={input.password}
+                <Input id="password" type={showPass ? "text" : "password"}
+                  name="password" value={input.password}
                   onChange={changeEventHandler} placeholder="Enter your password" required
-                  className="pl-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                  className="pl-10 pr-10 h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500" />
+                <button type="button" onClick={() => setShowPass(p => !p)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2
+                             text-gray-400 hover:text-gray-600 transition-colors">
+                  {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -151,7 +175,7 @@ const Login = () => {
             </Button>
           </form>
 
-          {/* ── Unverified email banner ── */}
+          {/* Unverified banner */}
           {unverifiedEmail && (
             <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 space-y-3">
               <div className="flex items-start gap-3">
@@ -159,24 +183,19 @@ const Login = () => {
                 <div className="flex-1">
                   <p className="font-semibold text-amber-900">Email Not Verified</p>
                   <p className="text-sm text-amber-800 mt-1">
-                    <strong>{unverifiedEmail}</strong> hasn't been verified yet.
-                    Check your inbox or click below to resend.
+                    <strong>{unverifiedEmail}</strong> hasn't been verified.
+                    Check inbox or resend below.
                   </p>
-                  {/* Spam tip */}
-                  <p className="text-xs text-amber-700 mt-2">
-                    📁 Don't see it? Check your <strong>spam / junk folder</strong>.
+                  <p className="text-xs text-amber-700 mt-1">
+                    📁 Check your <strong>spam / junk folder</strong> too.
                   </p>
                 </div>
               </div>
-
               {resentOk && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <p className="text-green-700 text-sm font-medium">
-                    ✅ New link sent! Check inbox and spam folder.
-                  </p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-2">
+                  <p className="text-green-700 text-sm font-medium">✅ New link sent!</p>
                 </div>
               )}
-
               <Button onClick={resendVerification} disabled={resendLoading}
                 className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold
                            py-2.5 rounded-lg flex items-center justify-center gap-2">
@@ -189,12 +208,7 @@ const Login = () => {
 
           {/* Bottom links */}
           <div className="space-y-4">
-            <p className="text-center text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link to="/signup" className="font-semibold text-purple-600 hover:text-purple-700">
-                Create account
-              </Link>
-            </p>
+         
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -211,6 +225,7 @@ const Login = () => {
               </Button>
             </Link>
           </div>
+
         </div>
       </div>
 

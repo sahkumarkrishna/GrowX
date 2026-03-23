@@ -5,8 +5,9 @@ import {
     register,
     verifyEmail,
     resendVerificationEmail,
-    forgotPassword,        // ← ADDED
-    resetPassword,         // ← ADDED
+    forgotPassword,
+    verifyOtp,
+    resetPassword,
     updateProfile,
     getAllUsers,
     getUserById,
@@ -27,13 +28,14 @@ const router = express.Router();
 // ── Auth ───────────────────────────────────────────────────────────────────────
 router.post("/register",                  singleUpload, register);
 router.post("/login",                     login);
-router.get ("/verify-email",              verifyEmail);               // ?token=...&email=...
+router.get ("/verify-email",              verifyEmail);
 router.post("/resend-verification-email", resendVerificationEmail);
 router.get ("/logout",                    logout);
 
-// ── Password Reset ─────────────────────────────────────────────────────────────
-router.post("/forgot-password",           forgotPassword);            // ← ADDED
-router.post("/reset-password/:token",     resetPassword);             // ← ADDED
+// ── Password Reset (OTP flow) ──────────────────────────────────────────────────
+router.post("/forgot-password",           forgotPassword);  // step 1: send OTP
+router.post("/verify-otp",                verifyOtp);       // step 2: verify OTP
+router.post("/reset-password",            resetPassword);   // step 3: set new password
 
 // ── Profile ────────────────────────────────────────────────────────────────────
 router.post("/profile/update", isAuthenticated, multiUpload, updateProfile);

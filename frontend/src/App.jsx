@@ -6,8 +6,7 @@ import { lazy, Suspense } from 'react';
 const Login          = lazy(() => import('./components/auth/Login'));
 const Signup         = lazy(() => import('./components/auth/Signup'));
 const VerifyEmail    = lazy(() => import('./components/auth/VerifyEmail'));
-const ForgotPassword = lazy(() => import('./components/auth/ForgotPassword'));  // ← ADDED
-const ResetPassword  = lazy(() => import('./components/auth/ResetPassword'));   // ← ADDED
+const ForgotPassword = lazy(() => import('./components/auth/ForgotPassword'));  // handles email→OTP→reset flow
 const AdminLogin     = lazy(() => import('./components/auth/AdminLogin'));
 
 // ── Public Pages ──────────────────────────────────────────────────────────────
@@ -132,8 +131,7 @@ const router = createBrowserRouter([
   { path: '/login',                    element: <W><Login /></W> },
   { path: '/signup',                   element: <W><Signup /></W> },
   { path: '/verify-email',             element: <W><VerifyEmail /></W> },      // ?token=...&email=...
-  { path: '/forgot-password',          element: <W><ForgotPassword /></W> },   // ← NEW
-  { path: '/reset-password/:token',    element: <W><ResetPassword /></W> },    // ← NEW
+  { path: '/forgot-password',          element: <W><ForgotPassword /></W> },   // handles all 3 steps
   { path: '/admin/login',              element: <W><AdminLogin /></W> },
   { path: '*',                         element: <W><NotFound /></W> },
 

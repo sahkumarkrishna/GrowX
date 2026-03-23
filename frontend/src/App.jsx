@@ -72,19 +72,13 @@ const GetTask         = lazy(() => import('./pages/KanbanBoard/Tasks/GetTask'));
 const UpdateTask      = lazy(() => import('./pages/KanbanBoard/Tasks/UpdateTask'));
 
 // ── User Dashboard (with sidebar layout) ─────────────────────────────────────
-const UserLayout        = lazy(() => import('./components/user/UserLayout'));
-const UserDashboard     = lazy(() => import('./components/user/UserDashboard'));
-const QuizPage          = lazy(() => import('./components/user/QuizPage'));
-const ResumePage        = lazy(() => import('./components/user/ResumePage'));
-const InternshipPage    = lazy(() => import('./components/user/InternshipPage'));
-const ATSPage           = lazy(() => import('./components/user/ATSPage'));
-const UserProfilePage   = lazy(() => import('./components/user/UserProfilePage'));
-// Analytics pages
-const InternshipAnalytics  = lazy(() => import('./components/user/analytics/InternshipAnalytics'));
-const ATSAnalytics         = lazy(() => import('./components/user/analytics/ATSAnalytics'));
-const QuizAnalytics        = lazy(() => import('./components/user/analytics/QuizAnalytics'));
-const ResumeAnalytics      = lazy(() => import('./components/user/analytics/ResumeAnalytics'));
-const DashboardAnalytics   = lazy(() => import('./components/user/analytics/DashboardAnalytics'));
+const UserLayout      = lazy(() => import('./components/user/UserLayout'));
+const UserDashboard   = lazy(() => import('./components/user/UserDashboard'));
+const QuizPage        = lazy(() => import('./components/user/QuizPage'));
+const ResumePage      = lazy(() => import('./components/user/ResumePage'));
+const InternshipPage  = lazy(() => import('./components/user/InternshipPage'));
+const ATSPage         = lazy(() => import('./components/user/ATSPage'));
+const UserProfilePage = lazy(() => import('./components/user/UserProfilePage'));
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Page Loader  (shown while lazy chunks are loading)
@@ -193,19 +187,13 @@ const router = createBrowserRouter([
     path: '/user',
     element: <W><ProtectedRoute><UserLayout /></ProtectedRoute></W>,
     children: [
-      { path: 'dashboard',              element: <W><UserDashboard /></W>        },
-      { path: 'jobs',                   element: <W><InternshipPage /></W>       },
-      { path: 'quiz',                   element: <W><QuizPage /></W>             },
-      { path: 'resume',                 element: <W><ResumePage /></W>           },
-      { path: 'internship',             element: <W><InternshipPage /></W>       },
-      { path: 'ats',                    element: <W><ATSPage /></W>              },
-      { path: 'profile',                element: <W><UserProfilePage /></W>      },
-      // Analytics
-      { path: 'analytics/dashboard',    element: <W><DashboardAnalytics /></W>  },
-      { path: 'analytics/internship',   element: <W><InternshipAnalytics /></W> },
-      { path: 'analytics/ats',          element: <W><ATSAnalytics /></W>        },
-      { path: 'analytics/quiz',         element: <W><QuizAnalytics /></W>       },
-      { path: 'analytics/resume',       element: <W><ResumeAnalytics /></W>     },
+      { path: 'dashboard',   element: <W><UserDashboard /></W>   },
+      { path: 'jobs',        element: <W><InternshipPage /></W>  },
+      { path: 'quiz',        element: <W><QuizPage /></W>        },
+      { path: 'resume',      element: <W><ResumePage /></W>      },
+      { path: 'internship',  element: <W><InternshipPage /></W>  },
+      { path: 'ats',         element: <W><ATSPage /></W>         },
+      { path: 'profile',     element: <W><UserProfilePage /></W> },
     ],
   },
 

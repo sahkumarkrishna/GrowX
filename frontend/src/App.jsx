@@ -83,7 +83,7 @@ const ATSPage = lazy(() => import('./components/user/ATSPage'));
 const UserProfilePage = lazy(() => import('./components/user/UserProfilePage'));
 // Analytics pages
 const InternshipAnalytics = lazy(() => import('./components/user/analytics/Internshipanalytic'));
-const ATSAnalytics = lazy(() => import('./components/user/analytics/ATSAnalytics'));
+const ATSAnalytics = lazy(() => import('./components/user/analytics/Atsanalytics'));
 const QuizAnalytics = lazy(() => import('./components/user/analytics/Quizanalytics'));
 const ResumeAnalytics = lazy(() => import('./components/user/analytics/Resumeanalytics'));
 const DashboardAnalytics = lazy(() => import('./components/user/analytics/DashboardAnalytics'));

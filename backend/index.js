@@ -24,8 +24,8 @@ import quizRoute         from "./routes/quiz.route.js";
 import quizResultRoute   from "./routes/quizResult.route.js";
 import savedJobRoute     from "./routes/savedJob.route.js";
 import atsAnalysisRoute  from "./routes/atsAnalysis.route.js";
-import internshipRoute   from "./routes/internship.route.js";
-import interviewRoute    from "./routes/interview.route.js";          // ← NEW
+import internshipRoute   from "./routes/Interview.route.js";
+          // ← NEW
 
 import { setupInterviewSocket } from "./Interview.socket.js"; // ← NEW
 

@@ -1,6 +1,6 @@
-import { Interview } from "../models/interview.model.js";
-import { QuestionBank } from "../models/questionBank.model.js";
-import { User } from "../models/user.model.js";
+import { Interview } from "../models/Interview.model.js";
+import { QuestionBank } from "../models/Questionbank.model.js";
+
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 

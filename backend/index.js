@@ -8,13 +8,10 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 // ── Load env vars FIRST — before any other local imports ──────────────────────
-// This is critical with ES modules: imports are hoisted and run before
-// module body code, so dotenv must be configured before any util that
-// reads process.env (e.g. mailer.js, cloudinary.js)
 dotenv.config();
 
 import connectDB from "./utils/db.js";
-import { verifyMailer } from "./utils/mailer.js";   // ← verify email on startup
+import { verifyMailer } from "./utils/mailer.js";
 
 import userRoute         from "./routes/user.route.js";
 import companyRoute      from "./routes/company.route.js";
@@ -28,6 +25,9 @@ import quizResultRoute   from "./routes/quizResult.route.js";
 import savedJobRoute     from "./routes/savedJob.route.js";
 import atsAnalysisRoute  from "./routes/atsAnalysis.route.js";
 import internshipRoute   from "./routes/internship.route.js";
+import interviewRoute    from "./routes/interview.route.js";          // ← NEW
+
+import { setupInterviewSocket } from "./Interview.socket.js"; // ← NEW
 
 // ── __dirname fix for ES modules ───────────────────────────────────────────────
 const __filename = fileURLToPath(import.meta.url);
@@ -69,10 +69,14 @@ const io = new Server(server, {
 
 app.use((req, _res, next) => { req.io = io; next(); });
 
+// ── General socket connection log ──────────────────────────────────────────────
 io.on("connection", (socket) => {
     console.log(`⚡ Socket connected: ${socket.id}`);
     socket.on("disconnect", () => console.log(`❌ Socket disconnected: ${socket.id}`));
 });
+
+// ── Interview namespace (WebRTC signaling, chat, proctoring) ───────────────────
+setupInterviewSocket(io);                                              // ← NEW
 
 // ── API Routes ─────────────────────────────────────────────────────────────────
 app.use("/api/v1/user",        userRoute);
@@ -84,6 +88,7 @@ app.use("/api/v1/quiz-result", quizResultRoute);
 app.use("/api/v1/saved-job",   savedJobRoute);
 app.use("/api/v1/ats",         atsAnalysisRoute);
 app.use("/api/v1/internship",  internshipRoute);
+app.use("/api/v1/interview",   interviewRoute);                        // ← NEW
 app.use("/api/contact",        contactRoute);
 app.use("/api/resumes",        resumeRoutes);
 app.use("/api/tasks",          taskRoutes);
@@ -96,8 +101,8 @@ app.get("*", (_req, res) => res.sendFile(path.join(distPath, "index.html")));
 // ── Start ──────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 8000;
 
-server.listen(PORT, async () => {           // ← server.listen, not app.listen
+server.listen(PORT, async () => {
     await connectDB();
-    await verifyMailer();                   // ← logs ✅ or ❌ for email config
+    await verifyMailer();
     console.log(`🚀 Server running on port ${PORT}`);
 });

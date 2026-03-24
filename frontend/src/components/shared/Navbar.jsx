@@ -23,6 +23,7 @@ const MAIN_NAV = [
   { path: '/internship',  label: 'Internship', icon: Briefcase     },
   { path: '/atschecker',  label: 'ATS',        icon: ScanLine      },
   { path: '/KanbanBoard', label: 'Kanban',     icon: Trello        },
+  { path: '/interview', label: 'Interview', icon: User2 },
 ];
 
 const JOB_NAV = [

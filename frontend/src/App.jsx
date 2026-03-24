@@ -44,6 +44,13 @@ const AdminInternships = lazy(() => import('./components/admin/AdminInternships'
 // ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import MainLayout from './Layout/MainLayout';
+import InterviewDashboard from './pages/Interview/Interviewdashboard';
+import EvaluateInterview from './pages/Interview/Evaluateinterview';
+import InterviewSchedule from './pages/Interview/Interviewschedule';
+import InterviewPreCheck from './pages/Interview/Interviewprecheck';
+import QuestionBank from './pages/Interview/Questionbank';
+import MyInterviews from './pages/Interview/Myinterviews';
+import InterviewRoom from './pages/Interview/Interviewroom';
 
 // ── Feature Pages ─────────────────────────────────────────────────────────────
 const LearningHome = lazy(() => import('./pages/HomeLearning'));
@@ -70,6 +77,7 @@ const CreateTask = lazy(() => import('./pages/KanbanBoard/Tasks/CreateTask'));
 const KanbanBoard = lazy(() => import('./pages/KanbanBoard/Tasks/KanbanBoard'));
 const GetTask = lazy(() => import('./pages/KanbanBoard/Tasks/GetTask'));
 const UpdateTask = lazy(() => import('./pages/KanbanBoard/Tasks/UpdateTask'));
+const InterviewPath = lazy(() => import('./pages/Interviewpath'));
 
 // ── User Dashboard (with sidebar layout) ─────────────────────────────────────
 const UserLayout = lazy(() => import('./components/user/UserLayout'));
@@ -80,6 +88,7 @@ const QuizPage = lazy(() => import('./components/user/QuizPage'));
 const ResumePage = lazy(() => import('./components/user/ResumePage'));
 const InternshipPage = lazy(() => import('./components/user/InternshipPage'));
 const ATSPage = lazy(() => import('./components/user/ATSPage'));
+
 
 const UserProfilePage = lazy(() => import('./components/user/UserProfilePage'));
 // Analytics pages
@@ -171,6 +180,7 @@ const router = createBrowserRouter([
       { path: 'resume', element: <W><ResumeHome /></W> },
       { path: 'resume-templates', element: <W><ResumeTemplates /></W> },
       { path: 'KanbanBoard', element: <W><KanbanBoardHome /></W> },
+      { path: 'interview', element: <W><InterviewPath /></W> },
 
       // Protected
       { path: 'profile', element: <W><ProtectedRoute><Profile /></ProtectedRoute></W> },
@@ -194,8 +204,19 @@ const router = createBrowserRouter([
       { path: 'getTask/:id?', element: <W><ProtectedRoute><GetTask /></ProtectedRoute></W> },
       { path: 'updateTask/:id?', element: <W><ProtectedRoute><UpdateTask /></ProtectedRoute></W> },
 
-      // Learning Dashboard
-      { path: 'learning-dashboard', element: <W><ProtectedRoute><LearningDashboard /></ProtectedRoute></W> },
+      {path: '/interview/dashboard', element: <W><ProtectedRoute><InterviewDashboard /></ProtectedRoute></W> },
+      {path: '/interview/evaluate/:id', element: <W><ProtectedRoute><EvaluateInterview /></ProtectedRoute></W> },
+      {path: '/interview/schedule', element: <W><ProtectedRoute><InterviewSchedule /></ProtectedRoute></W> },
+      {path: '/interview/precheck', element: <W><ProtectedRoute><InterviewPreCheck /></ProtectedRoute></W> },
+      {path:'/interview/questions', element: <W><ProtectedRoute><QuestionBank /></ProtectedRoute></W> },
+      {path:'/interview/my', element: <W><ProtectedRoute><MyInterviews /></ProtectedRoute></W> },
+      {path:'/interview/room/:id', element: <W><ProtectedRoute><InterviewRoom /></ProtectedRoute></W> },
+      {path:'/interview/room', element: <W><ProtectedRoute><InterviewRoom /></ProtectedRoute></W> },
+      {path:'/interview/schedule/:id', element: <W><ProtectedRoute><InterviewSchedule /></ProtectedRoute></W> },
+
+
+
+
     ],
   },
 
@@ -228,7 +249,10 @@ const router = createBrowserRouter([
   { path: '/admin/companies/:id', element: <W><ProtectedRoute adminOnly><CompanySetup /></ProtectedRoute></W> },
   { path: '/admin/jobs', element: <W><ProtectedRoute adminOnly><AdminJobs /></ProtectedRoute></W> },
   { path: '/admin/jobs/create', element: <W><ProtectedRoute adminOnly><PostJob /></ProtectedRoute></W> },
-  { path: '/admin/jobs/:id/applicants', element: <W><ProtectedRoute adminOnly><Applicants /></ProtectedRoute></W> },
+  {
+    path: "/admin/jobs/:id/applicants",
+    element: <ProtectedRoute adminOnly={true}><Applicants /></ProtectedRoute>
+  },
   { path: '/admin/quizzes', element: <W><ProtectedRoute adminOnly><AdminQuizzes /></ProtectedRoute></W> },
   { path: '/admin/quizzes/create', element: <W><ProtectedRoute adminOnly><CreateQuiz /></ProtectedRoute></W> },
   { path: '/admin/quizzes/edit/:id', element: <W><ProtectedRoute adminOnly><EditQuiz /></ProtectedRoute></W> },

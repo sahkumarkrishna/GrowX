@@ -1,262 +1,247 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
-import {
-  Briefcase, MapPin, Building2, Clock, Search,
-  ChevronRight, ExternalLink, BarChart2, Filter,
-  BookmarkPlus, TrendingUp, DollarSign, Users,
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Briefcase, Search, Users, Building2, TrendingUp, 
+  CheckCircle, Mail, Clock, Filter, Calendar, 
+  ArrowUpRight, Target, Activity, ShieldCheck
 } from 'lucide-react';
 
-const JOB_API         = import.meta.env.VITE_JOB_API         || 'http://localhost:8000/api/v1/job';
-const APPLICATION_API = import.meta.env.VITE_APPLICATION_API || 'http://localhost:8000/api/v1/application';
+import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
+import { toast } from 'sonner';
 
+// Animation Helper
 const f = (d = 0) => ({
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.38, delay: d, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.4, delay: d, ease: [0.23, 1, 0.32, 1] }
 });
 
-const JOB_TYPES = ['All', 'Full Time', 'Part Time', 'Internship', 'Remote', 'Contract'];
+const STATUS_STYLES = {
+  pending:  { bg: 'rgba(245,158,11,0.1)', text: '#f59e0b', border: 'rgba(245,158,11,0.2)' },
+  accepted: { bg: 'rgba(16,185,129,0.1)', text: '#10b981', border: 'rgba(16,185,129,0.2)' },
+  rejected: { bg: 'rgba(239,68,68,0.1)',  text: '#ef4444', border: 'rgba(239,68,68,0.2)' },
+};
 
-export default function JobPage() {
-  const navigate = useNavigate();
+const Jobpage = () => {
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
-  const [jobs,     setJobs]     = useState([]);
-  const [apps,     setApps]     = useState([]);
-  const [loading,  setLoading]  = useState(true);
-  const [search,   setSearch]   = useState('');
-  const [filter,   setFilter]   = useState('All');
+  const APP_API = import.meta.env.VITE_USER_API?.replace('/user', '/application') || 'http://localhost:8000/api/v1/application';
 
   useEffect(() => {
-    Promise.allSettled([
-      axios.get(`${JOB_API}/get`,          { withCredentials: true }),
-      axios.get(`${APPLICATION_API}/get`,  { withCredentials: true }),
-    ]).then(([j, a]) => {
-      setJobs(j.status === 'fulfilled' ? (j.value.data?.jobs || []) : []);
-      setApps(a.status === 'fulfilled' ? (a.value.data?.applications || []) : []);
-    }).finally(() => setLoading(false));
+    axios.get(`${APP_API}/all`, { withCredentials: true })
+      .then(r => setApplications(r.data.applications || []))
+      .catch(() => toast.error('Failed to fetch applications'))
+      .finally(() => setLoading(false));
   }, []);
 
-  const appliedIds = new Set(apps.map(a => a.job?._id || a.job));
-
-  const filtered = jobs.filter(job => {
+  const filtered = applications.filter(a => {
     const matchSearch =
-      !search ||
-      job.title?.toLowerCase().includes(search.toLowerCase()) ||
-      job.company?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      job.location?.toLowerCase().includes(search.toLowerCase());
-    const matchFilter =
-      filter === 'All' ||
-      job.jobType?.toLowerCase().replace(/_/g, ' ') === filter.toLowerCase();
-    return matchSearch && matchFilter;
+      a.applicant?.fullname?.toLowerCase().includes(search.toLowerCase()) ||
+      a.applicant?.email?.toLowerCase().includes(search.toLowerCase()) ||
+      a.job?.title?.toLowerCase().includes(search.toLowerCase()) ||
+      a.job?.company?.name?.toLowerCase().includes(search.toLowerCase());
+    if (statusFilter !== 'all') return matchSearch && a.status === statusFilter;
+    return matchSearch;
   });
 
-  // Stats
-  const remoteCount = jobs.filter(j => j.jobType?.toLowerCase().includes('remote')).length;
-  const newCount    = jobs.filter(j => {
-    if (!j.createdAt) return false;
-    return (Date.now() - new Date(j.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
-  }).length;
-
-  const STATS = [
-    { label: 'Total Jobs',  value: jobs.length,          color: '#2dd4bf', glow: 'rgba(45,212,191,0.4)',  icon: Briefcase   },
-    { label: 'Applied',     value: appliedIds.size,      color: '#a78bfa', glow: 'rgba(167,139,250,0.4)', icon: TrendingUp  },
-    { label: 'Remote',      value: remoteCount,          color: '#34d399', glow: 'rgba(52,211,153,0.4)',  icon: MapPin      },
-    { label: 'New (7d)',    value: newCount,             color: '#f59e0b', glow: 'rgba(245,158,11,0.4)',  icon: Clock       },
+  const stats = [
+    { label: 'Total Volume', value: applications.length, icon: Activity, color: '#10b981' },
+    { label: 'Accepted', value: applications.filter(a => a.status === 'accepted').length, icon: ShieldCheck, color: '#3b82f6' },
+    { label: 'Waitlist', value: applications.filter(a => a.status === 'pending').length, icon: Clock, color: '#f59e0b' },
+    { label: 'Engaged', value: new Set(applications.map(a => a.applicant?._id)).size, icon: Users, color: '#8b5cf6' },
   ];
 
-  return (
-    <div
-      className="min-h-screen p-5 sm:p-8 space-y-7"
-      style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)' }}
-    >
-      {/* Header */}
-      <motion.div {...f(0)} className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-black text-white">💼 Jobs</h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Browse and apply to open positions.
-          </p>
+  if (loading) return (
+ 
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 rounded-xl border-4 border-emerald-500/20" />
+          <div className="absolute inset-0 rounded-xl border-4 border-emerald-500 border-t-transparent animate-spin" />
         </div>
-        <motion.button
-          whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-          onClick={() => navigate('/user/analytics/jobs')}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
-          style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}
-        >
-          <BarChart2 size={14} /> Analytics
-        </motion.button>
-      </motion.div>
-
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {STATS.map((s, i) => (
-          <motion.div
-            key={s.label} {...f(0.05 + i * 0.05)}
-            className="rounded-2xl p-4 relative overflow-hidden"
-            style={{ background: `${s.color}12`, border: `1px solid ${s.color}25` }}
-          >
-            <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full pointer-events-none"
-              style={{ background: `radial-gradient(circle,${s.glow},transparent 70%)` }} />
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-              style={{ background: `${s.color}20`, boxShadow: `0 0 12px ${s.glow}` }}>
-              <s.icon size={18} style={{ color: s.color }} />
-            </div>
-            <p className="text-2xl font-black text-white">{loading ? '—' : s.value}</p>
-            <p className="text-xs font-bold mt-0.5" style={{ color: s.color }}>{s.label}</p>
-          </motion.div>
-        ))}
+        <p className="text-gray-400 font-medium animate-pulse">Syncing application data...</p>
       </div>
+   
+  );
 
-      {/* Search + Filter */}
-      <motion.div {...f(0.22)} className="flex flex-col sm:flex-row gap-3">
-        {/* Search */}
-        <div
-          className="flex items-center gap-2.5 flex-1 px-4 py-3 rounded-2xl"
-          style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-        >
-          <Search size={16} style={{ color: 'rgba(255,255,255,0.35)' }} className="shrink-0" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search jobs, companies, locations…"
-            className="bg-transparent flex-1 text-sm text-white placeholder-white/30 outline-none"
-          />
-          {search && (
-            <button onClick={() => setSearch('')}
-              className="text-xs font-bold px-2 py-0.5 rounded-lg"
-              style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.06)' }}>
-              ✕
-            </button>
-          )}
+  return (
+ 
+      <div className="max-w-7xl mx-auto space-y-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <motion.div {...f(0)}>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <Briefcase className="text-emerald-500" size={24} />
+              </div>
+              <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 py-1">
+                Management Portal
+              </Badge>
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tight">
+              Application <span className="text-emerald-500">Intelligence</span>
+            </h1>
+            <p className="text-gray-400 mt-2 max-w-md">
+              Monitor candidate flow and recruitment metrics across all active job postings.
+            </p>
+          </motion.div>
+
+          <motion.div {...f(0.1)} className="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/10 backdrop-blur-md">
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-emerald-500 transition-colors" size={18} />
+              <input 
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Filter by name, role..."
+                className="bg-transparent border-none focus:ring-0 text-white placeholder:text-gray-600 pl-11 pr-4 py-2 w-64 text-sm"
+              />
+            </div>
+          </motion.div>
         </div>
 
-        {/* Type filter */}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {JOB_TYPES.map(type => (
-            <button
-              key={type}
-              onClick={() => setFilter(type)}
-              className="px-3 py-2 rounded-xl text-xs font-bold transition-all"
-              style={{
-                background: filter === type ? '#2dd4bf20' : 'rgba(255,255,255,0.05)',
-                color:      filter === type ? '#2dd4bf'    : 'rgba(255,255,255,0.5)',
-                border:     filter === type ? '1px solid #2dd4bf40' : '1px solid rgba(255,255,255,0.08)',
-              }}
-            >
-              {type}
-            </button>
+        {/* Metric Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {stats.map((stat, i) => (
+            <motion.div key={stat.label} {...f(0.2 + (i * 0.05))}>
+              <Card className="bg-[#1f2937]/50 border-white/5 backdrop-blur-sm hover:border-white/10 transition-all">
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div className="p-2.5 rounded-xl" style={{ backgroundColor: `${stat.color}15`, border: `1px solid ${stat.color}25` }}>
+                      <stat.icon size={20} style={{ color: stat.color }} />
+                    </div>
+                    <div className="flex items-center text-emerald-500 gap-1 text-xs font-bold">
+                      <ArrowUpRight size={14} /> 12%
+                    </div>
+                  </div>
+                  <div className="mt-4">
+                    <p className="text-3xl font-black text-white">{stat.value}</p>
+                    <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
-      </motion.div>
 
-      {/* Job list */}
-      <motion.div {...f(0.28)}>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-black text-white text-sm">
-            {filtered.length} Job{filtered.length !== 1 ? 's' : ''} Found
-          </h3>
-        </div>
-
-        {loading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl animate-pulse"
-                style={{ background: 'rgba(255,255,255,0.04)' }} />
-            ))}
-          </div>
-        ) : filtered.length === 0 ? (
-          <div
-            className="rounded-2xl p-12 text-center"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px dashed rgba(255,255,255,0.1)' }}
-          >
-            <Briefcase size={36} className="mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.15)' }} />
-            <p className="text-sm font-semibold" style={{ color: 'rgba(255,255,255,0.3)' }}>
-              No jobs found
-            </p>
-            <button onClick={() => { setSearch(''); setFilter('All'); }}
-              className="mt-3 text-xs font-bold px-4 py-2 rounded-xl"
-              style={{ background: 'rgba(45,212,191,0.15)', color: '#2dd4bf', border: '1px solid rgba(45,212,191,0.25)' }}>
-              Clear filters
+        {/* Status Filter Tabs */}
+        <motion.div {...f(0.4)} className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
+          {['all', 'pending', 'accepted', 'rejected'].map((s) => (
+            <button
+              key={s}
+              onClick={() => setStatusFilter(s)}
+              className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all border shrink-0 ${
+                statusFilter === s 
+                ? 'bg-emerald-600 text-white border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]' 
+                : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'
+              }`}
+            >
+              {s}
             </button>
-          </div>
-        ) : (
-          <div className="space-y-2.5">
-            {filtered.map((job, i) => {
-              const isApplied  = appliedIds.has(job._id);
-              const isNew      = job.createdAt && (Date.now() - new Date(job.createdAt).getTime()) < 7 * 24 * 60 * 60 * 1000;
+          ))}
+        </motion.div>
 
-              return (
-                <motion.div
-                  key={job._id || i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + i * 0.03 }}
-                  className="flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all group"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(45,212,191,0.06)'; e.currentTarget.style.borderColor = 'rgba(45,212,191,0.2)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'; }}
-                  onClick={() => navigate(`/description/${job._id}`)}
-                >
-                  {/* Company logo / icon */}
-                  <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
-                    style={{ background: 'rgba(45,212,191,0.12)', border: '1px solid rgba(45,212,191,0.2)' }}>
-                    {job.company?.logo
-                      ? <img src={job.company.logo} alt="" className="w-full h-full object-cover" />
-                      : <Building2 size={20} style={{ color: '#2dd4bf' }} />
-                    }
-                  </div>
+        {/* Glassmorphism Table */}
+        <motion.div {...f(0.5)} className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500/20 to-blue-500/20 rounded-[2rem] blur opacity-50" />
+          <Card className="relative bg-[#0f172a]/80 border-white/10 backdrop-blur-xl rounded-[2rem] overflow-hidden shadow-2xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="border-b border-white/5 bg-white/5">
+                    <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest">Candidate</th>
+                    <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest">Position & Company</th>
+                    <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest">Status</th>
+                    <th className="px-6 py-5 text-xs font-black text-gray-500 uppercase tracking-widest">Applied Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  <AnimatePresence mode='popLayout'>
+                    {filtered.map((a, i) => (
+                      <motion.tr 
+                        layout
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        key={a._id} 
+                        className="hover:bg-white/[0.02] transition-colors group/row"
+                      >
+                        <td className="px-6 py-5">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-black text-sm shadow-lg shadow-emerald-500/20">
+                              {a.applicant?.fullname?.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-white group-hover/row:text-emerald-400 transition-colors">
+                                {a.applicant?.fullname || 'Anonymous'}
+                              </p>
+                              <p className="text-xs text-gray-500 flex items-center gap-1.5 mt-0.5">
+                                <Mail size={12} /> {a.applicant?.email}
+                              </p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-5">
+                          <p className="text-sm font-bold text-gray-200">{a.job?.title}</p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                            <Building2 size={12} /> {a.job?.company?.name}
+                          </p>
+                        </td>
+                        <td className="px-6 py-5">
+                          <div 
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-tighter"
+                            style={{ 
+                              backgroundColor: STATUS_STYLES[a.status]?.bg, 
+                              color: STATUS_STYLES[a.status]?.text, 
+                              borderColor: STATUS_STYLES[a.status]?.border 
+                            }}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: STATUS_STYLES[a.status]?.text }} />
+                            {a.status || 'pending'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-5 text-xs text-gray-500">
+                          <div className="flex items-center gap-2">
+                            <Calendar size={14} className="text-gray-600" />
+                            {new Date(a.createdAt).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            })}
+                          </div>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </AnimatePresence>
+                </tbody>
+              </table>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="text-sm font-black text-white truncate">{job.title}</p>
-                      {isNew && (
-                        <span className="text-xs font-black px-1.5 py-0.5 rounded-md"
-                          style={{ background: 'rgba(52,211,153,0.2)', color: '#34d399' }}>NEW</span>
-                      )}
-                      {isApplied && (
-                        <span className="text-xs font-black px-1.5 py-0.5 rounded-md"
-                          style={{ background: 'rgba(167,139,250,0.2)', color: '#a78bfa' }}>Applied</span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 mt-1">
-                      {job.company?.name && (
-                        <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                          <Building2 size={11} /> {job.company.name}
-                        </span>
-                      )}
-                      {job.location && (
-                        <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                          <MapPin size={11} /> {job.location}
-                        </span>
-                      )}
-                      {job.salary && (
-                        <span className="flex items-center gap-1 text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                          <DollarSign size={11} /> {job.salary}
-                        </span>
-                      )}
-                    </div>
+              {filtered.length === 0 && (
+                <div className="py-24 text-center">
+                  <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+                    <Target size={32} className="text-gray-600" />
                   </div>
+                  <h3 className="text-xl font-bold text-white">No matches found</h3>
+                  <p className="text-gray-500 mt-1">Try adjusting your search or filters</p>
+                </div>
+              )}
+            </div>
+          </Card>
+        </motion.div>
 
-                  {/* Right: type + arrow */}
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    {job.jobType && (
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-xl capitalize"
-                        style={{ background: 'rgba(45,212,191,0.12)', color: '#2dd4bf', border: '1px solid rgba(45,212,191,0.2)' }}>
-                        {job.jobType.replace(/_/g, ' ')}
-                      </span>
-                    )}
-                    <ChevronRight size={14} style={{ color: 'rgba(255,255,255,0.25)' }}
-                      className="group-hover:text-teal-400 transition-colors" />
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
+        {filtered.length > 0 && (
+          <motion.p {...f(0.6)} className="text-center text-xs font-medium text-gray-600 tracking-widest uppercase">
+            Displaying <span className="text-emerald-500 font-black">{filtered.length}</span> of {applications.length} Entries
+          </motion.p>
         )}
-      </motion.div>
-    </div>
+      </div>
+  
   );
-}
+};
+
+export default Jobpage;

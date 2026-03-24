@@ -1,234 +1,265 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  GraduationCap, Search, Users, TrendingUp, CheckCircle,
+  Clock, Mail, Phone, ChevronDown, Building2, Code2,
+  BarChart2,
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { GraduationCap, Clock, CheckCircle, XCircle, ChevronRight, Plus, BarChart2, TrendingUp } from 'lucide-react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { toast } from 'sonner';
 
-const APPLICATION_API = import.meta.env.VITE_APPLICATION_API || 'http://localhost:8000/api/v1/application';
-const f = (d = 0) => ({ initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4, delay: d } });
 
-const STATUS = {
-  pending:  { bg: 'rgba(245,158,11,0.15)', text: '#f59e0b', border: 'rgba(245,158,11,0.3)',  icon: Clock,        label: 'Pending'  },
-  accepted: { bg: 'rgba(52,211,153,0.15)', text: '#34d399', border: 'rgba(52,211,153,0.3)',  icon: CheckCircle,  label: 'Accepted' },
-  rejected: { bg: 'rgba(248,113,113,0.15)',text: '#f87171', border: 'rgba(248,113,113,0.3)', icon: XCircle,      label: 'Rejected' },
-};
 
-const customTooltipStyle = {
-  backgroundColor: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: '12px', color: '#fff', fontSize: 12,
-};
+const INTERNSHIP_API = import.meta.env.VITE_USER_API?.replace('/user', '/internship') || 'http://localhost:8000/api/v1/internship';
 
-export default function InternshipPage() {
+const InternshipView = () => {
   const navigate = useNavigate();
-  const [apps, setApps]       = useState([]);
+  const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
-    axios.get(`${APPLICATION_API}/get`, { withCredentials: true })
-      .then(r => setApps(r.data?.applications || []))
-      .catch(() => {})
+    axios.get(`${INTERNSHIP_API}/all`, { withCredentials: true })
+      .then(r => setApplications(r.data.data || []))
+      .catch(() => toast.error('Failed to fetch internship applications'))
       .finally(() => setLoading(false));
   }, []);
 
-  const pending  = apps.filter(a => a.status?.toLowerCase() === 'pending').length;
-  const accepted = apps.filter(a => a.status?.toLowerCase() === 'accepted').length;
-  const rejected = apps.filter(a => a.status?.toLowerCase() === 'rejected').length;
-
-  // Dynamic chart data from real applications
-  const statusPieData = [
-    { name: 'Pending',  value: pending  || 0, color: '#f59e0b' },
-    { name: 'Accepted', value: accepted || 0, color: '#34d399' },
-    { name: 'Rejected', value: rejected || 0, color: '#f87171' },
-  ].filter(d => d.value > 0);
-
-  // Monthly trend from real data
-  const monthlyMap = {};
-  apps.forEach(app => {
-    if (app.createdAt) {
-      const m = new Date(app.createdAt).toLocaleDateString('en-IN', { month: 'short' });
-      monthlyMap[m] = (monthlyMap[m] || 0) + 1;
-    }
+  const filtered = applications.filter(a => {
+    const matchSearch =
+      a.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      a.email?.toLowerCase().includes(search.toLowerCase()) ||
+      a.category?.toLowerCase().includes(search.toLowerCase()) ||
+      a.college?.toLowerCase().includes(search.toLowerCase());
+    if (statusFilter !== 'all') return matchSearch && a.status === statusFilter;
+    return matchSearch;
   });
-  const monthlyData = Object.entries(monthlyMap).map(([month, apps]) => ({ month, apps }));
 
-  // Company-wise
-  const companyMap = {};
-  apps.forEach(app => {
-    const c = app.job?.company?.name || 'Unknown';
-    companyMap[c] = (companyMap[c] || 0) + 1;
-  });
-  const companyData = Object.entries(companyMap).slice(0, 6).map(([company, apps]) => ({ company: company.slice(0, 10), apps }));
+  const accepted  = applications.filter(a => a.status === 'accepted').length;
+  const pending   = applications.filter(a => a.status === 'pending').length;
+  const categories = new Set(applications.map(a => a.category)).size;
 
-  const COLORS = ['#a78bfa', '#60a5fa', '#34d399', '#f59e0b', '#f87171', '#38bdf8'];
-
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600" />
+    </div>
+  );
+const f = (d = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.4, delay: d, ease: [0.23, 1, 0.32, 1] }
+})
   return (
-    <div className="min-h-screen p-5 sm:p-8 space-y-7"
-      style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)' }}>
-
-      <motion.div {...f(0)} className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black text-white">🎓 Internships</h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Track your internship applications.</p>
-        </div>
-        <div className="flex gap-2">
+    <div className="max-w-7xl mx-auto p-4">
+      <div className="flex gap-5 mb-5">
           <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+            {...f(0)}
             onClick={() => navigate('/user/analytics/internship')}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
             style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)' }}>
             <BarChart2 size={14} /> Analytics
           </motion.button>
-          <motion.button whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
-            onClick={() => navigate('/browse')}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white"
-            style={{ background: 'linear-gradient(135deg,#d97706,#b45309)', boxShadow: '0 4px 15px rgba(217,119,6,0.35)' }}>
-            <Plus size={15} /> Find More
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Applied', value: apps.length, color: '#d97706', glow: 'rgba(217,119,6,0.4)',   icon: GraduationCap },
-          { label: 'Pending',       value: pending,     color: '#f59e0b', glow: 'rgba(245,158,11,0.4)',  icon: Clock         },
-          { label: 'Accepted',      value: accepted,    color: '#34d399', glow: 'rgba(52,211,153,0.4)',  icon: CheckCircle   },
-          { label: 'Rejected',      value: rejected,    color: '#f87171', glow: 'rgba(248,113,113,0.4)', icon: XCircle       },
-        ].map((s, i) => (
-          <motion.div key={s.label} {...f(0.05 + i * 0.05)}
-            className="rounded-2xl p-4 relative overflow-hidden"
-            style={{ background: `${s.color}12`, border: `1px solid ${s.color}25` }}>
-            <div className="absolute -top-3 -right-3 w-12 h-12 rounded-full pointer-events-none"
-              style={{ background: `radial-gradient(circle,${s.glow},transparent 70%)` }} />
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3"
-              style={{ background: `${s.color}20`, boxShadow: `0 0 12px ${s.glow}` }}>
-              <s.icon size={18} style={{ color: s.color }} />
-            </div>
-            <p className="text-2xl font-black text-white">{loading ? '—' : s.value}</p>
-            <p className="text-xs font-bold mt-0.5" style={{ color: s.color }}>{s.label}</p>
-          </motion.div>
-        ))}
       </div>
 
-      {/* Charts — only show if there's data */}
-      {!loading && apps.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-          {/* Status Pie */}
-          <motion.div {...f(0.2)} className="rounded-2xl p-5"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <h3 className="font-black text-white text-sm mb-4">Status Distribution</h3>
-            {statusPieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={180}>
-                <PieChart>
-                  <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={45} outerRadius={72}
-                    dataKey="value" label={({ name, value }) => `${name}: ${value}`}>
-                    {statusPieData.map((e, i) => <Cell key={i} fill={e.color} />)}
-                  </Pie>
-                  <Tooltip contentStyle={customTooltipStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : <NoDataMsg />}
-          </motion.div>
-
-          {/* Monthly trend */}
-          <motion.div {...f(0.25)} className="rounded-2xl p-5"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <h3 className="font-black text-white text-sm mb-4">Monthly Applications</h3>
-            {monthlyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="month" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={customTooltipStyle} />
-                  <Bar dataKey="apps" fill="#d97706" radius={[6,6,0,0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <NoDataMsg />}
-          </motion.div>
-
-          {/* Company-wise */}
-          <motion.div {...f(0.3)} className="rounded-2xl p-5"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <h3 className="font-black text-white text-sm mb-4">Company-wise</h3>
-            {companyData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={companyData} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis type="number" tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                  <YAxis dataKey="company" type="category" width={65} tick={{ fill: 'rgba(255,255,255,0.4)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                  <Tooltip contentStyle={customTooltipStyle} />
-                  <Bar dataKey="apps" radius={[0,6,6,0]}>
-                    {companyData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <NoDataMsg />}
-          </motion.div>
-        </div>
-      )}
-
-      {/* Application list */}
-      <motion.div {...f(0.35)} className="rounded-2xl overflow-hidden"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-        <div className="px-5 py-4 border-b flex items-center justify-between" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-          <h3 className="font-black text-white text-sm">All Applications</h3>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(217,119,6,0.15)', color: '#d97706', border: '1px solid rgba(217,119,6,0.25)' }}>
-            {apps.length} total
-          </span>
-        </div>
-        <div className="p-3 space-y-1.5">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
-            ))
-          ) : apps.length === 0 ? (
-            <div className="text-center py-12">
-              <GraduationCap size={36} className="mx-auto mb-3" style={{ color: 'rgba(255,255,255,0.15)' }} />
-              <p className="text-sm mb-3" style={{ color: 'rgba(255,255,255,0.3)' }}>No applications yet</p>
-              <button onClick={() => navigate('/browse')}
-                className="px-5 py-2 rounded-xl text-sm font-bold text-white"
-                style={{ background: 'linear-gradient(135deg,#d97706,#b45309)' }}>
-                Browse Internships
-              </button>
+      {/* Hero */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600 p-8 shadow-2xl">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-20 -mt-20" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-16 -mb-16" />
+          <div className="flex items-center gap-5">
+            <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-xl flex-shrink-0">
+              <GraduationCap className="h-9 w-9 text-white" />
             </div>
-          ) : apps.map((app, i) => {
-            const st = STATUS[app.status?.toLowerCase()] || STATUS.pending;
-            const StIcon = st.icon;
-            return (
-              <motion.div key={app._id || i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.37 + i * 0.03 }}
-                className="flex items-center gap-3 p-3 rounded-xl transition-all"
-                style={{ border: '1px solid rgba(255,255,255,0.04)' }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(217,119,6,0.15)', border: '1px solid rgba(217,119,6,0.25)' }}>
-                  <GraduationCap size={16} style={{ color: '#d97706' }} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{app.job?.title || 'Internship Position'}</p>
-                  <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    {app.job?.company?.name || 'Company'} · {app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : 'Recent'}
-                  </p>
-                </div>
-                <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full shrink-0"
-                  style={{ background: st.bg, color: st.text, border: `1px solid ${st.border}` }}>
-                  <StIcon size={10} /> {st.label}
-                </span>
-              </motion.div>
-            );
-          })}
+            <div>
+              <h1 className="text-3xl sm:text-4xl font-black text-white mb-1">Internship Applications</h1>
+              <p className="text-blue-200">View and explore applicant details</p>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">{applications.length} Total</span>
+                <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">{accepted} Accepted</span>
+                <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">{categories} Categories</span>
+              </div>
+            </div>
+          </div>
         </div>
       </motion.div>
+
+      {/* Stats */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+        className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        {[
+          { title: 'Total Applications', value: applications.length, icon: GraduationCap, g: 'from-sky-500 to-blue-600', bg: 'from-sky-50 to-blue-50', border: 'border-sky-100' },
+          { title: 'Accepted', value: accepted, icon: CheckCircle, g: 'from-emerald-500 to-green-600', bg: 'from-emerald-50 to-green-50', border: 'border-emerald-100' },
+          { title: 'Pending', value: pending, icon: Clock, g: 'from-amber-500 to-orange-500', bg: 'from-amber-50 to-orange-50', border: 'border-amber-100' },
+          { title: 'Categories', value: categories, icon: Code2, g: 'from-violet-500 to-purple-600', bg: 'from-violet-50 to-purple-50', border: 'border-violet-100' },
+        ].map((c, i) => (
+          <motion.div key={c.title} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.04 * i }} whileHover={{ y: -4, scale: 1.04 }}>
+            <Card className={`border ${c.border} shadow-md bg-gradient-to-br ${c.bg}`}>
+              <CardContent className="p-4">
+                <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${c.g} flex items-center justify-center shadow-md mb-3`}>
+                  <c.icon className="w-4 h-4 text-white" />
+                </div>
+                <p className="text-xs text-gray-500 font-medium mb-1">{c.title}</p>
+                <p className="text-xl font-black text-gray-800">{c.value}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Search + Filter */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+        className="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="relative max-w-md flex-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Input className="pl-12 h-12 border-2 border-gray-200 focus:border-blue-500 rounded-xl bg-gray-50 focus:bg-white transition-all"
+            placeholder="Search by name, email, category..." value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {['all', 'pending', 'accepted', 'rejected'].map(s => (
+            <button key={s} onClick={() => setStatusFilter(s)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all border capitalize ${
+                statusFilter === s
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+              }`}>
+              {s === 'all' ? `All (${applications.length})` : `${s} (${applications.filter(a => a.status === s).length})`}
+            </button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Cards */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="space-y-4">
+        {filtered.map((a, i) => (
+          <motion.div key={a._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.03 * i }}>
+            <Card className="border-0 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden">
+              <div className="h-1 bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500" />
+              <CardContent className="p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+
+                  {/* Left: Avatar + Info */}
+                  <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                      <span className="text-white font-black text-lg">{a.fullName?.charAt(0)?.toUpperCase()}</span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-black text-gray-900 text-lg">{a.fullName}</h3>
+                        <Badge variant="outline" className="text-xs font-bold capitalize">{a.status}</Badge>
+                      </div>
+                      <div className="flex flex-wrap gap-3 mt-1">
+                        <span className="flex items-center gap-1 text-xs text-gray-500"><Mail className="w-3 h-3" />{a.email}</span>
+                        <span className="flex items-center gap-1 text-xs text-gray-500"><Phone className="w-3 h-3" />{a.phone}</span>
+                      </div>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Badge className="bg-blue-100 text-blue-700 text-xs">{a.category}</Badge>
+                        {a.college && <Badge variant="outline" className="text-xs">{a.college}</Badge>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right: Toggle Detail */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <Button size="sm" variant="outline"
+                      className="h-9 px-4 border-gray-200 hover:border-blue-300 flex gap-2 items-center"
+                      onClick={() => setExpanded(expanded === a._id ? null : a._id)}>
+                      <span className="text-xs font-bold">Details</span>
+                      <motion.div animate={{ rotate: expanded === a._id ? 180 : 0 }}>
+                        <ChevronDown className="w-4 h-4" />
+                      </motion.div>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Expanded Details */}
+                <AnimatePresence>
+                  {expanded === a._id && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
+                      className="overflow-hidden">
+                      <div className="mt-5 pt-5 border-t border-gray-100 space-y-4">
+                        {/* Personal */}
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Personal & Academic</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                          {[['Gender', a.gender], ['Phone', a.phone], ['Course', a.course], ['Year', a.year]].map(([l, v]) => v && (
+                            <div key={l} className="p-3 bg-blue-50 rounded-xl border border-blue-100">
+                              <p className="text-xs text-blue-600 font-bold mb-0.5">{l}</p>
+                              <p className="text-sm text-gray-800 font-medium">{v}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Links & Resume */}
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Links & Resume</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          {a.linkedin && (
+                            <div className="p-3 bg-sky-50 rounded-xl border border-sky-100">
+                              <p className="text-xs text-sky-600 font-bold mb-0.5">LinkedIn</p>
+                              <a href={a.linkedin} target="_blank" rel="noreferrer" className="text-sm text-sky-700 font-medium hover:underline truncate block">{a.linkedin}</a>
+                            </div>
+                          )}
+                          {a.resume && (
+                            <div className="p-3 bg-rose-50 rounded-xl border border-rose-100">
+                              <p className="text-xs text-rose-600 font-bold mb-0.5">Resume</p>
+                              <a href={a.resume} target="_blank" rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-sm text-rose-700 font-semibold hover:underline">
+                                📄 View Resume
+                              </a>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Applied On + Message */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
+                            <p className="text-xs text-orange-600 font-bold mb-0.5">Applied On</p>
+                            <p className="text-sm text-gray-800 font-medium">{new Date(a.createdAt).toLocaleDateString()}</p>
+                          </div>
+                          {a.message && (
+                            <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
+                              <p className="text-xs text-amber-600 font-bold mb-0.5">Message</p>
+                              <p className="text-sm text-gray-700">{a.message}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {filtered.length === 0 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+          <div className="w-28 h-28 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-sky-100 to-blue-200 flex items-center justify-center shadow-xl">
+            <GraduationCap size={56} className="text-blue-500" />
+          </div>
+          <h3 className="text-2xl font-black text-gray-700 mb-2">No applications found</h3>
+          <p className="text-gray-400">Try adjusting your filters or search terms</p>
+        </motion.div>
+      )}
+
+      {filtered.length > 0 && (
+        <p className="text-center text-sm text-gray-400 mt-8">
+          Showing <span className="font-bold text-gray-600">{filtered.length}</span> of{' '}
+          <span className="font-bold text-gray-600">{applications.length}</span> applications
+        </p>
+      )}
     </div>
   );
-}
+};
 
-const NoDataMsg = () => (
-  <div className="h-40 flex items-center justify-center" style={{ color: 'rgba(255,255,255,0.2)' }}>
-    <p className="text-xs">Add applications to see chart</p>
-  </div>
-);
+export default InternshipView;

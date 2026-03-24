@@ -6,13 +6,16 @@ import axios from 'axios';
 import {
   Brain, FileText, GraduationCap, ScanLine, UserCircle,
   TrendingUp, CheckCircle, ChevronRight, Zap, BarChart2,
-  Briefcase, Clock, Star,
+  Briefcase, Clock, XCircle,
 } from 'lucide-react';
 
 const APPLICATION_API = import.meta.env.VITE_APPLICATION_API || 'http://localhost:8000/api/v1/application';
 const QUIZ_API        = import.meta.env.VITE_QUIZ_API        || 'http://localhost:8000/api/v1/quiz';
 const ATS_API         = import.meta.env.VITE_ATS_API         || 'http://localhost:8000/api/v1/ats';
 const JOB_API         = import.meta.env.VITE_JOB_API         || 'http://localhost:8000/api/v1/job';
+const INTERNSHIP_API  =
+  import.meta.env.VITE_USER_API?.replace('/user', '/internship') ||
+  'http://localhost:8000/api/v1/internship';
 
 const f = (d = 0) => ({
   initial: { opacity: 0, y: 24 },
@@ -43,11 +46,12 @@ export default function UserDashboard() {
   const navigate = useNavigate();
   const { user } = useSelector(s => s.auth);
 
-  const [loading, setLoading]       = useState(true);
-  const [apps,    setApps]          = useState([]);
-  const [quizzes, setQuizzes]       = useState([]);
-  const [atsHistory, setAtsHistory] = useState([]);
-  const [jobCount,   setJobCount]   = useState(0);
+  const [loading,     setLoading]     = useState(true);
+  const [apps,        setApps]        = useState([]);
+  const [quizzes,     setQuizzes]     = useState([]);
+  const [atsHistory,  setAtsHistory]  = useState([]);
+  const [jobCount,    setJobCount]    = useState(0);
+  const [internships, setInternships] = useState([]);
 
   const profileChecks = [
     { label: 'Full Name',     done: !!user?.fullname                   },
@@ -64,16 +68,18 @@ export default function UserDashboard() {
 
   useEffect(() => {
     (async () => {
-      const [a, q, t, j] = await Promise.allSettled([
-        axios.get(`${APPLICATION_API}/get`, { withCredentials: true }),
-        axios.get(`${QUIZ_API}/all`,         { withCredentials: true }),
-        axios.get(`${ATS_API}/history`,       { withCredentials: true }),
-        axios.get(`${JOB_API}/get`,           { withCredentials: true }),
+      const [a, q, t, j, intern] = await Promise.allSettled([
+        axios.get(`${APPLICATION_API}/get`,         { withCredentials: true }),
+        axios.get(`${QUIZ_API}/all`,                { withCredentials: true }),
+        axios.get(`${ATS_API}/history`,             { withCredentials: true }),
+        axios.get(`${JOB_API}/get`,                 { withCredentials: true }),
+        axios.get(`${INTERNSHIP_API}/my-applications`, { withCredentials: true }),
       ]);
-      setApps(       a.status === 'fulfilled' ? (a.value.data?.applications || []) : []);
-      setQuizzes(    q.status === 'fulfilled' ? (q.value.data?.quizzes      || []) : []);
-      setAtsHistory( t.status === 'fulfilled' ? (t.value.data?.history       || []) : []);
-      setJobCount(   j.status === 'fulfilled' ? (j.value.data?.jobs?.length  || 0)  : 0);
+      setApps(        a.status === 'fulfilled' ? (a.value.data?.applications || []) : []);
+      setQuizzes(     q.status === 'fulfilled' ? (q.value.data?.quizzes      || []) : []);
+      setAtsHistory(  t.status === 'fulfilled' ? (t.value.data?.history       || []) : []);
+      setJobCount(    j.status === 'fulfilled' ? (j.value.data?.jobs?.length  || 0)  : 0);
+      setInternships( intern.status === 'fulfilled' ? (intern.value.data?.internships || []) : []);
       setLoading(false);
     })();
   }, []);
@@ -82,20 +88,31 @@ export default function UserDashboard() {
     ? Math.round(atsHistory.reduce((s, a) => s + (a.score || 0), 0) / atsHistory.length)
     : null;
 
+  // Job application stats
+  const jobPending  = apps.filter(a => a.status === 'pending').length;
+  const jobAccepted = apps.filter(a => a.status === 'accepted').length;
+  const jobRejected = apps.filter(a => a.status === 'rejected').length;
+
+  // Internship application stats
+  const internPending  = internships.filter(a => a.status === 'pending').length;
+  const internAccepted = internships.filter(a => a.status === 'accepted').length;
+  const internRejected = internships.filter(a => a.status === 'rejected').length;
+
   const statCards = [
-    { label: 'Applications', value: apps.length,    sub: 'Jobs applied',     icon: Briefcase,    color: '#a78bfa', glow: 'rgba(167,139,250,0.4)', route: '/user/internship'  },
-    { label: 'Jobs Open',    value: jobCount,        sub: 'Available now',    icon: TrendingUp,   color: '#60a5fa', glow: 'rgba(96,165,250,0.4)',  route: '/user/jobs'             },
-    { label: 'Quizzes',      value: quizDone,        sub: 'Completed',        icon: Brain,        color: '#34d399', glow: 'rgba(52,211,153,0.4)',  route: '/user/quiz'        },
+    { label: 'Applications', value: apps.length,    sub: 'Jobs applied',     icon: Briefcase,    color: '#a78bfa', glow: 'rgba(167,139,250,0.4)', route: '/user/jobs'      },
+    { label: 'Jobs Open',    value: jobCount,        sub: 'Available now',    icon: TrendingUp,   color: '#60a5fa', glow: 'rgba(96,165,250,0.4)',  route: '/user/jobs'      },
+    { label: 'Quizzes',      value: quizDone,        sub: 'Completed',        icon: Brain,        color: '#34d399', glow: 'rgba(52,211,153,0.4)',  route: '/user/quiz'      },
     { label: 'ATS Avg',      value: avgAts ? `${avgAts}%` : '—', sub: 'Resume score', icon: ScanLine, color: '#f87171', glow: 'rgba(248,113,113,0.4)', route: '/user/ats' },
-    { label: 'Profile',      value: `${pct}%`,       sub: pct===100?'Complete ✓':'Incomplete', icon: UserCircle, color: '#fbbf24', glow: 'rgba(251,191,36,0.4)', route: '/user/profile' },
+    { label: 'Internships',  value: internships.length, sub: 'Applied',       icon: GraduationCap, color: '#f59e0b', glow: 'rgba(245,158,11,0.4)', route: '/user/internship' },
+    { label: 'Profile',      value: `${pct}%`,       sub: pct === 100 ? 'Complete ✓' : 'Incomplete', icon: UserCircle, color: '#fbbf24', glow: 'rgba(251,191,36,0.4)', route: '/user/profile' },
   ];
 
   const quickActions = [
-    { label: 'Browse Jobs',  icon: Briefcase,   color: '#a78bfa', glow: 'rgba(167,139,250,0.35)', route: '/user/jobs'         },
-    { label: 'Take Quiz',    icon: Brain,        color: '#60a5fa', glow: 'rgba(96,165,250,0.35)',  route: '/user/quiz'    },
-    { label: 'Check ATS',   icon: ScanLine,     color: '#34d399', glow: 'rgba(52,211,153,0.35)',  route: '/user/ats'     },
-    { label: 'My Resume',   icon: FileText,     color: '#fb923c', glow: 'rgba(251,146,60,0.35)',  route: '/user/resume'  },
-    { label: 'Internships', icon: GraduationCap,color: '#f59e0b', glow: 'rgba(245,158,11,0.35)',  route: '/user/internship'},
+    { label: 'Browse Jobs',  icon: Briefcase,    color: '#a78bfa', glow: 'rgba(167,139,250,0.35)', route: '/user/jobs'               },
+    { label: 'Take Quiz',    icon: Brain,        color: '#60a5fa', glow: 'rgba(96,165,250,0.35)',  route: '/user/quiz'               },
+    { label: 'Check ATS',   icon: ScanLine,     color: '#34d399', glow: 'rgba(52,211,153,0.35)',  route: '/user/ats'                },
+    { label: 'My Resume',   icon: FileText,     color: '#fb923c', glow: 'rgba(251,146,60,0.35)',  route: '/user/resume'             },
+    { label: 'Internships', icon: GraduationCap,color: '#f59e0b', glow: 'rgba(245,158,11,0.35)',  route: '/user/internship'         },
     { label: 'Analytics',   icon: BarChart2,    color: '#38bdf8', glow: 'rgba(56,189,248,0.35)',  route: '/user/analytics/dashboard'},
   ];
 
@@ -103,7 +120,7 @@ export default function UserDashboard() {
     <div className="min-h-screen p-5 sm:p-8 space-y-7"
       style={{ background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%)' }}>
 
-      {/* ── Welcome Banner ──────────────────────────────────────────── */}
+      {/* ── Welcome Banner ── */}
       <motion.div {...f(0)} className="relative rounded-3xl overflow-hidden p-6 sm:p-8"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="absolute -top-12 -right-12 w-56 h-56 rounded-full pointer-events-none"
@@ -145,9 +162,9 @@ export default function UserDashboard() {
                 <circle cx="44" cy="44" r="36" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7" />
                 <motion.circle cx="44" cy="44" r="36" fill="none"
                   stroke="url(#pg)" strokeWidth="7" strokeLinecap="round"
-                  strokeDasharray={`${2*Math.PI*36}`}
-                  initial={{ strokeDashoffset: 2*Math.PI*36 }}
-                  animate={{ strokeDashoffset: 2*Math.PI*36*(1-pct/100) }}
+                  strokeDasharray={`${2 * Math.PI * 36}`}
+                  initial={{ strokeDashoffset: 2 * Math.PI * 36 }}
+                  animate={{ strokeDashoffset: 2 * Math.PI * 36 * (1 - pct / 100) }}
                   transition={{ duration: 1.4, delay: 0.3 }} />
                 <defs>
                   <linearGradient id="pg" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -165,17 +182,14 @@ export default function UserDashboard() {
         </div>
       </motion.div>
 
-      {/* ── Stat Cards ──────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* ── Stat Cards ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {statCards.map((c, i) => (
           <motion.div key={c.label} {...f(0.06 + i * 0.05)}
             whileHover={{ y: -4, scale: 1.02 }} whileTap={{ scale: 0.97 }}
             onClick={() => navigate(c.route)}
             className="relative rounded-2xl p-4 cursor-pointer overflow-hidden transition-all"
-            style={{
-              background: `linear-gradient(135deg,${c.color}18,${c.color}08)`,
-              border: `1px solid ${c.color}30`,
-            }}>
+            style={{ background: `linear-gradient(135deg,${c.color}18,${c.color}08)`, border: `1px solid ${c.color}30` }}>
             <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full pointer-events-none"
               style={{ background: `radial-gradient(circle,${c.glow},transparent 70%)` }} />
             <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 relative"
@@ -189,22 +203,123 @@ export default function UserDashboard() {
         ))}
       </div>
 
-      {/* ── Main Grid ───────────────────────────────────────────────── */}
+      {/* ── Jobs Status Section ── */}
+      <motion.div {...f(0.18)}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(167,139,250,0.2)', border: '1px solid rgba(167,139,250,0.3)' }}>
+              <Briefcase size={14} style={{ color: '#a78bfa' }} />
+            </div>
+            <h2 className="font-black text-white text-sm">Job Applications</h2>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(167,139,250,0.15)', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.25)' }}>
+              {apps.length}
+            </span>
+          </div>
+          <button onClick={() => navigate('/user/jobs')}
+            className="flex items-center gap-1 text-xs font-bold transition-opacity hover:opacity-70"
+            style={{ color: '#a78bfa' }}>
+            View all <ChevronRight size={12} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Applied', value: apps.length,  color: '#a78bfa', glow: 'rgba(167,139,250,0.4)', icon: Briefcase   },
+            { label: 'Pending',       value: jobPending,   color: '#f59e0b', glow: 'rgba(245,158,11,0.4)',  icon: Clock       },
+            { label: 'Accepted',      value: jobAccepted,  color: '#34d399', glow: 'rgba(52,211,153,0.4)',  icon: CheckCircle },
+            { label: 'Rejected',      value: jobRejected,  color: '#f87171', glow: 'rgba(248,113,113,0.4)', icon: XCircle     },
+          ].map((s, i) => (
+            <motion.div key={s.label}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 + i * 0.06, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ y: -4, scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/user/jobs')}
+              className="relative rounded-2xl p-4 cursor-pointer overflow-hidden"
+              style={{ background: `${s.color}12`, border: `1px solid ${s.color}25` }}>
+              {/* Glow blob */}
+              <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full pointer-events-none"
+                style={{ background: `radial-gradient(circle,${s.glow},transparent 70%)` }} />
+              {/* Icon */}
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 relative"
+                style={{ background: `${s.color}20`, border: `1px solid ${s.color}30`, boxShadow: `0 0 12px ${s.glow}` }}>
+                <s.icon size={18} style={{ color: s.color }} />
+              </div>
+              <p className="text-2xl font-black text-white">{loading ? '—' : s.value}</p>
+              <p className="text-xs font-bold mt-0.5" style={{ color: s.color }}>{s.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* ── Internship Status Section ── */}
+      <motion.div {...f(0.24)}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl flex items-center justify-center"
+              style={{ background: 'rgba(245,158,11,0.2)', border: '1px solid rgba(245,158,11,0.3)' }}>
+              <GraduationCap size={14} style={{ color: '#f59e0b' }} />
+            </div>
+            <h2 className="font-black text-white text-sm">Internship Applications</h2>
+            <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.25)' }}>
+              {internships.length}
+            </span>
+          </div>
+          <button onClick={() => navigate('/user/internship')}
+            className="flex items-center gap-1 text-xs font-bold transition-opacity hover:opacity-70"
+            style={{ color: '#f59e0b' }}>
+            View all <ChevronRight size={12} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Applied', value: internships.length,  color: '#f59e0b', glow: 'rgba(245,158,11,0.4)',  icon: GraduationCap },
+            { label: 'Pending',       value: internPending,        color: '#d97706', glow: 'rgba(217,119,6,0.4)',   icon: Clock         },
+            { label: 'Accepted',      value: internAccepted,       color: '#34d399', glow: 'rgba(52,211,153,0.4)',  icon: CheckCircle   },
+            { label: 'Rejected',      value: internRejected,       color: '#f87171', glow: 'rgba(248,113,113,0.4)', icon: XCircle       },
+          ].map((s, i) => (
+            <motion.div key={s.label}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.26 + i * 0.06, duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ y: -4, scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => navigate('/user/internship')}
+              className="relative rounded-2xl p-4 cursor-pointer overflow-hidden"
+              style={{ background: `${s.color}12`, border: `1px solid ${s.color}25` }}>
+              <div className="absolute -top-3 -right-3 w-14 h-14 rounded-full pointer-events-none"
+                style={{ background: `radial-gradient(circle,${s.glow},transparent 70%)` }} />
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 relative"
+                style={{ background: `${s.color}20`, border: `1px solid ${s.color}30`, boxShadow: `0 0 12px ${s.glow}` }}>
+                <s.icon size={18} style={{ color: s.color }} />
+              </div>
+              <p className="text-2xl font-black text-white">{loading ? '—' : s.value}</p>
+              <p className="text-xs font-bold mt-0.5" style={{ color: s.color }}>{s.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* ── Main Grid ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Recent Applications */}
-        <motion.div {...f(0.2)} className="lg:col-span-2">
+        <motion.div {...f(0.3)} className="lg:col-span-2">
           <DarkCard title="Recent Applications" icon={Briefcase} color="#a78bfa"
-            onMore={() => navigate('/user/internship')} count={apps.length}>
+            onMore={() => navigate('/user/jobs')} count={apps.length}>
             {loading ? <LoadingRows /> : apps.length === 0
-              ? <EmptyState icon={Briefcase} text="No applications yet" action="Browse Jobs" onAction={() => navigate('/jobs')} color="#a78bfa" />
+              ? <EmptyState icon={Briefcase} text="No applications yet" action="Browse Jobs" onAction={() => navigate('/user/jobs')} color="#a78bfa" />
               : apps.slice(0, 5).map((app, i) => {
                   const st = STATUS_COLOR[app.status?.toLowerCase()] || STATUS_COLOR.pending;
                   return (
                     <motion.div key={app._id || i} whileHover={{ x: 4 }}
-                      onClick={() => navigate('/user/internship')}
+                      onClick={() => navigate('/user/jobs')}
                       className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
-                      style={{ border: '1px solid transparent' }}
                       onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.04)'}
                       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
                       <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
@@ -217,7 +332,7 @@ export default function UserDashboard() {
                         </p>
                         <p className="text-xs truncate" style={{ color: 'rgba(255,255,255,0.4)' }}>
                           {app.job?.company?.name || 'Company'} ·{' '}
-                          {app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : 'Recent'}
+                          {app.createdAt ? new Date(app.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Recent'}
                         </p>
                       </div>
                       <span className="text-xs font-bold px-2.5 py-1 rounded-full shrink-0"
@@ -233,7 +348,7 @@ export default function UserDashboard() {
         </motion.div>
 
         {/* Profile Completion */}
-        <motion.div {...f(0.25)}>
+        <motion.div {...f(0.34)}>
           <DarkCard title="Profile Strength" icon={UserCircle} color="#fbbf24">
             <div className="flex items-center gap-4 mb-5">
               <div className="relative w-16 h-16 shrink-0">
@@ -241,9 +356,9 @@ export default function UserDashboard() {
                   <circle cx="30" cy="30" r="24" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
                   <motion.circle cx="30" cy="30" r="24" fill="none"
                     stroke="url(#pg2)" strokeWidth="5" strokeLinecap="round"
-                    strokeDasharray={`${2*Math.PI*24}`}
-                    initial={{ strokeDashoffset: 2*Math.PI*24 }}
-                    animate={{ strokeDashoffset: 2*Math.PI*24*(1-pct/100) }}
+                    strokeDasharray={`${2 * Math.PI * 24}`}
+                    initial={{ strokeDashoffset: 2 * Math.PI * 24 }}
+                    animate={{ strokeDashoffset: 2 * Math.PI * 24 * (1 - pct / 100) }}
                     transition={{ duration: 1.2, delay: 0.5 }} />
                   <defs>
                     <linearGradient id="pg2" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -256,9 +371,9 @@ export default function UserDashboard() {
                 </div>
               </div>
               <div>
-                <p className="text-sm font-bold text-white">{pct===100 ? 'Complete! 🎉' : `${profileChecks.filter(c=>!c.done).length} items left`}</p>
+                <p className="text-sm font-bold text-white">{pct === 100 ? 'Complete! 🎉' : `${profileChecks.filter(c => !c.done).length} items left`}</p>
                 <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  {pct===100 ? 'You stand out!' : 'Complete for visibility'}
+                  {pct === 100 ? 'You stand out!' : 'Complete for visibility'}
                 </p>
               </div>
             </div>
@@ -289,11 +404,11 @@ export default function UserDashboard() {
         </motion.div>
       </div>
 
-      {/* ── Bottom: Quizzes + ATS ───────────────────────────────────── */}
+      {/* ── Bottom: Quizzes + ATS ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Available Quizzes */}
-        <motion.div {...f(0.3)}>
+        <motion.div {...f(0.38)}>
           <DarkCard title="Available Quizzes" icon={Brain} color="#60a5fa"
             onMore={() => navigate('/user/quiz')} count={quizzes.length}>
             {loading ? <LoadingRows count={3} /> : quizzes.length === 0
@@ -329,7 +444,7 @@ export default function UserDashboard() {
         </motion.div>
 
         {/* ATS History */}
-        <motion.div {...f(0.34)}>
+        <motion.div {...f(0.42)}>
           <DarkCard title="ATS Check History" icon={ScanLine} color="#f87171"
             onMore={() => navigate('/user/ats')} count={atsHistory.length}>
             {loading ? <LoadingRows count={3} /> : atsHistory.length === 0
@@ -350,7 +465,7 @@ export default function UserDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-white">Resume Check #{atsHistory.length - i}</p>
                         <p className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                          {h.createdAt ? new Date(h.createdAt).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : 'Recent'}
+                          {h.createdAt ? new Date(h.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Recent'}
                         </p>
                       </div>
                       <span className="text-base font-black px-3 py-1 rounded-xl"
@@ -366,8 +481,8 @@ export default function UserDashboard() {
         </motion.div>
       </div>
 
-      {/* ── Quick Actions ────────────────────────────────────────────── */}
-      <motion.div {...f(0.4)} className="relative rounded-3xl p-6 overflow-hidden"
+      {/* ── Quick Actions ── */}
+      <motion.div {...f(0.46)} className="relative rounded-3xl p-6 overflow-hidden"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
         <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full pointer-events-none"
           style={{ background: 'radial-gradient(circle,rgba(124,58,237,0.2),transparent 70%)' }} />
@@ -381,7 +496,7 @@ export default function UserDashboard() {
               <motion.button key={a.label}
                 initial={{ opacity: 0, scale: 0.85 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.44 + i * 0.05 }}
+                transition={{ delay: 0.5 + i * 0.05 }}
                 whileHover={{ y: -4, scale: 1.06 }}
                 whileTap={{ scale: 0.94 }}
                 onClick={() => navigate(a.route)}

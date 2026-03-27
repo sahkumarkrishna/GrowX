@@ -1,64 +1,173 @@
-import { motion } from 'framer-motion';
-import { Users, Brain, Trophy, TrendingUp } from 'lucide-react';
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Users, Brain, Trophy, TrendingUp, Star, Zap, CheckCircle, Award } from "lucide-react";
+
+const T = {
+  obsidian: "#0A0A0F",
+  charcoal: "#121218",
+  surface: "#1A1A24",
+  surfaceLight: "#252532",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDark: "#B8923F",
+  ivory: "#F5F0E6",
+  ivoryMuted: "#A8A099",
+  accent: "#C8884A",
+  accentGlow: "rgba(212,168,83,0.12)",
+  gradient1: "#667eea",
+  gradient2: "#764ba2",
+};
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } }
+};
+
+function FadeIn({ children, delay = 0, className = "" }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-100px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial="hidden"
+      animate={inView ? "visible" : "hidden"}
+      variants={fadeIn}
+      className={className}
+      style={{ transitionDelay: `${delay}s` }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <motion.span
+      initial={{ opacity: 0, scale: 0.8 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
+      whileHover={{ scale: 1.05 }}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: "8px 20px",
+        borderRadius: 50,
+        background: "rgba(212,168,83,0.08)",
+        border: "1px solid rgba(212,168,83,0.25)",
+        color: T.gold,
+        fontSize: 12,
+        fontWeight: 700,
+        letterSpacing: "0.15em",
+        textTransform: "uppercase",
+        fontFamily: "'DM Sans', sans-serif",
+      }}
+    >
+      <Zap size={14} />
+      {children}
+    </motion.span>
+  );
+}
 
 export default function StatsSection() {
-  const stats = [
-    { icon: Users, value: '25K+', label: 'Active Learners', color: 'from-blue-500 to-cyan-500' },
-    { icon: Brain, value: '1K+', label: 'Quizzes Created', color: 'from-purple-500 to-pink-500' },
-    { icon: Trophy, value: '15K+', label: 'Daily Attempts', color: 'from-orange-500 to-red-500' },
-    { icon: TrendingUp, value: '90%', label: 'Success Rate', color: 'from-green-500 to-emerald-500' }
+  const items = [
+    { icon: Brain, value: "40+", label: "Quiz Topics" },
+    { icon: Trophy, value: "1000+", label: "Questions" },
+    { icon: Users, value: "10K+", label: "Active Users" },
+    { icon: TrendingUp, value: "95%", label: "Success Rate" },
   ];
-
+  
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-gray-900 via-indigo-900 to-purple-900 text-white relative overflow-hidden">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImRvdHMiIHdpZHRoPSI4MCIgaGVpZ2h0PSI4MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9IndoaXRlIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNkb3RzKSIvPjwvc3ZnPg==')] opacity-40"></div>
-      
-      <div className="max-w-7xl mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Join Thousands of Quiz Enthusiasts
-          </h2>
-          <p className="text-xl text-indigo-200">
-            Be part of a growing community of learners
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat, idx) => (
+    <section
+      style={{
+        background: `linear-gradient(180deg, ${T.charcoal} 0%, ${T.surface} 100%)`,
+        borderTop: "1px solid rgba(212,168,83,0.1)",
+        borderBottom: "1px solid rgba(212,168,83,0.1)",
+        padding: "clamp(32px, 6vw, 56px) 24px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+          gap: "clamp(24px, 4vw, 48px)",
+        }}
+      >
+        {items.map(({ icon: Icon, value, label }, i) => (
+          <FadeIn key={i} delay={i * 0.1}>
             <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="text-center"
+              whileHover={{ y: -6, scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+              style={{ textAlign: "center" }}
             >
-              <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br ${stat.color} mb-4 shadow-lg`}>
-                <stat.icon size={36} />
+              <motion.div
+                whileHover={{ rotate: 10, scale: 1.1 }}
+                style={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: 16,
+                  background: T.accentGlow,
+                  border: "1px solid rgba(212,168,83,0.2)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  margin: "0 auto 16px",
+                  boxShadow: "0 0 30px rgba(212,168,83,0.1)",
+                }}
+              >
+                <Icon size={24} color={T.gold} />
+              </motion.div>
+              <div
+                style={{
+                  fontSize: "clamp(28px, 5vw, 36px)",
+                  fontWeight: 800,
+                  color: T.gold,
+                  fontFamily: "'Playfair Display', serif",
+                  lineHeight: 1,
+                  marginBottom: 6,
+                }}
+              >
+                {value}
               </div>
-              <div className="text-4xl md:text-5xl font-bold mb-2">{stat.value}</div>
-              <div className="text-lg text-indigo-200">{stat.label}</div>
+              <div
+                style={{
+                  fontSize: 14,
+                  color: T.ivoryMuted,
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              >
+                {label}
+              </div>
             </motion.div>
-          ))}
-        </div>
+          </FadeIn>
+        ))}
+      </div>
 
+      <FadeIn delay={0.4}>
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          className="mt-12 text-center"
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-16 text-center"
         >
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-lg px-6 py-3 rounded-full border border-white/20">
-            <span className="text-yellow-400 text-2xl">⭐</span>
-            <span className="font-semibold">4.8/5 average rating from 5,000+ reviews</span>
+          <div 
+            className="inline-flex items-center gap-3 px-6 py-3 rounded-full"
+            style={{ background: T.surface, border: "1px solid rgba(212,168,83,0.15)" }}
+          >
+            <div className="flex items-center gap-1">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} size={16} fill={T.gold} color={T.gold} />
+              ))}
+            </div>
+            <span className="font-semibold" style={{ color: T.ivory, fontFamily: "'DM Sans', sans-serif" }}>
+              4.9/5 average rating from 10,000+ reviews
+            </span>
           </div>
         </motion.div>
-      </div>
+      </FadeIn>
     </section>
   );
 }

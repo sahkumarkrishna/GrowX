@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from '../ui/button';
 import { Avatar, AvatarImage } from '../ui/avatar';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
@@ -10,29 +9,40 @@ import { toast } from 'sonner';
 import GrowXLogo from './GrowXLogo';
 import {
   GraduationCap, Brain, Trello, FileText, Briefcase,
-  Search, LayoutDashboard, LogOut, User2, Sparkles,
-  Building2, ChevronDown, X, Menu, ScanLine,
+  Search, LayoutDashboard, LogOut, Sparkles,
+  Building2, ChevronDown, X, Menu, ScanLine, Code2,
 } from 'lucide-react';
+import { API } from '@/config/api';
 
-const USER_API = import.meta.env.VITE_USER_API;
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#121218",
+  surface: "#1A1A24",
+  surfaceLight: "#252532",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDark: "#B8923F",
+  ivory: "#F5F0E6",
+  accent: "#C8884A",
+  goldBorder: "rgba(212,168,83,0.15)",
+  goldDim: "rgba(212,168,83,0.08)",
+  white: "#FAFAF8",
+};
 
 const MAIN_NAV = [
-  { path: '/',            label: 'Learning',   icon: GraduationCap },
-  { path: '/quiz',        label: 'Quiz',       icon: Brain         },
-  { path: '/resume',      label: 'Resume',     icon: FileText      },
-  { path: '/internship',  label: 'Internship', icon: Briefcase     },
-  { path: '/atschecker',  label: 'ATS',        icon: ScanLine      },
-  { path: '/KanbanBoard', label: 'Kanban',     icon: Trello        },
-  { path: '/interview', label: 'Interview', icon: User2 },
+  { path: '/',                    label: 'Learning',   icon: GraduationCap },
+  { path: '/quiz',                label: 'Quiz',       icon: Brain         },
+  { path: '/resume',              label: 'Resume',     icon: FileText      },
+  { path: '/internship',          label: 'Internship', icon: Briefcase     },
+  { path: '/atschecker',         label: 'ATS',        icon: ScanLine      },
+  { path: '/KanbanBoard',        label: 'Kanban',     icon: Trello        },
 ];
 
 const JOB_NAV = [
   { path: '/job',    label: 'Job Portal', icon: Briefcase, sub: 'Browse open positions' },
   { path: '/joball', label: 'All Jobs',   icon: Building2, sub: 'View every listing'    },
-  { path: '/browse', label: 'Browse',     icon: Search,    sub: 'Search & filter jobs'  },
 ];
 
-// ── Jobs dropdown ─────────────────────────────────────────────────────────────
 function JobDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -45,12 +55,16 @@ function JobDropdown() {
   return (
     <div ref={ref} className="relative">
       <button onClick={() => setOpen(o => !o)}
+        style={{
+          background: open ? C.goldDim : 'transparent',
+          border: `1px solid ${open ? C.gold : 'transparent'}`,
+        }}
         className={`flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl
-                    transition-all hover:bg-purple-50 hover:text-purple-600
-                    ${open ? 'bg-purple-50 text-purple-600' : 'text-gray-700'}`}>
-        <Search className="w-4 h-4" />
+                    transition-all duration-200 ${open ? 'text-amber-400' : 'text-gray-300'} hover:text-amber-400`}>
+        <Search className="w-4 h-4" style={{ color: open ? C.gold : 'currentColor' }} />
         Jobs
-        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          style={{ color: open ? C.gold : 'currentColor' }} />
       </button>
       <AnimatePresence>
         {open && (
@@ -59,19 +73,27 @@ function JobDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 mt-2 w-56 bg-white rounded-2xl
-                       shadow-xl border border-gray-100 overflow-hidden z-50">
+            style={{
+              background: C.surface,
+              border: `1px solid ${C.goldBorder}`,
+              boxShadow: `0 20px 40px rgba(0,0,0,0.4), 0 0 20px ${C.goldDim}`,
+            }}
+            className="absolute top-full left-0 mt-2 w-56 rounded-2xl overflow-hidden z-50">
             {JOB_NAV.map(item => (
               <NavLink key={item.path} to={item.path} onClick={() => setOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-start gap-3 px-4 py-3 transition-colors
-                   ${isActive ? 'bg-purple-50 text-purple-600' : 'text-gray-700 hover:bg-gray-50'}`}>
-                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0 mt-0.5">
-                  <item.icon className="w-4 h-4 text-purple-600" />
+                style={({ isActive }) => ({
+                  background: isActive ? C.goldDim : 'transparent',
+                  borderLeft: isActive ? `3px solid ${C.gold}` : '3px solid transparent',
+                })}
+                className={`flex items-start gap-3 px-4 py-3 transition-all duration-200
+                           text-gray-300 hover:text-amber-400`}>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                  style={{ background: C.goldDim }}>
+                  <item.icon className="w-4 h-4" style={{ color: C.gold }} />
                 </div>
                 <div>
                   <p className="text-sm font-semibold">{item.label}</p>
-                  <p className="text-xs text-gray-400">{item.sub}</p>
+                  <p className="text-xs" style={{ color: C.ivoryMuted }}>{item.sub}</p>
                 </div>
               </NavLink>
             ))}
@@ -82,7 +104,6 @@ function JobDropdown() {
   );
 }
 
-// ── Desktop Profile dropdown ──────────────────────────────────────────────────
 function ProfileDropdown({ user, onLogout }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -94,10 +115,10 @@ function ProfileDropdown({ user, onLogout }) {
 
   return (
     <div ref={ref} className="relative">
-      {/* Only avatar — no name/chevron on desktop */}
       <button onClick={() => setOpen(o => !o)}
-        className="flex items-center rounded-xl hover:bg-gray-100 transition-colors p-1.5">
-        <Avatar className="w-8 h-8 ring-2 ring-purple-200">
+        style={{ border: `2px solid ${C.goldBorder}` }}
+        className="flex items-center rounded-xl transition-all duration-200 hover:border-amber-400/50 p-1">
+        <Avatar className="w-8 h-8">
           <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} alt={user?.fullname} />
         </Avatar>
       </button>
@@ -109,18 +130,25 @@ function ProfileDropdown({ user, onLogout }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full right-0 mt-2 w-64 bg-white rounded-2xl
-                       shadow-xl border border-gray-100 overflow-hidden z-50">
+            style={{
+              background: C.surface,
+              border: `1px solid ${C.goldBorder}`,
+              boxShadow: `0 20px 40px rgba(0,0,0,0.4), 0 0 20px ${C.goldDim}`,
+            }}
+            className="absolute top-full right-0 mt-2 w-64 rounded-2xl overflow-hidden z-50">
 
-            {/* User info header */}
-            <div className="px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-purple-50 to-blue-50">
+            <div className="px-4 py-3"
+              style={{
+                borderBottom: `1px solid ${C.goldBorder}`,
+                background: `linear-gradient(135deg, ${C.goldDim} 0%, ${C.surface} 100%)`,
+              }}>
               <div className="flex items-center gap-3">
-                <Avatar className="w-10 h-10 ring-2 ring-purple-200">
+                <Avatar className="w-10 h-10 ring-2" style={{ ringColor: C.goldBorder }}>
                   <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} />
                 </Avatar>
                 <div className="min-w-0">
-                  <p className="text-sm font-bold text-gray-900 truncate">{user?.fullname}</p>
-                  <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+                  <p className="text-sm font-bold text-gray-100 truncate">{user?.fullname}</p>
+                  <p className="text-xs truncate capitalize" style={{ color: C.gold }}>{user?.role}</p>
                 </div>
               </div>
             </div>
@@ -130,23 +158,32 @@ function ProfileDropdown({ user, onLogout }) {
                 <>
                   <Link to="/user/dashboard" onClick={() => setOpen(false)}
                     className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold
-                               text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                    <LayoutDashboard className="w-4 h-4" /> My Dashboard
+                               text-gray-300 hover:text-amber-400 transition-all duration-200"
+                    style={{}}
+                    onMouseEnter={(e) => e.currentTarget.style.background = C.goldDim}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                    <LayoutDashboard className="w-4 h-4" style={{ color: C.gold }} />
+                    My Dashboard
                   </Link>
-               
                 </>
               )}
               {(user?.role === 'admin' || user?.role === 'recruiter') && (
                 <Link to="/admin/dashboard" onClick={() => setOpen(false)}
                   className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold
-                             text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition-colors">
-                  <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
+                             text-gray-300 hover:text-amber-400 transition-all duration-200"
+                  onMouseEnter={(e) => e.currentTarget.style.background = C.goldDim}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                  <LayoutDashboard className="w-4 h-4" style={{ color: C.gold }} />
+                  Admin Dashboard
                 </Link>
               )}
               <button onClick={() => { onLogout(); setOpen(false); }}
                 className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-xl text-sm font-semibold
-                           text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
-                <LogOut className="w-4 h-4" /> Logout
+                           text-gray-300 hover:text-red-400 transition-all duration-200"
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                <LogOut className="w-4 h-4" />
+                Logout
               </button>
             </div>
           </motion.div>
@@ -156,16 +193,15 @@ function ProfileDropdown({ user, onLogout }) {
   );
 }
 
-// ── Main Navbar ───────────────────────────────────────────────────────────────
 export default function Navbar() {
   const { user }  = useSelector(s => s.auth);
   const dispatch  = useDispatch();
   const navigate  = useNavigate();
-  const [open, setOpen] = useState(false);  // mobile drawer
+  const [open, setOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
-      const res = await axios.get(`${USER_API}/logout`, { withCredentials: true });
+      const res = await axios.get(`${API.user}/logout`, { withCredentials: true });
       if (res.data.success) {
         dispatch(setUser(null));
         navigate('/');
@@ -180,26 +216,31 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-white/95 backdrop-blur-xl sticky top-0 z-50
-                      border-b border-gray-100 shadow-sm">
+      <nav style={{
+        background: `linear-gradient(180deg, ${C.charcoal} 0%, ${C.obsidian} 100%)`,
+        borderBottom: `1px solid ${C.goldBorder}`,
+        boxShadow: `0 4px 20px rgba(0,0,0,0.3), 0 0 30px ${C.goldDim}`,
+      }}
+        className="backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16
                         flex items-center justify-between gap-4">
 
-          {/* Logo */}
           <Link to="/" className="shrink-0">
             <GrowXLogo size={36} />
           </Link>
 
-          {/* ── Desktop: nav links (centre) ──────────────────────────── */}
           <div className="hidden lg:flex items-center gap-1 flex-1 justify-center">
-            {user?.role !== 'admin' && user?.role !== 'recruiter' && (
+            {user && user?.role !== 'admin' && user?.role !== 'recruiter' && (
               <>
                 {MAIN_NAV.map(item => (
                   <NavLink key={item.path} to={item.path}
-                    className={({ isActive }) =>
-                      `flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl
-                       transition-all hover:bg-purple-50 hover:text-purple-600
-                       ${isActive ? 'bg-purple-50 text-purple-600' : 'text-gray-700'}`}>
+                    style={({ isActive }) => ({
+                      background: isActive ? C.goldDim : 'transparent',
+                      border: isActive ? `1px solid ${C.gold}` : '1px solid transparent',
+                      color: isActive ? C.gold : 'rgb(209,213,219)',
+                    })}
+                    className="flex items-center gap-1.5 text-sm font-semibold px-3 py-2 rounded-xl
+                               transition-all duration-200 hover:text-amber-400">
                     <item.icon className="w-4 h-4" />
                     {item.label}
                   </NavLink>
@@ -209,122 +250,157 @@ export default function Navbar() {
             )}
             {(user?.role === 'admin' || user?.role === 'recruiter') && (
               <Link to="/admin/dashboard"
-                className="flex items-center gap-2 text-sm font-bold text-purple-600
-                           bg-purple-50 px-4 py-2 rounded-xl">
-                <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
+                className="flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-xl"
+                style={{
+                  background: `linear-gradient(135deg, ${C.gold} 0%, ${C.goldDark} 100%)`,
+                  color: C.obsidian,
+                }}>
+                <LayoutDashboard className="w-4 h-4" />
+                Admin Dashboard
               </Link>
             )}
           </div>
 
-          {/* ── Desktop right: Profile ONLY (or Login/Signup for guests) ── */}
           <div className="hidden lg:flex items-center gap-3 shrink-0">
             {!user ? (
               <>
                 <Link to="/login">
-                  <Button variant="outline"
-                    className="rounded-full px-5 border-2 hover:border-purple-600
-                               hover:text-purple-600 font-semibold text-sm h-9 transition-all">
+                  <button
+                    className="rounded-full px-5 font-semibold text-sm h-9 transition-all duration-200"
+                    style={{
+                      border: `2px solid ${C.gold}`,
+                      color: C.gold,
+                      background: 'transparent',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = C.goldDim;
+                      e.currentTarget.style.borderColor = C.goldLight;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.borderColor = C.gold;
+                    }}>
                     Login
-                  </Button>
+                  </button>
                 </Link>
                 <Link to="/signup">
-                  <Button className="rounded-full px-5 h-9 text-sm font-semibold
-                                     text-white shadow-md hover:shadow-lg transition-all"
-                    style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)' }}>
-                    <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Sign Up
-                  </Button>
+                  <button
+                    className="rounded-full px-5 h-9 text-sm font-semibold text-gray-900 transition-all duration-200"
+                    style={{
+                      background: `linear-gradient(135deg, ${C.gold} 0%, ${C.goldLight} 100%)`,
+                      boxShadow: `0 4px 15px ${C.goldDim}`,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = `0 6px 20px ${C.goldBorder}`;
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = `0 4px 15px ${C.goldDim}`;
+                      e.currentTarget.style.transform = 'translateY(0)';
+                    }}>
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 inline" />
+                    Sign Up
+                  </button>
                 </Link>
               </>
             ) : (
-              /* Desktop: ONLY the profile avatar icon */
               <ProfileDropdown user={user} onLogout={handleLogout} />
             )}
           </div>
 
-          {/* ── Mobile: ONLY the hamburger Menu icon ────────────────── */}
           <div className="flex lg:hidden">
             <button onClick={() => setOpen(o => !o)}
-              className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-700">
+              className="p-2 rounded-xl transition-all duration-200"
+              style={{ color: C.gold }}
+              onMouseEnter={(e) => e.currentTarget.style.background = C.goldDim}
+              onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
               {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
       </nav>
 
-      {/* ── Mobile drawer ─────────────────────────────────────────────── */}
       <AnimatePresence>
         {open && (
           <>
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
-              className="lg:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-40 top-16" />
+              className="lg:hidden fixed inset-0 z-40 top-16"
+              style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }} />
 
             <motion.div
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2 }}
-              className="lg:hidden fixed inset-x-0 top-16 z-50 bg-white border-b border-gray-100
-                         shadow-2xl max-h-[calc(100vh-4rem)] overflow-y-auto">
+              className="lg:hidden fixed inset-x-0 top-16 z-50 rounded-b-2xl
+                         max-h-[calc(100vh-4rem)] overflow-y-auto"
+              style={{
+                background: `linear-gradient(180deg, ${C.surface} 0%, ${C.charcoal} 100%)`,
+                borderBottom: `1px solid ${C.goldBorder}`,
+                boxShadow: `0 20px 40px rgba(0,0,0,0.5), 0 0 30px ${C.goldDim}`,
+              }}>
 
               <div className="p-4 space-y-1">
 
-                {/* User strip */}
                 {user && (
-                  <div className="flex items-center gap-3 px-3 py-3 mb-3
-                                  bg-gradient-to-r from-purple-50 to-blue-50
-                                  rounded-2xl border border-purple-100">
-                    <Avatar className="w-10 h-10 ring-2 ring-purple-200 shrink-0">
+                  <div className="flex items-center gap-3 px-3 py-3 mb-3 rounded-2xl"
+                    style={{
+                      background: `linear-gradient(135deg, ${C.goldDim} 0%, ${C.surface} 100%)`,
+                      border: `1px solid ${C.goldBorder}`,
+                    }}>
+                    <Avatar className="w-10 h-10 shrink-0" style={{ border: `2px solid ${C.goldBorder}` }}>
                       <AvatarImage src={user?.profile?.profilePhoto || '/default-avatar.png'} />
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="text-sm font-bold text-gray-900 truncate">{user?.fullname}</p>
-                      <p className="text-xs text-gray-500 truncate capitalize">
+                      <p className="text-sm font-bold text-gray-100 truncate">{user?.fullname}</p>
+                      <p className="text-xs truncate capitalize" style={{ color: C.gold }}>
                         {user?.role} · {user?.email}
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Nav links */}
-                {user?.role !== 'admin' && user?.role !== 'recruiter' && (
+                {user && user?.role !== 'admin' && user?.role !== 'recruiter' && (
                   <>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 pt-2 pb-1">
-                      Main
-                    </p>
+                    <p className="text-xs font-bold uppercase tracking-widest px-3 pt-2 pb-1"
+                      style={{ color: C.gold }}>Main</p>
                     {MAIN_NAV.map(item => (
                       <NavLink key={item.path} to={item.path}
                         onClick={() => setOpen(false)}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
-                           transition-all ${isActive
-                             ? 'bg-gradient-to-r from-purple-100 to-blue-50 text-purple-700'
-                             : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-                          <item.icon className="w-4 h-4 text-purple-600" />
+                        style={({ isActive }) => ({
+                          background: isActive ? C.goldDim : 'transparent',
+                          borderLeft: isActive ? `3px solid ${C.gold}` : '3px solid transparent',
+                        })}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                                   transition-all duration-200 text-gray-300 hover:text-amber-400">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ background: C.surfaceLight }}>
+                          <item.icon className="w-4 h-4" style={{ color: C.gold }} />
                         </div>
                         {item.label}
                       </NavLink>
                     ))}
 
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 pt-3 pb-1">
-                      Job Portal
-                    </p>
+                    <p className="text-xs font-bold uppercase tracking-widest px-3 pt-3 pb-1"
+                      style={{ color: C.gold }}>Job Portal</p>
                     {JOB_NAV.map(item => (
                       <NavLink key={item.path} to={item.path}
                         onClick={() => setOpen(false)}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
-                           transition-all ${isActive
-                             ? 'bg-gradient-to-r from-purple-100 to-blue-50 text-purple-700'
-                             : 'text-gray-700 hover:bg-gray-50'}`}>
-                        <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                          <item.icon className="w-4 h-4 text-blue-600" />
+                        style={({ isActive }) => ({
+                          background: isActive ? C.goldDim : 'transparent',
+                          borderLeft: isActive ? `3px solid ${C.gold}` : '3px solid transparent',
+                        })}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                                   transition-all duration-200 text-gray-300 hover:text-amber-400">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ background: C.surfaceLight }}>
+                          <item.icon className="w-4 h-4" style={{ color: C.gold }} />
                         </div>
                         <div>
                           <p>{item.label}</p>
-                          <p className="text-xs text-gray-400 font-normal">{item.sub}</p>
+                          <p className="text-xs font-normal" style={{ color: C.ivoryMuted }}>{item.sub}</p>
                         </div>
                       </NavLink>
                     ))}
@@ -333,39 +409,45 @@ export default function Navbar() {
 
                 {(user?.role === 'admin' || user?.role === 'recruiter') && (
                   <Link to="/admin/dashboard" onClick={() => setOpen(false)}
-                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
-                               text-purple-700 bg-purple-50 border border-purple-100">
-                    <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
-                      <LayoutDashboard className="w-4 h-4 text-purple-600" />
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold"
+                    style={{
+                      background: `linear-gradient(135deg, ${C.goldDim} 0%, ${C.surface} 100%)`,
+                      border: `1px solid ${C.goldBorder}`,
+                      color: C.gold,
+                    }}>
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: C.surfaceLight }}>
+                      <LayoutDashboard className="w-4 h-4 text-amber-400" />
                     </div>
                     Admin Dashboard
                   </Link>
                 )}
 
-                {/* Account */}
                 {user && (
                   <>
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-3 pt-3 pb-1">
-                      Account
-                    </p>
+                    <p className="text-xs font-bold uppercase tracking-widest px-3 pt-3 pb-1"
+                      style={{ color: C.gold }}>Account</p>
                     {user?.role !== 'admin' && user?.role !== 'recruiter' && (
-                      <>
-                        <Link to="/user/dashboard" onClick={() => setOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold
-                                     text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors">
-                          <div className="w-8 h-8 rounded-xl bg-blue-100 flex items-center justify-center shrink-0">
-                            <LayoutDashboard className="w-4 h-4 text-blue-600" />
-                          </div>
-                          My Dashboard
-                        </Link>
-                        
-                      </>
+                      <Link to="/user/dashboard" onClick={() => setOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                                   text-gray-300 hover:text-amber-400 transition-all duration-200"
+                        onMouseEnter={(e) => e.currentTarget.style.background = C.goldDim}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                          style={{ background: C.surfaceLight }}>
+                          <LayoutDashboard className="w-4 h-4" style={{ color: C.gold }} />
+                        </div>
+                        My Dashboard
+                      </Link>
                     )}
                     <button onClick={() => { handleLogout(); setOpen(false); }}
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl text-sm font-semibold
-                                 text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">
-                      <div className="w-8 h-8 rounded-xl bg-red-100 flex items-center justify-center shrink-0">
-                        <LogOut className="w-4 h-4 text-red-500" />
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-sm font-semibold
+                                 text-gray-300 hover:text-red-400 transition-all duration-200"
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ background: 'rgba(239,68,68,0.1)' }}>
+                        <LogOut className="w-4 h-4" />
                       </div>
                       Logout
                     </button>
@@ -373,21 +455,37 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* Guest auth buttons */}
               {!user && (
-                <div className="p-4 pt-2 border-t border-gray-100 grid grid-cols-2 gap-3">
+                <div className="p-4 pt-2 grid grid-cols-2 gap-3" style={{ borderTop: `1px solid ${C.goldBorder}` }}>
                   <Link to="/login" onClick={() => setOpen(false)}>
-                    <Button variant="outline"
-                      className="w-full h-11 rounded-2xl border-2 font-semibold
-                                 hover:border-purple-400 hover:text-purple-600 transition-all">
+                    <button
+                      className="w-full h-11 rounded-2xl font-semibold transition-all duration-200"
+                      style={{
+                        border: `2px solid ${C.gold}`,
+                        color: C.gold,
+                        background: 'transparent',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = C.goldDim;
+                        e.currentTarget.style.borderColor = C.goldLight;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'transparent';
+                        e.currentTarget.style.borderColor = C.gold;
+                      }}>
                       Login
-                    </Button>
+                    </button>
                   </Link>
                   <Link to="/signup" onClick={() => setOpen(false)}>
-                    <Button className="w-full h-11 rounded-2xl font-semibold text-white shadow-md"
-                      style={{ background: 'linear-gradient(135deg,#7c3aed,#2563eb)' }}>
-                      <Sparkles className="w-4 h-4 mr-1.5" /> Sign Up
-                    </Button>
+                    <button
+                      className="w-full h-11 rounded-2xl font-semibold text-gray-900 transition-all duration-200"
+                      style={{
+                        background: `linear-gradient(135deg, ${C.gold} 0%, ${C.goldLight} 100%)`,
+                        boxShadow: `0 4px 15px ${C.goldDim}`,
+                      }}>
+                      <Sparkles className="w-4 h-4 mr-1.5 inline" />
+                      Sign Up
+                    </button>
                   </Link>
                 </div>
               )}

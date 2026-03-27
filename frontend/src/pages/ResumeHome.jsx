@@ -1,18 +1,15 @@
 import HeroSection from "./Resume/HeroSection";
-import AboutSection from "./Resume/About";
+import About from "./Resume/About";
 import StatsSection from "./Resume/StatsSection";
-import WhyChoose from "./Resume/WhyChoose";
 import FeedbackSection from "./Resume/FeedbackSection";
-import FAQSection from "./Resume/Frequently Asked Questions";
+import FAQSection from "./Resume/FAQSection";
 
 const ResumeHome = () => {
     return (
         <div>
             <HeroSection/>
-            <AboutSection/>
+            <About/>
             <StatsSection/>
-           
-            <WhyChoose/>
             <FeedbackSection/>
             <FAQSection/>
         </div>

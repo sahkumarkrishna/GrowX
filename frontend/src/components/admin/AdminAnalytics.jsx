@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { API } from '@/config/api';
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -36,18 +37,14 @@ const AdminAnalytics = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const QUIZ_API = `${import.meta.env.VITE_USER_API?.replace('/user', '/quiz') || 'http://localhost:8000/api/v1/quiz'}`;
-  const JOB_API = import.meta.env.VITE_JOB_API || 'http://localhost:8000/api/v1/job';
-  const USER_API = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
-
   useEffect(() => { fetchAll(); }, []);
 
   const fetchAll = async () => {
     try {
       const [qRes, jRes, uRes] = await Promise.all([
-        axios.get(`${QUIZ_API}/all`).catch(() => ({ data: { quizzes: [] } })),
-        axios.get(`${JOB_API}/getadminjobs`, { withCredentials: true }).catch(() => ({ data: { jobs: [] } })),
-        axios.get(`${USER_API}/all`, { withCredentials: true }).catch(() => ({ data: { users: [] } })),
+        axios.get(`${API.quiz}/all`).catch(() => ({ data: { quizzes: [] } })),
+        axios.get(`${API.job}/getadminjobs`, { withCredentials: true }).catch(() => ({ data: { jobs: [] } })),
+        axios.get(`${API.user}/all`, { withCredentials: true }).catch(() => ({ data: { users: [] } })),
       ]);
       setQuizzes(qRes.data.quizzes || []);
       setJobs(jRes.data.jobs || []);

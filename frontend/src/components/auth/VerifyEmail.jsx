@@ -2,22 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
-import { Link, useSearchParams } from 'react-router-dom';   // ← useSearchParams not useParams
+import { Link, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { Mail, Loader2, CheckCircle2, XCircle, ArrowRight, Sparkles, MailCheck, AlertTriangle } from 'lucide-react';
+import { API } from '@/config/api';
 
 const VerifyEmail = () => {
-    const [searchParams]                        = useSearchParams();
-    const token                                 = searchParams.get("token");   // ?token=...
-    const emailFromUrl                          = searchParams.get("email");   // ?email=...
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get("token");
+    const emailFromUrl = searchParams.get("email");
 
-    const [status,      setStatus]      = useState("loading"); // loading | success | already | expired | error
+    const [status, setStatus] = useState("loading");
     const [resendEmail, setResendEmail] = useState(emailFromUrl || "");
-    const [resending,   setResending]   = useState(false);
-    const [resentOk,    setResentOk]    = useState(false);
-
-    const USER_API = import.meta.env.VITE_USER_API || "http://localhost:8000/api/v1/user";
+    const [resending, setResending] = useState(false);
+    const [resentOk, setResentOk] = useState(false);
 
     // ── Auto-verify on mount ──────────────────────────────────────────────────
     useEffect(() => {
@@ -25,8 +24,7 @@ const VerifyEmail = () => {
 
         (async () => {
             try {
-                // GET /verify-email?token=...&email=...
-                const res = await axios.get(`${USER_API}/verify-email`, {
+                const res = await axios.get(`${API.user}/verify-email`, {
                     params: { token, email: emailFromUrl }
                 });
                 setStatus(res.data.alreadyDone ? "already" : "success");
@@ -43,7 +41,7 @@ const VerifyEmail = () => {
         if (!resendEmail) { toast.error("Enter your email address."); return; }
         try {
             setResending(true);
-            const res = await axios.post(`${USER_API}/resend-verification-email`, { email: resendEmail });
+            const res = await axios.post(`${API.user}/resend-verification-email`, { email: resendEmail });
             if (res.data.success) { setResentOk(true); toast.success("New link sent! Check your inbox."); }
             else toast.error(res.data.message || "Could not resend.");
         } catch (err) {

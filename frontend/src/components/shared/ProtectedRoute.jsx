@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -7,26 +6,35 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user, loading } = useSelector((state) => state.auth);
   const location = useLocation();
 
-  // Show loading spinner while checking authentication
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0F' }}>
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-purple-600 mx-auto mb-4" />
-          <p className="text-gray-600 font-semibold">Loading...</p>
+          <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" style={{ color: '#D4A853' }} />
+          <p style={{ color: '#F5F0E6' }}>Loading...</p>
         </div>
       </div>
     );
   }
 
-  // Redirect to login if not authenticated
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check admin-only routes
   if (adminOnly && user.role !== 'admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/user/dashboard" replace />;
+  }
+
+  if (user.role === 'admin') {
+    const currentPath = location.pathname;
+    
+    if (!adminOnly) {
+      if (currentPath.startsWith('/user/dashboard') || 
+          currentPath === '/user' ||
+          currentPath.startsWith('/user/')) {
+        return <Navigate to="/admin/dashboard" replace />;
+      }
+    }
   }
 
   return children;

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { setUser } from '@/redux/authSlice';
+import { API } from '@/config/api';
 
 const AdminLogin = () => {
   const [input, setInput] = useState({ email: '', password: '' });
@@ -16,8 +17,6 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
-  const USER_API = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
 
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value.trim() });
@@ -40,7 +39,7 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${USER_API}/login`, 
+      const res = await axios.post(`${API.user}/login`, 
         { ...input, role: 'admin' },
         {
           headers: { 'Content-Type': 'application/json' },

@@ -1,208 +1,500 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { IoMdArrowRoundBack } from 'react-icons/io';
-import { Clock, Award, BookOpen, Play, Search, Filter } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
+import {
+  PlayCircle, Search, Clock, Award, BookOpen, Trophy, Target,
+  Menu, X, Sparkles, ChevronRight, Star, Zap, Brain, Code,
+  Layers, Smartphone, Server, Database, Terminal, Wrench, Rocket,
+} from 'lucide-react';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { API } from '@/config/api';
 
-const QuizDashboard = () => {
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#0D1017",
+  surface: "#151820",
+  surfaceLight: "#1C1F28",
+  card: "#1A1D26",
+  cardHover: "#22252F",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  goldBorderHover: "rgba(212,168,83,0.3)",
+  sky: "#38BDF8",
+  violet: "#818CF8",
+  violetDim: "rgba(129,140,248,0.1)",
+  green: "#34D399",
+  greenDim: "rgba(52,211,153,0.1)",
+  amber: "#FBBF24",
+  rose: "#FB7185",
+  roseDim: "rgba(251,113,133,0.1)",
+  white: "#F5F0E6",
+  muted: "#7A7F8A",
+  dim: "#2A2E3A",
+};
+
+const CATEGORY_META = {
+  HTML: { color: "#E34C26", bg: "rgba(227,76,38,0.1)", Icon: Code },
+  CSS: { color: "#264de4", bg: "rgba(38,77,228,0.1)", Icon: Layers },
+  JavaScript: { color: "#F7DF1E", bg: "rgba(247,223,30,0.1)", Icon: Brain },
+  TypeScript: { color: "#3178C6", bg: "rgba(49,120,198,0.1)", Icon: Code },
+  React: { color: "#61DAFB", bg: "rgba(97,218,251,0.1)", Icon: Rocket },
+  Angular: { color: "#DD0031", bg: "rgba(221,0,49,0.1)", Icon: Layers },
+  Vue: { color: "#4FC08D", bg: "rgba(79,192,141,0.1)", Icon: Rocket },
+  "Node.js": { color: "#68A063", bg: "rgba(104,160,99,0.1)", Icon: Server },
+  Express: { color: "#000000", bg: "rgba(0,0,0,0.3)", Icon: Server },
+  Django: { color: "#0C4B33", bg: "rgba(12,75,51,0.1)", Icon: Code },
+  "Spring Boot": { color: "#6DB33F", bg: "rgba(109,179,63,0.1)", Icon: Server },
+  Flask: { color: "#000000", bg: "rgba(0,0,0,0.3)", Icon: Server },
+  MongoDB: { color: "#47A248", bg: "rgba(71,162,72,0.1)", Icon: Database },
+  MySQL: { color: "#00758F", bg: "rgba(0,117,143,0.1)", Icon: Database },
+  PostgreSQL: { color: "#336791", bg: "rgba(51,103,145,0.1)", Icon: Database },
+  Firebase: { color: "#FFCA28", bg: "rgba(255,202,40,0.1)", Icon: Database },
+  Python: { color: "#3776AB", bg: "rgba(55,118,171,0.1)", Icon: Terminal },
+  Java: { color: "#F89820", bg: "rgba(248,152,32,0.1)", Icon: Code },
+  C: { color: "#A8B9CC", bg: "rgba(168,185,204,0.1)", Icon: Terminal },
+  "C++": { color: "#00599C", bg: "rgba(0,89,156,0.1)", Icon: Terminal },
+  Go: { color: "#00ADD8", bg: "rgba(0,173,216,0.1)", Icon: Server },
+  Rust: { color: "#DEA584", bg: "rgba(222,165,132,0.1)", Icon: Terminal },
+  "React Native": { color: "#61DAFB", bg: "rgba(97,218,251,0.1)", Icon: Smartphone },
+  Flutter: { color: "#54C5F8", bg: "rgba(84,197,248,0.1)", Icon: Smartphone },
+  Swift: { color: "#FA7343", bg: "rgba(250,115,67,0.1)", Icon: Smartphone },
+  Kotlin: { color: "#7F52FF", bg: "rgba(127,82,255,0.1)", Icon: Smartphone },
+  Git: { color: "#F05032", bg: "rgba(240,80,50,0.1)", Icon: Code },
+  GitHub: { color: "#C9D1D9", bg: "rgba(201,209,217,0.1)", Icon: Code },
+  Docker: { color: "#2496ED", bg: "rgba(36,150,237,0.1)", Icon: Wrench },
+  AWS: { color: "#FF9900", bg: "rgba(255,153,0,0.1)", Icon: Server },
+  Azure: { color: "#0078D4", bg: "rgba(0,120,212,0.1)", Icon: Server },
+  DSA: { color: "#9333EA", bg: "rgba(147,51,234,0.1)", Icon: Target },
+  "System Design": { color: "#EC4899", bg: "rgba(236,72,153,0.1)", Icon: Layers },
+  Other: { color: "#6B7280", bg: "rgba(107,114,128,0.1)", Icon: Star },
+};
+
+const LEVEL_COLORS = {
+  Beginner: { color: "#34D399", bg: "rgba(52,211,153,0.1)" },
+  Intermediate: { color: "#FBBF24", bg: "rgba(251,191,36,0.1)" },
+  Advanced: { color: "#FB7185", bg: "rgba(251,113,133,0.1)" },
+};
+
+function FadeIn({ children, delay = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-30px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 15 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.4, delay }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function QuizCard({ quiz, onStart }) {
+  const [isHovered, setIsHovered] = useState(false);
+  const categoryMeta = CATEGORY_META[quiz.category] || CATEGORY_META.Other;
+  const levelMeta = LEVEL_COLORS[quiz.level] || LEVEL_COLORS.Beginner;
+  const IconComponent = categoryMeta.Icon;
+  
+  return (
+    <motion.div
+      className="relative rounded-xl overflow-hidden cursor-pointer w-full"
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      style={{
+        background: C.card,
+        border: `1px solid ${isHovered ? C.goldBorderHover : C.goldBorder}`,
+        boxShadow: isHovered ? "0 12px 40px rgba(0,0,0,0.3)" : "none",
+        transition: "all 0.2s ease",
+      }}
+    >
+      <div className="p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <motion.div 
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{ background: categoryMeta.bg }}
+          >
+            <IconComponent size={22} color={categoryMeta.color} />
+          </motion.div>
+          <div className="flex-1 min-w-0">
+            <h3 
+              className="font-semibold text-sm truncate"
+              style={{ fontFamily: "'DM Sans', sans-serif", color: C.white }}
+            >
+              {quiz.title}
+            </h3>
+            <p className="text-xs truncate" style={{ color: C.muted }}>{quiz.category}</p>
+          </div>
+        </div>
+        
+        <p className="text-xs mb-4 line-clamp-2" style={{ color: C.muted, fontFamily: "'DM Sans', sans-serif" }}>
+          {quiz.description}
+        </p>
+        
+        <div className="flex items-center gap-3 mb-4 text-xs" style={{ color: C.muted }}>
+          <div className="flex items-center gap-1">
+            <Clock size={12} />
+            <span>{quiz.timeLimit} min</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <BookOpen size={12} />
+            <span>{quiz.questions?.length || 0} Q</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Award size={12} />
+            <span>{quiz.totalMarks} marks</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center justify-between">
+          <div 
+            className="px-2.5 py-1 rounded-lg text-[10px] font-semibold"
+            style={{ background: levelMeta.bg, color: levelMeta.color, fontFamily: "'DM Sans', sans-serif" }}
+          >
+            {quiz.level}
+          </div>
+          
+          <motion.button
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium"
+            onClick={() => onStart(quiz._id)}
+            style={{ background: C.goldDim, color: C.gold, fontFamily: "'DM Sans', sans-serif" }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <PlayCircle size={14} /> Start
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function Sidebar({ activeCategory, setActiveCategory, categoryStats, totalQuizzes, isOpen, setIsOpen }) {
+  const categories = Object.entries(CATEGORY_META).slice(0, 20);
+  
+  return (
+    <>
+      <aside 
+        className="hidden lg:flex flex-col w-64 xl:w-72 h-screen sticky top-0 flex-shrink-0"
+        style={{ background: C.charcoal, borderRight: `1px solid ${C.goldBorder}` }}
+      >
+        <div className="p-5 border-b" style={{ borderColor: C.goldBorder }}>
+          <div className="flex items-center gap-3">
+            <motion.div 
+              className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg"
+              whileHover={{ rotate: 5, scale: 1.05 }}
+              style={{ boxShadow: "0 4px 15px rgba(212,168,83,0.3)" }}
+            >
+              <span className="font-black text-xl" style={{ color: C.obsidian, fontFamily: "'Playfair Display', serif" }}>G</span>
+            </motion.div>
+            <div>
+              <span className="font-bold text-xl" style={{ fontFamily: "'Playfair Display', serif", color: C.white }}>
+                Grow<span style={{ color: C.gold }}>X</span>
+              </span>
+              <div className="text-[10px]" style={{ color: C.muted, fontFamily: "'DM Mono', monospace" }}>Quiz Arena</div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="p-4 border-b" style={{ borderColor: C.goldBorder }}>
+          <div className="rounded-xl p-4" style={{ background: C.surface, border: `1px solid ${C.goldBorder}` }}>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] uppercase tracking-wider" style={{ color: C.muted, fontFamily: "'DM Mono', monospace" }}>Total Quizzes</span>
+              <span className="font-bold" style={{ color: C.gold, fontFamily: "'DM Mono', monospace" }}>{totalQuizzes}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Trophy size={14} color={C.gold} />
+              <span className="text-xs" style={{ color: C.muted }}>Test your knowledge</span>
+            </div>
+          </div>
+        </div>
+        
+        <nav className="flex-1 overflow-y-auto p-3">
+          <div className="text-[10px] uppercase tracking-wider px-3 py-2 mb-2" style={{ color: C.muted, fontFamily: "'DM Mono', monospace" }}>
+            Categories
+          </div>
+          
+          <motion.button
+            className="w-full flex items-center gap-3 p-3 rounded-xl mb-1 transition-all relative"
+            onClick={() => setActiveCategory("all")}
+            whileHover={{ x: 4 }}
+            style={{
+              background: activeCategory === "all" ? C.goldDim : "transparent",
+              border: `1px solid ${activeCategory === "all" ? C.goldBorderHover : "transparent"}`
+            }}
+          >
+            {activeCategory === "all" && (
+              <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r" style={{ background: C.gold }} />
+            )}
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: activeCategory === "all" ? C.gold + "20" : C.surface }}>
+              <Brain size={16} color={activeCategory === "all" ? C.gold : C.muted} />
+            </div>
+            <div className="flex-1 text-left">
+              <div className="text-sm font-medium" style={{ fontFamily: "'DM Sans', sans-serif", color: activeCategory === "all" ? C.gold : C.white }}>All Quizzes</div>
+              <div className="text-[10px]" style={{ fontFamily: "'DM Mono', monospace", color: C.muted }}>{totalQuizzes} quizzes</div>
+            </div>
+          </motion.button>
+          
+          {categories.map(([name, meta]) => {
+            const isActive = activeCategory === name;
+            const stats = categoryStats[name] || 0;
+            
+            return (
+              <motion.button
+                key={name}
+                className="w-full flex items-center gap-3 p-3 rounded-xl mb-1 transition-all relative"
+                onClick={() => setActiveCategory(name)}
+                whileHover={{ x: 4 }}
+                style={{
+                  background: isActive ? meta.bg : "transparent",
+                  border: `1px solid ${isActive ? meta.color + "30" : "transparent"}`
+                }}
+              >
+                {isActive && (
+                  <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r" style={{ background: meta.color }} />
+                )}
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: isActive ? meta.color + "20" : C.surface }}>
+                  <meta.Icon size={16} color={isActive ? meta.color : C.muted} />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium" style={{ fontFamily: "'DM Sans', sans-serif", color: isActive ? meta.color : C.white }}>{name}</div>
+                  <div className="text-[10px]" style={{ fontFamily: "'DM Mono', monospace", color: C.muted }}>{stats} quizzes</div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </nav>
+      </aside>
+      
+      {isOpen && (
+        <>
+          <motion.div
+            className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            onClick={() => setIsOpen(false)}
+          />
+          <motion.aside
+            className="fixed lg:hidden top-0 left-0 h-full w-72 z-50 overflow-y-auto"
+            initial={{ x: -300 }}
+            animate={{ x: 0 }}
+            style={{ background: C.charcoal, borderRight: `1px solid ${C.goldBorder}` }}
+          >
+            <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: C.goldBorder }}>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                  <span className="font-black text-lg" style={{ color: C.obsidian }}>G</span>
+                </div>
+                <span className="font-bold text-lg" style={{ fontFamily: "'Playfair Display', serif", color: C.white }}>
+                  Grow<span style={{ color: C.gold }}>X</span>
+                </span>
+              </div>
+              <button onClick={() => setIsOpen(false)} className="p-2 rounded-lg" style={{ background: C.surface }}>
+                <X size={20} color={C.muted} />
+              </button>
+            </div>
+            
+            <div className="p-4">
+              <div className="rounded-xl p-4" style={{ background: C.surface }}>
+                <div className="flex justify-between mb-2">
+                  <span className="text-xs" style={{ color: C.muted }}>Total Quizzes</span>
+                  <span className="font-bold" style={{ color: C.gold }}>{totalQuizzes}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-3">
+              {categories.map(([name, meta]) => (
+                <motion.button
+                  key={name}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl mb-1"
+                  onClick={() => { setActiveCategory(name); setIsOpen(false); }}
+                  style={{ background: activeCategory === name ? meta.bg : "transparent" }}
+                >
+                  <meta.Icon size={16} color={activeCategory === name ? meta.color : C.muted} />
+                  <span className="text-sm" style={{ color: activeCategory === name ? meta.color : C.white }}>{name}</span>
+                </motion.button>
+              ))}
+            </div>
+          </motion.aside>
+        </>
+      )}
+    </>
+  );
+}
+
+export default function QuizDashboard() {
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
-  const [filteredQuizzes, setFilteredQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ category: '', level: '', search: '' });
-
-  const categories = ["HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue", "Node.js", "Express", "Django", "Spring Boot", "Flask", "MongoDB", "MySQL", "PostgreSQL", "Firebase", "Python", "Java", "C", "C++", "Go", "Rust", "React Native", "Flutter", "Swift", "Kotlin", "Git", "GitHub", "Docker", "Kubernetes", "AWS", "Azure", "GCP", "DSA", "System Design", "OOP", "Database Design", "Other"];
-
-  const QUIZ_API = `${import.meta.env.VITE_USER_API?.replace('/user', '/quiz') || 'http://localhost:8000/api/v1/quiz'}`;
-
+  const [activeCategory, setActiveCategory] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
   useEffect(() => {
     fetchQuizzes();
   }, []);
-
-  useEffect(() => {
-    filterQuizzes();
-  }, [filter, quizzes]);
-
+  
   const fetchQuizzes = async () => {
     try {
-      const res = await axios.get(`${QUIZ_API}/all`);
+      const res = await axios.get(`${API.quiz}/all`);
       setQuizzes(res.data.quizzes || []);
     } catch (error) {
-      toast.error('Failed to fetch quizzes');
+      console.error('Failed to fetch quizzes');
     } finally {
       setLoading(false);
     }
   };
-
-  const filterQuizzes = () => {
+  
+  const categoryStats = useMemo(() => {
+    const stats = {};
+    quizzes.forEach(q => {
+      stats[q.category] = (stats[q.category] || 0) + 1;
+    });
+    return stats;
+  }, [quizzes]);
+  
+  const filteredQuizzes = useMemo(() => {
     let filtered = quizzes;
     
-    if (filter.category) {
-      filtered = filtered.filter(q => q.category === filter.category);
+    if (activeCategory !== "all") {
+      filtered = filtered.filter(q => q.category === activeCategory);
     }
     
-    if (filter.level) {
-      filtered = filtered.filter(q => q.level === filter.level);
-    }
-    
-    if (filter.search) {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
       filtered = filtered.filter(q => 
-        q.title.toLowerCase().includes(filter.search.toLowerCase()) ||
-        q.description.toLowerCase().includes(filter.search.toLowerCase()) ||
-        q.category.toLowerCase().includes(filter.search.toLowerCase())
+        q.title.toLowerCase().includes(query) ||
+        q.description.toLowerCase().includes(query) ||
+        q.category.toLowerCase().includes(query)
       );
     }
     
-    setFilteredQuizzes(filtered);
+    return filtered;
+  }, [quizzes, activeCategory, searchQuery]);
+  
+  const handleStartQuiz = (quizId) => {
+    navigate(`/quiz/${quizId}`);
   };
-
-  const getLevelColor = (level) => {
-    const colors = {
-      Beginner: 'bg-green-100 text-green-800',
-      Intermediate: 'bg-yellow-100 text-yellow-800',
-      Advanced: 'bg-red-100 text-red-800',
-    };
-    return colors[level] || 'bg-gray-100 text-gray-800';
-  };
-
+  
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4 -mt-16">
-      <div className="max-w-7xl mx-auto">
-        <motion.button
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          whileHover={{ scale: 1.05, x: -5 }}
-          onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
+    <div className="flex min-h-screen min-w-[320px]" style={{ background: C.obsidian }}>
+      <Sidebar 
+        activeCategory={activeCategory} 
+        setActiveCategory={setActiveCategory} 
+        categoryStats={categoryStats}
+        totalQuizzes={quizzes.length}
+        isOpen={sidebarOpen}
+        setIsOpen={setSidebarOpen}
+      />
+      
+      <main className="flex-1 min-w-0">
+        <header 
+          className="sticky top-0 z-30 backdrop-blur-xl border-b"
+          style={{ background: "rgba(10,10,15,0.9)", borderColor: C.goldBorder }}
         >
-          <IoMdArrowRoundBack size={24} />
-          Back
-        </motion.button>
-
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <h1 className="text-5xl font-black bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
-            Quiz Dashboard
-          </h1>
-          <p className="text-gray-600 text-lg">Test your knowledge with interactive quizzes</p>
-        </motion.div>
-
-        {/* Filters */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl shadow-xl p-6 mb-8 border-2 border-purple-100">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-purple-600" />
-            <h3 className="text-lg font-bold text-gray-800">Filter Quizzes</h3>
+          <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-3">
+            <div className="flex items-center gap-3">
+              <motion.button
+                className="lg:hidden p-2 rounded-xl"
+                style={{ background: C.surface }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu size={20} color={C.gold} />
+              </motion.button>
+              
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: C.goldDim }}>
+                <Brain size={16} color={C.gold} />
+                <span className="text-xs font-bold hidden sm:inline" style={{ color: C.gold, fontFamily: "'DM Mono', monospace" }}>QUIZ ARENA</span>
+                <Target size={16} color={C.gold} className="sm:hidden" />
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{ background: C.surface }}>
+                <Sparkles size={14} color={C.gold} />
+                <span className="text-xs" style={{ color: C.muted, fontFamily: "'DM Mono', monospace" }}>
+                  {filteredQuizzes.length} quizzes
+                </span>
+              </div>
+              <div className="h-6 w-px" style={{ background: C.goldBorder }} />
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                <span className="font-bold text-sm" style={{ color: C.obsidian }}>U</span>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+        </header>
+        
+        <div className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8">
+          <FadeIn>
+            <div className="mb-6">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", color: C.white }}>
+                Quiz <span style={{ color: C.gold }}>Arena</span>
+              </h1>
+              <p className="text-sm sm:text-base" style={{ color: C.muted, fontFamily: "'DM Sans', sans-serif" }}>
+                Test your knowledge and ace your interviews
+              </p>
+            </div>
+          </FadeIn>
+          
+          <FadeIn delay={0.05}>
+            <div className="relative max-w-md mb-6">
+              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2" color={C.muted} />
               <input
-                type="text"
+                className="w-full pl-11 pr-4 py-3 rounded-xl text-sm outline-none"
+                style={{ background: C.surface, border: `1px solid ${C.goldBorder}`, color: C.white, fontFamily: "'DM Sans', sans-serif" }}
                 placeholder="Search quizzes..."
-                value={filter.search}
-                onChange={(e) => setFilter({ ...filter, search: e.target.value })}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 outline-none transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <select
-              value={filter.category}
-              onChange={(e) => setFilter({ ...filter, category: e.target.value })}
-              className="px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 outline-none transition-all"
+          </FadeIn>
+          
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeCategory + searchQuery}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
             >
-              <option value="">All Categories</option>
-              {categories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-            </select>
-            <select
-              value={filter.level}
-              onChange={(e) => setFilter({ ...filter, level: e.target.value })}
-              className="px-4 py-3 rounded-xl border-2 border-purple-200 focus:border-purple-500 outline-none transition-all"
-            >
-              <option value="">All Levels</option>
-              <option value="Beginner">🟢 Beginner</option>
-              <option value="Intermediate">🟡 Intermediate</option>
-              <option value="Advanced">🔴 Advanced</option>
-            </select>
-          </div>
-        </motion.div>
-
-        {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
-          </div>
-        ) : filteredQuizzes.length === 0 ? (
-          <Card className="p-12 text-center shadow-xl">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">No quizzes found</p>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredQuizzes.map((quiz, idx) => (
-              <motion.div
-                key={quiz._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-                whileHover={{ y: -8, scale: 1.02 }}
-              >
-                <Card className="h-full hover:shadow-2xl transition-all duration-300 border-2 border-purple-100 overflow-hidden">
-                  {quiz.categoryImage && (
-                    <div className="h-48 bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center p-6">
-                      <img 
-                        src={quiz.categoryImage} 
-                        alt={quiz.category}
-                        className="max-w-full max-h-full object-contain"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
-                    <CardTitle className="text-xl">{quiz.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <p className="text-gray-600 mb-4 line-clamp-2 min-h-[3rem]">{quiz.description}</p>
-                    
-                    <div className="space-y-3 mb-4">
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <Clock className="w-4 h-4 text-indigo-600" />
-                        <span className="font-medium">{quiz.timeLimit} minutes</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <Award className="w-4 h-4 text-yellow-600" />
-                        <span className="font-medium">{quiz.totalMarks} marks</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-700">
-                        <BookOpen className="w-4 h-4 text-purple-600" />
-                        <span className="font-medium">{quiz.questions?.length || 0} questions</span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 mb-4 flex-wrap">
-                      <Badge className={getLevelColor(quiz.level)}>{quiz.level}</Badge>
-                      <Badge variant="outline" className="border-purple-300 text-purple-700">{quiz.category}</Badge>
-                    </div>
-
-                    <Button
-                      onClick={() => navigate(`/quiz/${quiz._id}`)}
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl transition-all"
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Start Quiz
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
+              {loading ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: `${C.gold} transparent transparent transparent` }} />
+                </div>
+              ) : filteredQuizzes.length === 0 ? (
+                <div className="text-center py-16">
+                  <Trophy size={48} color={C.dim} className="mx-auto mb-4" />
+                  <p className="text-lg mb-2" style={{ color: C.white, fontFamily: "'DM Sans', sans-serif" }}>No quizzes found</p>
+                  <p className="text-sm" style={{ color: C.muted }}>Try a different category or search term</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredQuizzes.map((quiz, i) => (
+                    <QuizCard key={quiz._id} quiz={quiz} onStart={handleStartQuiz} />
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+        
+        <div className="fixed bottom-0 left-0 right-0 z-40 lg:hidden p-4" style={{ background: "linear-gradient(to top, rgba(10,10,15,1) 60%, transparent)" }}>
+          <motion.button
+            className="w-full py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2"
+            style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.goldLight})`, color: C.obsidian, fontFamily: "'DM Sans', sans-serif" }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Zap size={18} /> Start Quiz
+          </motion.button>
+        </div>
+      </main>
     </div>
   );
-};
-
-export default QuizDashboard;
+}

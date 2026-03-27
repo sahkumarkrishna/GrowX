@@ -9,28 +9,28 @@ const API_URL = import.meta.env.VITE_KANBAN_BOARD_API;
 
 const statusConfig = {
   todo: { 
-    bg: "from-blue-500 to-cyan-500", 
+    bg: "from-[#D4A853] to-[#C8884A]", 
     icon: "📋", 
     label: "To Do",
-    cardBg: "bg-blue-50 border-blue-200"
+    cardBg: "bg-[#121218] border-[#252532]"
   },
   thisweek: { 
-    bg: "from-purple-500 to-pink-500", 
+    bg: "from-[#C8884A] to-[#E8C17A]", 
     icon: "📅", 
     label: "This Week",
-    cardBg: "bg-purple-50 border-purple-200"
+    cardBg: "bg-[#121218] border-[#252532]"
   },
   inprocess: { 
-    bg: "from-orange-500 to-yellow-500", 
+    bg: "from-[#E8C17A] to-[#D4A853]", 
     icon: "⚡", 
     label: "In Process",
-    cardBg: "bg-orange-50 border-orange-200"
+    cardBg: "bg-[#121218] border-[#252532]"
   },
   done: { 
-    bg: "from-green-500 to-emerald-500", 
+    bg: "from-[#D4A853] to-[#C8884A]", 
     icon: "✅", 
     label: "Done",
-    cardBg: "bg-green-50 border-green-200"
+    cardBg: "bg-[#121218] border-[#252532]"
   },
 };
 
@@ -73,47 +73,44 @@ export default function KanbanBoard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 px-4 py-10 -mt-16">
-      {/* Back Button */}
+    <div className="min-h-screen bg-[#0A0A0F] px-4 py-10">
       <motion.button
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         whileHover={{ scale: 1.05, x: -5 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
+        className="mb-6 flex items-center gap-2 bg-[#121218] text-[#F5F0E6] px-4 py-2 rounded-xl font-bold hover:bg-[#252532] transition-all shadow-md border border-[#252532]"
       >
         <IoMdArrowRoundBack size={24} />
         Back
       </motion.button>
 
-      {/* Header */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center mb-10"
       >
-        <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+        <h2 className="text-4xl md:text-5xl font-black text-[#F5F0E6] mb-4">
           🗂️ Kanban Task Board
         </h2>
-        <p className="text-gray-600 mb-6">Organize and track your tasks efficiently</p>
+        <p className="text-[#A8A099] mb-6">Organize and track your tasks efficiently</p>
         <div className="flex justify-center gap-3 flex-wrap">
           <button 
             onClick={() => navigate("/taskForm")}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+            className="bg-gradient-to-r from-[#D4A853] to-[#C8884A] text-[#0A0A0F] px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
           >
             ➕ Add Task
           </button>
           <button 
             onClick={() => navigate("/getTask")}
-            className="bg-white text-gray-800 px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all border border-gray-200"
+            className="bg-[#121218] text-[#F5F0E6] px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all border border-[#252532]"
           >
             📋 View All
           </button>
         </div>
       </motion.div>
 
-      {/* Kanban Columns */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {Object.keys(groupedTasks).map((status, colIndex) => (
           <motion.div
@@ -123,21 +120,19 @@ export default function KanbanBoard() {
             transition={{ delay: colIndex * 0.1 }}
             className="flex flex-col"
           >
-            {/* Column Header */}
-            <div className={`bg-gradient-to-r ${statusConfig[status].bg} text-white rounded-t-2xl p-4 shadow-lg`}>
+            <div className={`bg-gradient-to-r ${statusConfig[status].bg} text-[#0A0A0F] rounded-t-2xl p-4 shadow-lg`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">{statusConfig[status].icon}</span>
                   <h3 className="font-bold text-lg">{statusConfig[status].label}</h3>
                 </div>
-                <span className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold">
+                <span className="bg-[#0A0A0F]/20 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-bold">
                   {groupedTasks[status].length}
                 </span>
               </div>
             </div>
 
-            {/* Tasks Container */}
-            <div className="bg-white/60 backdrop-blur-sm rounded-b-2xl p-4 shadow-lg flex-1 min-h-[400px] max-h-[70vh] overflow-y-auto">
+            <div className="bg-[#121218]/60 backdrop-blur-sm rounded-b-2xl p-4 shadow-lg flex-1 min-h-[400px] max-h-[70vh] overflow-y-auto border border-t-0 border-[#252532]">
               <div className="flex flex-col gap-3">
                 {groupedTasks[status].length > 0 ? (
                   groupedTasks[status].map((task, index) => (
@@ -151,14 +146,14 @@ export default function KanbanBoard() {
                       onClick={() => navigate(`/getTask/${task._id}`)}
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h4 className="text-base font-bold text-gray-800 flex-1 pr-2">
+                        <h4 className="text-base font-bold text-[#F5F0E6] flex-1 pr-2">
                           {task.title}
                         </h4>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                      <p className="text-[#A8A099] text-sm mb-3 line-clamp-2">
                         {task.description}
                       </p>
-                      <div className="flex items-center justify-between text-xs text-gray-500">
+                      <div className="flex items-center justify-between text-xs text-[#A8A099]">
                         <span className="flex items-center gap-1">
                           📅 {task.date ? formatDate(task.date) : formatDate(task.createdAt)}
                         </span>
@@ -166,7 +161,7 @@ export default function KanbanBoard() {
                     </motion.div>
                   ))
                 ) : (
-                  <div className="text-center py-12 text-gray-400">
+                  <div className="text-center py-12 text-[#A8A099]">
                     <p className="text-4xl mb-2">📭</p>
                     <p className="text-sm">No tasks yet</p>
                   </div>

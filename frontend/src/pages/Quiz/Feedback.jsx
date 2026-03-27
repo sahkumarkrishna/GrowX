@@ -1,9 +1,44 @@
-import React from "react";
-import { HiStar, HiOutlineStar } from "react-icons/hi"; // Corrected icons
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Card } from "@/components/ui/card";
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { Star, Sparkles } from "lucide-react";
 
-// Updated images
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#0D1017",
+  surface: "#151820",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  goldBorderHover: "rgba(212,168,83,0.3)",
+  violet: "#818CF8",
+  violetDim: "rgba(129,140,248,0.1)",
+  green: "#34D399",
+  greenDim: "rgba(52,211,153,0.1)",
+  cyan: "#38BDF8",
+  amber: "#FBBF24",
+  rose: "#FB7185",
+  roseDim: "rgba(251,113,133,0.1)",
+  white: "#F5F0E6",
+  muted: "#7A7F8A",
+  dim: "#2A2E3A",
+};
+
+function FadeIn({ children, delay = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 const feedbackData = [
   {
     id: 1,
@@ -34,7 +69,7 @@ const feedbackData = [
     name: "Raghav Singh",
     gender: "Engineer",
     image: "https://randomuser.me/api/portraits/men/69.jpg",
-    feedback: "Smooth experience and very engaging quizzes. I’d recommend it to everyone!",
+    feedback: "Smooth experience and very engaging quizzes. I'd recommend it to everyone!",
     rating: 4,
   },
   {
@@ -55,41 +90,63 @@ const feedbackData = [
   },
 ];
 
-
 const FeedbackSection = () => {
   return (
-    <section className="py-20 ">
-      <div className="max-w-6xl mx-auto px-4">
-        <h2 className="text-4xl font-extrabold text-center text-gray-900 mb-14">
-          🌟 What Our Users Say
-        </h2>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {feedbackData.map((fb) => (
-            <Card
-              key={fb.id}
-              className="bg-gradient-to-tr from-white via-indigo-50 to-purple-50 rounded-2xl shadow-md hover:shadow-xl transition transform hover:scale-[1.02] p-6 flex flex-col justify-between"
+    <section className="py-20 lg:py-32 px-4" style={{ background: C.charcoal }}>
+      <div className="max-w-7xl mx-auto">
+        <FadeIn>
+          <div className="text-center mb-16">
+            <motion.div
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+              style={{ background: C.goldDim, border: `1px solid ${C.goldBorder}` }}
             >
-              <div className="flex items-center gap-4 mb-4">
-                <Avatar className="w-16 h-16 border-2 border-indigo-400 shadow-md">
-                  <AvatarImage src={fb.image} alt={fb.name} className="object-cover" />
-                  <AvatarFallback>{fb.name[0]}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h4 className="text-lg font-semibold text-indigo-700">{fb.name}</h4>
-                  <p className="text-sm text-gray-500">{fb.gender}</p>
+              <Sparkles size={14} color={C.gold} />
+              <span className="text-xs font-bold" style={{ color: C.gold, fontFamily: "'DM Mono', monospace" }}>TESTIMONIALS</span>
+            </motion.div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4" style={{ fontFamily: "'Playfair Display', serif", color: C.white }}>
+              What Our <span style={{ color: C.gold }}>Users Say</span>
+            </h2>
+          </div>
+        </FadeIn>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {feedbackData.map((fb, idx) => (
+            <FadeIn key={fb.id} delay={idx * 0.08}>
+              <motion.div
+                className="p-6 rounded-2xl cursor-pointer"
+                style={{ background: C.surface, border: `1px solid ${C.goldBorder}` }}
+                whileHover={{ y: -6, borderColor: C.goldBorderHover, boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
+              >
+                <div className="flex items-center gap-4 mb-4">
+                  <motion.img
+                    src={fb.image}
+                    alt={fb.name}
+                    className="w-12 h-12 rounded-full object-cover"
+                    style={{ border: `2px solid ${C.gold}` }}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                  />
+                  <div>
+                    <h4 className="font-semibold" style={{ color: C.white, fontFamily: "'DM Sans', sans-serif" }}>{fb.name}</h4>
+                    <p className="text-xs" style={{ color: C.muted }}>{fb.gender}</p>
+                  </div>
                 </div>
-              </div>
-              <p className="text-gray-700 mb-4 italic">“{fb.feedback}”</p>
-              <div className="flex space-x-1">
-                {Array.from({ length: fb.rating }, (_, i) => (
-                  <HiStar key={i} className="w-5 h-5 text-yellow-400" />
-                ))}
-                {Array.from({ length: 5 - fb.rating }, (_, i) => (
-                  <HiOutlineStar key={i} className="w-5 h-5 text-gray-300" />
-                ))}
-              </div>
-            </Card>
+                
+                <p className="text-sm mb-4 italic" style={{ color: C.muted, fontFamily: "'DM Sans', sans-serif", lineHeight: 1.7 }}>
+                  "{fb.feedback}"
+                </p>
+                
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      color={C.gold}
+                      fill={i < fb.rating ? C.gold : "transparent"}
+                    />
+                  ))}
+                </div>
+              </motion.div>
+            </FadeIn>
           ))}
         </div>
       </div>

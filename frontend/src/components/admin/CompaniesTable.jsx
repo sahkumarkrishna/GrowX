@@ -1,37 +1,66 @@
-import React, { useEffect, useState } from 'react'
-import { Avatar, AvatarImage } from '../ui/avatar'
-import { Edit2, Trash2, Building2, Calendar, MapPin, Globe, AlertTriangle } from 'lucide-react'
-import { useSelector, useDispatch } from 'react-redux'
+import React, { useEffect, useState, useRef } from 'react'
+import { Edit2, Trash2, Building2, Calendar, AlertTriangle, Search, Plus, X, Loader2, Check, Upload, Image } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../ui/button'
-import { removeCompany } from '@/redux/companySlice'
+import { Input } from '../ui/input'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { API } from '@/config/api'
 
-const COMPANY_API = import.meta.env.VITE_COMPANY_API
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#121218",
+  surface: "#1A1A24",
+  surfaceLight: "#252532",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  accent: "#C8884A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  ivory: "#F5F0E6",
+  muted: "#A8A099",
+  danger: "#ef4444",
+  success: "#10b981",
+};
 
 const CompaniesTable = () => {
-  const { companies, searchCompanyByText } = useSelector(store => store.company)
-  const [filterCompany, setFilterCompany] = useState(companies)
+  const [companies, setCompanies] = useState([])
+  const [search, setSearch] = useState('')
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [editingCompany, setEditingCompany] = useState(null)
+  const [editForm, setEditForm] = useState({ name: '', logo: '' })
+  const [editLoading, setEditLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [logoPreview, setLogoPreview] = useState(null)
+  const fileInputRef = useRef(null)
   const navigate = useNavigate()
-  const dispatch = useDispatch()
 
   useEffect(() => {
-    const filtered = companies?.filter(c =>
-      !searchCompanyByText || c?.name?.toLowerCase().includes(searchCompanyByText.toLowerCase())
-    )
-    setFilterCompany(filtered)
-  }, [companies, searchCompanyByText])
+    fetchCompanies()
+  }, [])
+
+  const fetchCompanies = async () => {
+    try {
+      const res = await axios.get(`${API.company}/getall`, { withCredentials: true })
+      setCompanies(res.data.companies || [])
+    } catch (err) {
+      console.error('Failed to fetch companies:', err)
+      toast.error('Failed to load companies')
+    }
+  }
+
+  const filteredCompanies = companies.filter(c =>
+    c.name?.toLowerCase().includes(search.toLowerCase())
+  )
 
   const handleDelete = async () => {
     if (!deleteTarget) return
     try {
       setDeleting(true)
-      await axios.delete(`${COMPANY_API}/delete/${deleteTarget._id}`, { withCredentials: true })
-      dispatch(removeCompany(deleteTarget._id))
+      await axios.delete(`${API.company}/delete/${deleteTarget._id}`, { withCredentials: true })
+      setCompanies(prev => prev.filter(c => c._id !== deleteTarget._id))
       toast.success(`"${deleteTarget.name}" deleted successfully`)
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to delete company')
@@ -41,159 +70,399 @@ const CompaniesTable = () => {
     }
   }
 
-  if (!filterCompany || filterCompany.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 px-4">
-        <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center mb-5 shadow-lg">
-          <Building2 className="h-12 w-12 text-purple-500" />
-        </div>
-        <h3 className="text-2xl font-black text-gray-700 mb-2">No Companies Found</h3>
-        <p className="text-gray-400 text-center max-w-sm">
-          {searchCompanyByText ? 'Try adjusting your search term' : 'Get started by creating your first company'}
-        </p>
-      </div>
-    )
+  const openEditModal = (company) => {
+    setEditingCompany(company)
+    setEditForm({ name: company.name || '', logo: company.logo || '' })
+    setLogoPreview(company.logo || null)
+  }
+
+  const closeEditModal = () => {
+    setEditingCompany(null)
+    setEditForm({ name: '', logo: '' })
+    setLogoPreview(null)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file')
+      return
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB')
+      return
+    }
+
+    setUploading(true)
+
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+
+    reader.onload = () => {
+      setLogoPreview(reader.result)
+      setEditForm(prev => ({ ...prev, logo: reader.result }))
+      toast.success('Logo added successfully')
+      setUploading(false)
+    }
+
+    reader.onerror = () => {
+      toast.error('Failed to read file')
+      setUploading(false)
+    }
+  }
+
+  const removeLogo = () => {
+    setLogoPreview(null)
+    setEditForm(prev => ({ ...prev, logo: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleEditSubmit = async () => {
+    if (!editForm.name.trim()) {
+      return toast.error('Company name is required')
+    }
+
+    try {
+      setEditLoading(true)
+      const res = await axios.put(
+        `${API.company}/update/${editingCompany._id}`,
+        { companyName: editForm.name.trim(), logo: editForm.logo || undefined },
+        { headers: { 'Content-Type': 'application/json' }, withCredentials: true }
+      )
+
+      if (res.data.success) {
+        setCompanies(prev => prev.map(c =>
+          c._id === editingCompany._id
+            ? { ...c, name: editForm.name.trim(), logo: editForm.logo }
+            : c
+        ))
+        toast.success('Company updated successfully')
+        closeEditModal()
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to update company')
+    } finally {
+      setEditLoading(false)
+    }
   }
 
   return (
     <>
-      {/* ── Company Cards ── */}
+      {/* Header */}
       <div className="p-6">
-        {/* Table Header */}
-        <div className="hidden sm:grid grid-cols-12 gap-4 px-4 py-3 mb-2 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100">
-          <div className="col-span-1 text-xs font-bold text-gray-500 uppercase tracking-wide">Logo</div>
-          <div className="col-span-4 text-xs font-bold text-gray-500 uppercase tracking-wide">Company</div>
-          <div className="col-span-3 text-xs font-bold text-gray-500 uppercase tracking-wide">Location</div>
-          <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wide">Registered</div>
-          <div className="col-span-2 text-xs font-bold text-gray-500 uppercase tracking-wide text-right">Actions</div>
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-black" style={{ color: C.ivory }}>
+              {filteredCompanies.length} Companies
+            </h2>
+            <p className="text-sm" style={{ color: C.muted }}>Manage your registered companies</p>
+          </div>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: C.muted }} />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search companies..."
+                className="h-12 pl-12 pr-4 rounded-2xl border-2 w-64 outline-none transition-all"
+                style={{ background: C.obsidian, borderColor: C.goldBorder, color: C.ivory }}
+              />
+            </div>
+            <button
+              onClick={() => navigate('/admin/companies/create')}
+              className="h-12 px-6 rounded-2xl font-bold flex items-center gap-2 shadow-lg transition-all hover:scale-105"
+              style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.accent})`, color: C.obsidian }}
+            >
+              <Plus className="w-5 h-5" />
+              Add
+            </button>
+          </div>
         </div>
 
-        {/* Rows */}
-        <div className="space-y-3">
-          <AnimatePresence>
-            {filterCompany.map((company, index) => (
-              <motion.div key={company._id}
-                initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, x: -20, scale: 0.95 }}
-                transition={{ delay: index * 0.04 }}
-                className="group grid grid-cols-2 sm:grid-cols-12 gap-4 items-center px-4 py-4 rounded-2xl border border-gray-100 bg-white hover:border-indigo-200 hover:shadow-lg transition-all duration-300">
-
-                {/* Logo */}
-                <div className="col-span-1">
-                  {company.logo ? (
-                    <img src={company.logo} alt={company.name}
-                      className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-md group-hover:scale-110 transition-transform" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                      <Building2 className="w-6 h-6 text-white" />
+        {/* Companies Grid */}
+        {filteredCompanies.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <AnimatePresence>
+              {filteredCompanies.map((company, index) => (
+                <motion.div
+                  key={company._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="group rounded-2xl p-5 border-2 transition-all duration-300 hover:scale-[1.02]"
+                  style={{ background: C.surface, borderColor: C.goldBorder }}
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Logo */}
+                    <div className="relative">
+                      {company.logo ? (
+                        <img
+                          src={company.logo}
+                          alt={company.name}
+                          className="w-16 h-16 rounded-2xl object-cover shadow-lg"
+                        />
+                      ) : (
+                        <div
+                          className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
+                          style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.accent})` }}
+                        >
+                          <span className="text-white font-black text-2xl">
+                            {company.name?.charAt(0)?.toUpperCase() || 'C'}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
 
-                {/* Name + Website */}
-                <div className="col-span-1 sm:col-span-4 min-w-0">
-                  <p className="font-bold text-gray-900 truncate group-hover:text-indigo-600 transition-colors">{company.name}</p>
-                  {company.website && (
-                    <a href={company.website} target="_blank" rel="noreferrer"
-                      className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-700 mt-0.5 truncate"
-                      onClick={e => e.stopPropagation()}>
-                      <Globe className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{company.website.replace(/^https?:\/\//, '')}</span>
-                    </a>
-                  )}
-                </div>
-
-                {/* Location */}
-                <div className="col-span-1 sm:col-span-3 hidden sm:flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-500" />
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-lg truncate" style={{ color: C.ivory }}>
+                        {company.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${C.gold}15` }}>
+                          <Calendar className="w-3 h-3" style={{ color: C.gold }} />
+                        </div>
+                        <span className="text-xs" style={{ color: C.muted }}>
+                          {company.createdAt ? new Date(company.createdAt).toLocaleDateString('en-US', {
+                            month: 'short', day: 'numeric', year: 'numeric'
+                          }) : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <span className="text-sm text-gray-600 truncate">{company.location || '—'}</span>
-                </div>
 
-                {/* Date */}
-                <div className="col-span-1 sm:col-span-2 hidden sm:flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-                    <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                  {/* Actions */}
+                  <div className="flex gap-2 mt-4 pt-4 border-t" style={{ borderColor: C.goldBorder }}>
+                    <button
+                      onClick={() => openEditModal(company)}
+                      className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl font-semibold text-sm transition-all hover:scale-105"
+                      style={{ background: `${C.gold}15`, color: C.gold, border: `1px solid ${C.goldBorder}` }}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(company)}
+                      className="flex items-center justify-center gap-2 h-10 px-4 rounded-xl font-semibold text-sm transition-all hover:scale-105"
+                      style={{ background: 'rgba(239,68,68,0.1)', color: C.danger, border: '1px solid rgba(239,68,68,0.3)' }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <span className="text-xs text-gray-500 font-medium">
-                    {company.createdAt ? new Date(company.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric', month: 'short', day: 'numeric'
-                    }) : 'N/A'}
-                  </span>
-                </div>
-
-                {/* Actions */}
-                <div className="col-span-2 sm:col-span-2 flex items-center justify-end gap-2">
-                  <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate(`/admin/companies/${company._id}`)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-semibold text-xs transition-all border border-indigo-100 hover:border-indigo-300 shadow-sm">
-                    <Edit2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Edit</span>
-                  </motion.button>
-                  <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}
-                    onClick={() => setDeleteTarget(company)}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 font-semibold text-xs transition-all border border-red-100 hover:border-red-300 shadow-sm">
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Delete</span>
-                  </motion.button>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-
-        {/* Footer count */}
-        <div className="mt-5 pt-4 border-t border-gray-100 flex items-center justify-between">
-          <p className="text-sm text-gray-400 font-medium">
-            Showing <span className="font-bold text-gray-600">{filterCompany.length}</span> of{' '}
-            <span className="font-bold text-gray-600">{companies?.length}</span> companies
-          </p>
-        </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div
+              className="w-24 h-24 rounded-3xl flex items-center justify-center mb-5"
+              style={{ background: `${C.gold}15` }}
+            >
+              <Building2 className="h-12 w-12" style={{ color: C.gold }} />
+            </div>
+            <h3 className="text-2xl font-black mb-2" style={{ color: C.ivory }}>No Companies Found</h3>
+            <p className="text-center max-w-sm mb-4" style={{ color: C.muted }}>
+              {search ? 'Try adjusting your search term' : 'Get started by creating your first company'}
+            </p>
+            {!search && (
+              <button
+                onClick={() => navigate('/admin/companies/create')}
+                className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold shadow-lg transition-all hover:scale-105"
+                style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.accent})`, color: C.obsidian }}
+              >
+                <Plus className="w-5 h-5" />
+                Create Company
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── Delete Confirmation Modal ── */}
+      {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deleteTarget && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4"
-            onClick={() => setDeleteTarget(null)}>
-            <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.85, opacity: 0 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-              className="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full border border-gray-100"
-              onClick={e => e.stopPropagation()}>
-
-              {/* Icon */}
-              <div className="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-red-100 to-rose-100 flex items-center justify-center shadow-lg">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+            onClick={() => setDeleteTarget(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              className="rounded-3xl shadow-2xl p-8 max-w-md w-full"
+              style={{ background: C.charcoal, border: `1px solid ${C.goldBorder}` }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div
+                className="w-16 h-16 mx-auto mb-5 rounded-2xl flex items-center justify-center"
+                style={{ background: 'rgba(239,68,68,0.1)' }}
+              >
                 <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
 
-              <h3 className="text-xl font-black text-gray-800 text-center mb-2">Delete Company?</h3>
-              <p className="text-gray-500 text-center text-sm mb-6">
+              <h3 className="text-xl font-black text-center mb-2" style={{ color: C.ivory }}>Delete Company?</h3>
+              <p className="text-center mb-6" style={{ color: C.muted }}>
                 Are you sure you want to delete{' '}
-                <span className="font-bold text-gray-800">"{deleteTarget.name}"</span>?
+                <span className="font-bold" style={{ color: C.ivory }}>"{deleteTarget.name}"</span>?
                 This action cannot be undone.
               </p>
 
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => setDeleteTarget(null)}
-                  className="flex-1 h-11 rounded-2xl border-2 border-gray-200 font-semibold hover:border-gray-300">
+                <button
+                  onClick={() => setDeleteTarget(null)}
+                  className="flex-1 h-12 rounded-2xl border-2 font-bold transition-all"
+                  style={{ borderColor: C.goldBorder, color: C.muted }}
+                >
                   Cancel
-                </Button>
-                <Button onClick={handleDelete} disabled={deleting}
-                  className="flex-1 h-11 rounded-2xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 font-bold shadow-lg text-white">
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={deleting}
+                  className="flex-1 h-12 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: 'white', opacity: deleting ? 0.5 : 1 }}
+                >
                   {deleting ? (
-                    <span className="flex items-center gap-2">
-                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-                      </svg>
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
                       Deleting...
-                    </span>
+                    </>
                   ) : (
-                    <span className="flex items-center gap-2"><Trash2 className="w-4 h-4" /> Delete</span>
+                    <>
+                      <Trash2 className="w-5 h-5" />
+                      Delete
+                    </>
                   )}
-                </Button>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Edit Modal */}
+      <AnimatePresence>
+        {editingCompany && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4"
+            onClick={closeEditModal}
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              className="rounded-3xl shadow-2xl p-8 max-w-lg w-full"
+              style={{ background: C.charcoal, border: `1px solid ${C.goldBorder}` }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-black" style={{ color: C.ivory }}>Edit Company</h3>
+                <button
+                  onClick={closeEditModal}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+                  style={{ background: C.surface }}
+                >
+                  <X className="w-5 h-5" style={{ color: C.muted }} />
+                </button>
+              </div>
+
+              {/* Logo Upload */}
+              <div className="mb-6">
+                <label className="block text-sm font-bold mb-3" style={{ color: C.ivory }}>
+                  Company Logo
+                </label>
+                <div
+                  className="relative rounded-2xl border-2 border-dashed p-6 flex flex-col items-center cursor-pointer transition-all"
+                  style={{ borderColor: C.goldBorder }}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {logoPreview ? (
+                    <div className="relative">
+                      <img src={logoPreview} alt="Preview" className="w-24 h-24 rounded-2xl object-cover" />
+                      <button
+                        onClick={(e) => { e.stopPropagation(); removeLogo(); }}
+                        className="absolute -top-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
+                      >
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                      {uploading && (
+                        <div className="absolute inset-0 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)' }}>
+                          <Loader2 className="w-8 h-8 animate-spin" style={{ color: C.gold }} />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3" style={{ background: `${C.gold}15` }}>
+                        <Upload className="w-8 h-8" style={{ color: C.gold }} />
+                      </div>
+                      <p className="text-sm font-semibold" style={{ color: C.ivory }}>Click to upload logo</p>
+                      <p className="text-xs" style={{ color: C.muted }}>PNG, JPG, WEBP (max 5MB)</p>
+                    </>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+
+              {/* Company Name */}
+              <div className="mb-6">
+                <label className="block text-sm font-bold mb-3" style={{ color: C.ivory }}>
+                  Company Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter company name"
+                  className="h-12 rounded-xl border-2"
+                  style={{ background: C.obsidian, borderColor: C.goldBorder, color: C.ivory }}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <button
+                  onClick={closeEditModal}
+                  className="flex-1 h-12 rounded-2xl border-2 font-bold transition-all"
+                  style={{ borderColor: C.goldBorder, color: C.muted }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleEditSubmit}
+                  disabled={editLoading}
+                  className="flex-1 h-12 rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2"
+                  style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.accent})`, color: C.obsidian, opacity: editLoading ? 0.5 : 1 }}
+                >
+                  {editLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-5 h-5" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
           </motion.div>

@@ -10,8 +10,7 @@ import {
   Loader2, ArrowLeft, ArrowRight,
   Sparkles, CheckCircle2,
 } from 'lucide-react';
-
-const USER_API = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
+import { API } from '@/config/api';
 
 // Password strength
 const getStrength = (p) => {
@@ -78,7 +77,7 @@ export default function ForgotPassword() {
     try {
       setLoading(true);
       setOtpSent(true);
-      const res = await axios.post(`${USER_API}/forgot-password`, { email });
+      const res = await axios.post(`${API.user}/forgot-password`, { email });
       if (res.data.success) {
         toast.success('OTP sent! Check your inbox.');
         setStep(2);
@@ -110,7 +109,7 @@ export default function ForgotPassword() {
     if (resendCountdown > 0) return; // still in cooldown
     try {
       setLoading(true);
-      const res = await axios.post(`${USER_API}/forgot-password`, { email });
+      const res = await axios.post(`${API.user}/forgot-password`, { email });
       if (res.data.success) {
         setOtp(['', '', '', '', '', '']);
         startCountdown(120);
@@ -147,11 +146,6 @@ export default function ForgotPassword() {
   };
 
   const handleOtpPaste = (e) => {
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (pasted.length === 6) {
-      setOtp(pasted.split(''));
-      otpRefs.current[5]?.focus();
-    }
     e.preventDefault();
   };
 
@@ -162,7 +156,7 @@ export default function ForgotPassword() {
     if (otpStr.length < 6) { toast.error('Enter all 6 digits.'); return; }
     try {
       setLoading(true);
-      const res = await axios.post(`${USER_API}/verify-otp`, { email, otp: otpStr });
+      const res = await axios.post(`${API.user}/verify-otp`, { email, otp: otpStr });
       if (res.data.success) {
         toast.success('OTP verified!');
         setStep(3);
@@ -185,7 +179,7 @@ export default function ForgotPassword() {
     if (password !== confirm)  { toast.error('Passwords do not match.'); return; }
     try {
       setLoading(true);
-      const res = await axios.post(`${USER_API}/reset-password`, { email, password });
+      const res = await axios.post(`${API.user}/reset-password`, { email, password });
       if (res.data.success) {
         toast.success(res.data.message);
         setStep(4);

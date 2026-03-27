@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Brain, LogOut, Home, BarChart2, ChevronRight,
-  Edit3, FileText, GraduationCap, ScanLine,
-  UserCircle, Sparkles, TrendingUp, Briefcase,
+  LogOut, Home, ChevronRight,
+  Edit3, FileText, GraduationCap,
+  UserCircle, Sparkles, Briefcase,
+  Video, BookOpen, Settings, Bell, HelpCircle,
+  Brain, ScanLine, Zap,
+  ListChecks, FolderKanban, Bookmark
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,41 +14,46 @@ import { setUser } from '@/redux/authSlice';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { API } from '@/config/api';
 
 // ── Nav groups config (outside component — never recreated) ───────────────────
 const menuGroups = [
   {
     label: 'Overview',
     items: [
-      { icon: Home,          label: 'Home',       path: '/',                          color: '#60a5fa', glow: 'rgba(96,165,250,0.35)'   },
-      { icon: BarChart2,     label: 'Dashboard',  path: '/user/dashboard',            color: '#a78bfa', glow: 'rgba(167,139,250,0.35)'  },
+      { icon: Home,          label: 'Home',         path: '/',                          color: '#60a5fa', glow: 'rgba(96,165,250,0.35)'   },
+      { icon: Sparkles,     label: 'Dashboard',    path: '/user/dashboard',            color: '#a78bfa', glow: 'rgba(167,139,250,0.35)'  },
     ],
   },
   {
     label: 'Career',
     items: [
-      { icon: Briefcase,     label: 'Jobs',        path: '/user/jobs',                color: '#2dd4bf', glow: 'rgba(45,212,191,0.35)'   },
-      { icon: Brain,         label: 'Quiz',        path: '/user/quiz',                color: '#34d399', glow: 'rgba(52,211,153,0.35)'   },
-      { icon: FileText,      label: 'Resume',      path: '/user/resume',              color: '#67e8f9', glow: 'rgba(103,232,249,0.35)'  },
-      { icon: GraduationCap, label: 'Internship',  path: '/user/internship',          color: '#f59e0b', glow: 'rgba(245,158,11,0.35)'   },
-      { icon: ScanLine,      label: 'ATS Checker', path: '/user/ats',                 color: '#818cf8', glow: 'rgba(129,140,248,0.35)'  },
+      { icon: Briefcase,     label: 'Jobs',          path: '/user/jobs',                color: '#2dd4bf', glow: 'rgba(45,212,191,0.35)'   },
+      { icon: Bookmark,      label: 'Saved Jobs',    path: '/user/saved-jobs',          color: '#fbbf24', glow: 'rgba(251,191,36,0.35)'  },
+      { icon: Brain,        label: 'Quizzes',        path: '/user/quiz',                color: '#34d399', glow: 'rgba(52,211,153,0.35)'   },
+      { icon: FileText,     label: 'Resume',        path: '/user/resume',              color: '#67e8f9', glow: 'rgba(103,232,249,0.35)'  },
+      { icon: GraduationCap,label: 'Internships',   path: '/user/internship',          color: '#f59e0b', glow: 'rgba(245,158,11,0.35)'   },
+      { icon: ScanLine,     label: 'ATS Checker',   path: '/user/ats',                 color: '#818cf8', glow: 'rgba(129,140,248,0.35)'  },
     ],
   },
   {
-    label: 'Analytics',
+    label: 'Learning',
     items: [
-      { icon: TrendingUp,    label: 'Overview',    path: '/user/analytics/dashboard',  color: '#38bdf8', glow: 'rgba(56,189,248,0.35)'  },
-      { icon: Briefcase,     label: 'Jobs',        path: '/user/analytics/jobs',       color: '#2dd4bf', glow: 'rgba(45,212,191,0.35)'  },
-      { icon: GraduationCap, label: 'Internship',  path: '/user/analytics/internship', color: '#4ade80', glow: 'rgba(74,222,128,0.35)'  },
-      { icon: ScanLine,      label: 'ATS',         path: '/user/analytics/ats',        color: '#818cf8', glow: 'rgba(129,140,248,0.35)' },
-      { icon: Brain,         label: 'Quiz',        path: '/user/analytics/quiz',       color: '#a78bfa', glow: 'rgba(167,139,250,0.35)' },
-      { icon: FileText,      label: 'Resume',      path: '/user/analytics/resume',     color: '#67e8f9', glow: 'rgba(103,232,249,0.35)' },
+      { icon: BookOpen,     label: 'Courses',        path: '/user/learning',           color: '#f97316', glow: 'rgba(249,115,22,0.35)'   },
+      { icon: ListChecks,   label: 'Quiz Results',   path: '/user/quiz',               color: '#8b5cf6', glow: 'rgba(139,92,246,0.35)'  },
+    ],
+  },
+  {
+    label: 'Tools',
+    items: [
+      { icon: FolderKanban,label: 'Kanban Board',   path: '/user/kanban',              color: '#14b8a6', glow: 'rgba(20,184,166,0.35)'  },
     ],
   },
   {
     label: 'Account',
     items: [
-      { icon: UserCircle,    label: 'Profile',     path: '/user/profile',              color: '#f472b6', glow: 'rgba(244,114,182,0.35)' },
+      { icon: UserCircle,   label: 'Profile',       path: '/user/profile',            color: '#f472b6', glow: 'rgba(244,114,182,0.35)' },
+      { icon: Edit3,       label: 'Edit Profile',  path: '/user/profile/edit',      color: '#a78bfa', glow: 'rgba(167,139,250,0.35)' },
     ],
   },
 ];
@@ -119,12 +127,10 @@ function NavItem({ item, collapsed, isActive, onNavigate }) {
 // ── Main component ─────────────────────────────────────────────────────────────
 const UserSidebar = ({ mobileOpen, setMobileOpen }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const dispatch  = useDispatch();
-  const { user }  = useSelector(s => s.auth);
-
-  const USER_API = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const { user } = useSelector(s => s.auth);
 
   const checkActive = (path) => {
     const p = location.pathname;
@@ -134,7 +140,7 @@ const UserSidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const handleLogout = async () => {
     try {
-      const res = await axios.get(`${USER_API}/logout`, { withCredentials: true });
+      const res = await axios.get(`${API.user}/logout`, { withCredentials: true });
       if (res.data.success) {
         dispatch(setUser(null));
         navigate('/');

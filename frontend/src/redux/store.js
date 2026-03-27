@@ -1,8 +1,5 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import authReducer from "./authSlice";
-import jobReducer from "./jobSlice";
-import companyReducer from "./companySlice";
-import applicationReducer from "./applicationSlice";
 
 import {
   persistStore,
@@ -17,18 +14,14 @@ import {
 
 import storage from "redux-persist/lib/storage";
 
-// ✅ ONLY persist user
 const authPersistConfig = {
   key: "auth",
   storage,
-  whitelist: ["user"], // 🔥 IMPORTANT
+  whitelist: ["user"],
 };
 
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
-  job: jobReducer,
-  company: companyReducer,
-  application: applicationReducer,
 });
 
 const store = configureStore({

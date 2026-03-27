@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Menu, Bell } from 'lucide-react';
 import UserSidebar from './UserSidebar';
+import AIChatAssistant from '../shared/AIChatAssistant';
 
 export default function UserLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -41,6 +42,8 @@ export default function UserLayout() {
           <Outlet />
         </main>
       </div>
+
+      <AIChatAssistant />
     </div>
   );
 }

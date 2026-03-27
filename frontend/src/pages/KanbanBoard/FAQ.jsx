@@ -43,7 +43,7 @@ const FAQs = () => {
   };
 
   return (
-    <div className="py-20 px-4 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    <div className="py-20 px-4 bg-[#0A0A0F]">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -52,13 +52,10 @@ const FAQs = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <div className="inline-block px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full text-indigo-700 font-semibold text-sm mb-4">
-            FAQ
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
+          <h2 className="text-4xl md:text-5xl font-black text-[#F5F0E6] mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-gray-600 text-lg">Everything you need to know</p>
+          <p className="text-[#A8A099] text-lg">Everything you need to know</p>
         </motion.div>
 
         <div className="space-y-4">
@@ -69,13 +66,13 @@ const FAQs = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
-              className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all border border-gray-100 overflow-hidden"
+              className="bg-[#121218] rounded-2xl shadow-md hover:shadow-lg transition-all border border-[#252532] overflow-hidden hover:border-[#D4A853]/50"
             >
               <div
                 className="flex justify-between items-center cursor-pointer p-6"
                 onClick={() => toggleAnswer(index)}
               >
-                <h3 className="text-lg font-bold text-gray-800 pr-4">
+                <h3 className="text-lg font-bold text-[#F5F0E6] pr-4">
                   {faq.question}
                 </h3>
                 <motion.div
@@ -83,7 +80,7 @@ const FAQs = () => {
                   transition={{ duration: 0.3 }}
                   className="flex-shrink-0"
                 >
-                  <ChevronDown className="text-indigo-600" size={24} />
+                  <ChevronDown className="text-[#D4A853]" size={24} />
                 </motion.div>
               </div>
 
@@ -96,8 +93,8 @@ const FAQs = () => {
                     transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="overflow-hidden"
                   >
-                    <div className="px-6 pb-6">
-                      <p className="text-gray-600 leading-relaxed">
+                    <div className="px-6 pb-6 border-t border-[#252532]">
+                      <p className="text-[#A8A099] leading-relaxed">
                         {faq.answer}
                       </p>
                     </div>

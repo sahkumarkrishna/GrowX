@@ -9,24 +9,24 @@ export default function Feedback() {
   ];
 
   return (
-    <section className="py-20 px-4 bg-gradient-to-br from-amber-50 to-orange-50">
+    <section className="py-20 px-4 bg-[#0A0A0F]">
       <div className="max-w-7xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Success <span className="text-amber-600">Stories</span></h2>
-          <p className="text-xl text-gray-600">Hear from job seekers who optimized their resumes</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#F5F0E6]">Success <span className="text-[#D4A853]">Stories</span></h2>
+          <p className="text-xl text-[#A8A099]">Hear from job seekers who optimized their resumes</p>
         </motion.div>
 
         <div className="grid md:grid-cols-3 gap-8">
           {testimonials.map((t, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className="bg-white p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all">
-              <Quote className="text-amber-600 mb-4" size={32} />
-              <div className="flex gap-1 mb-4">{[...Array(t.rating)].map((_, i) => <Star key={i} className="text-yellow-400 fill-yellow-400" size={20} />)}</div>
-              <p className="text-gray-700 mb-6 leading-relaxed">{t.text}</p>
+            <motion.div key={idx} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.1 }} className="bg-[#121218] p-8 rounded-3xl shadow-lg hover:shadow-2xl transition-all border border-[#252532] hover:border-[#D4A853]/50">
+              <Quote className="text-[#D4A853] mb-4" size={32} />
+              <div className="flex gap-1 mb-4">{[...Array(t.rating)].map((_, i) => <Star key={i} className="text-[#D4A853] fill-[#D4A853]" size={20} />)}</div>
+              <p className="text-[#A8A099] mb-6 leading-relaxed">{t.text}</p>
               <div className="flex items-center gap-4">
-                <img src={t.img} alt={t.name} className="w-14 h-14 rounded-full" />
+                <img src={t.img} alt={t.name} className="w-14 h-14 rounded-full border-2 border-[#D4A853]/50" />
                 <div>
-                  <div className="font-bold text-gray-900">{t.name}</div>
-                  <div className="text-sm text-gray-600">{t.role} at {t.company}</div>
+                  <div className="font-bold text-[#F5F0E6]">{t.name}</div>
+                  <div className="text-sm text-[#A8A099]">{t.role} at {t.company}</div>
                 </div>
               </div>
             </motion.div>

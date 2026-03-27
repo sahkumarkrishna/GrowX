@@ -59,7 +59,8 @@ export const getAppliedJobs = async (req, res) => {
         path: "job",
         options: { sort: { createdAt: -1 } },
         populate: { path: "company", options: { sort: { createdAt: -1 } } },
-      });
+      })
+      .populate("applicant", "fullname email");
 
     if (!application) return res.status(404).json({ message: "No Applications", success: false });
     return res.status(200).json({ application, success: true });
@@ -135,6 +136,24 @@ export const updateStatus = async (req, res) => {
     }
 
     return res.status(200).json({ message: "Status updated successfully.", success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Server error", success: false });
+  }
+};
+
+export const deleteApplication = async (req, res) => {
+  try {
+    const applicationId = req.params.id;
+    const application = await Application.findByIdAndDelete(applicationId);
+
+    if (!application) return res.status(404).json({ message: "Application not found.", success: false });
+
+    await Job.findByIdAndUpdate(application.job, {
+      $pull: { applications: applicationId }
+    });
+
+    return res.status(200).json({ message: "Application deleted successfully.", success: true });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Server error", success: false });

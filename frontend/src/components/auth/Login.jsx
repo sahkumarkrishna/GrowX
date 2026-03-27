@@ -18,9 +18,30 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { API } from "@/config/api";
 
-const USER_API =
-  import.meta.env.VITE_USER_API || "http://localhost:8000/api/v1/user";
+const getFirebaseAuth = async () => {
+  const { getAuth, signInWithPopup, GoogleAuthProvider } = await import("firebase/auth");
+  const { initializeApp, getApps } = await import("firebase/app");
+  
+  const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  };
+
+  try {
+    const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+    const auth = getAuth(app);
+    return { auth, signInWithPopup, GoogleAuthProvider };
+  } catch (err) {
+    console.error("Firebase init error:", err);
+    return null;
+  }
+};
 
 const Login = () => {
   const [input, setInput] = useState({
@@ -32,6 +53,7 @@ const Login = () => {
   const [unverifiedEmail, setUnverifiedEmail] = useState(null);
   const [resendLoading, setResendLoading] = useState(false);
   const [resentOk, setResentOk] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const { loading, user } = useSelector((s) => s.auth);
   const navigate = useNavigate();
@@ -39,12 +61,42 @@ const Login = () => {
   const location = useLocation();
   const from = location.state?.from?.pathname || "/";
 
-  // Mobile/live site par stuck loading ko reset karo
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleLoading(true);
+      const firebase = await getFirebaseAuth();
+      if (!firebase) {
+        toast.error("Google sign-in is not configured");
+        setGoogleLoading(false);
+        return;
+      }
+      const { auth, signInWithPopup, GoogleAuthProvider } = firebase;
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const credential = await result.user.getIdToken();
+      const res = await axios.post(
+        `${API.user}/google`,
+        { credential, role: input.role },
+        { withCredentials: true }
+      );
+      if (res.data.success) {
+        dispatch(setUser(res.data.user));
+        toast.success(res.data.message || "Login successful");
+      } else {
+        toast.error(res.data.message || "Google login failed");
+      }
+    } catch (err) {
+      console.error("Google sign in error:", err);
+      toast.error(err?.message || "Google login failed");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   useEffect(() => {
     dispatch(setLoading(false));
   }, [dispatch]);
 
-  // Redirect only after user is available
   useEffect(() => {
     if (user) {
       navigate(user.role === "recruiter" ? "/admin/dashboard" : from, {
@@ -63,7 +115,7 @@ const Login = () => {
       setResentOk(false);
 
       const res = await axios.post(
-        `${USER_API}/resend-verification-email`,
+        `${API.user}/resend-verification-email`,
         { email: unverifiedEmail },
         { withCredentials: true }
       );
@@ -84,8 +136,6 @@ const Login = () => {
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    if (loading) return;
-
     setUnverifiedEmail(null);
     setResentOk(false);
 
@@ -103,7 +153,7 @@ const Login = () => {
       dispatch(setLoading(true));
 
       const res = await axios.post(
-        `${USER_API}/login`,
+        `${API.user}/login`,
         {
           email: input.email.trim(),
           password: input.password,
@@ -218,7 +268,7 @@ const Login = () => {
                   name="password"
                   value={input.password}
                   onChange={changeEventHandler}
-                  placeholder="Enter your password"
+                  placeholder="e.g., Krishna@1234"
                   autoComplete="current-password"
                   className="pl-9 sm:pl-10 pr-10 h-11 sm:h-12 text-sm border-gray-300
                              focus:border-purple-500 focus:ring-purple-500"
@@ -315,6 +365,28 @@ const Login = () => {
                 <span className="bg-white px-2 text-gray-500">or</span>
               </div>
             </div>
+
+            {/* Google Sign In */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleSignIn}
+              disabled={googleLoading}
+              className="w-full h-11 sm:h-12 border-2 border-gray-300 hover:border-gray-400 
+                         hover:bg-gray-50 transition-all font-semibold text-sm flex items-center justify-center gap-3"
+            >
+              {googleLoading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                </svg>
+              )}
+              Continue with Google
+            </Button>
 
             <Link to="/admin/login" className="block">
               <Button

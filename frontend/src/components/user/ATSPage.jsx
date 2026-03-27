@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { ScanLine, TrendingUp, Award, AlertTriangle, Plus, BarChart2, ChevronRight } from 'lucide-react';
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { API } from '@/config/api';
 
-const ATS_API = import.meta.env.VITE_ATS_API || 'http://localhost:8000/api/v1/ats';
 const f = (d = 0) => ({ initial: { opacity: 0, y: 20 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.4, delay: d } });
 
 const customTooltipStyle = {
@@ -24,7 +24,7 @@ export default function ATSPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`${ATS_API}/history`, { withCredentials: true })
+    axios.get(`${API.ats}/history`, { withCredentials: true })
       .then(r => setHistory(r.data?.history || []))
       .catch(() => {})
       .finally(() => setLoading(false));

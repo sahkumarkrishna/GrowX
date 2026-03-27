@@ -1,82 +1,140 @@
-import { motion } from 'framer-motion';
-import { CheckCircle, Star, Zap, Users, Trophy } from 'lucide-react';
+import { useRef } from "react";
+import { motion, useInView } from "framer-motion";
+import { CheckCircle, Star, Zap, Users, Trophy, Sparkles } from "lucide-react";
+
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#0D1017",
+  surface: "#151820",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  goldBorderHover: "rgba(212,168,83,0.3)",
+  violet: "#818CF8",
+  violetDim: "rgba(129,140,248,0.1)",
+  green: "#34D399",
+  greenDim: "rgba(52,211,153,0.1)",
+  cyan: "#38BDF8",
+  amber: "#FBBF24",
+  rose: "#FB7185",
+  roseDim: "rgba(251,113,133,0.1)",
+  white: "#F5F0E6",
+  muted: "#7A7F8A",
+  dim: "#2A2E3A",
+};
+
+function FadeIn({ children, delay = 0 }) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true, margin: "-50px" });
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 30 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 const WhyChooseUs = () => {
   const reasons = [
-    { icon: Star, title: 'Expert-Crafted Content', desc: 'Quizzes designed by subject experts and educators', stats: '500+ Expert Contributors' },
-    { icon: Zap, title: 'Instant Feedback', desc: 'Get immediate results with detailed explanations', stats: 'Real-time Scoring' },
-    { icon: Users, title: 'Global Community', desc: 'Join thousands of learners worldwide', stats: '25K+ Active Users' },
-    { icon: Trophy, title: 'Gamified Learning', desc: 'Earn badges, compete on leaderboards, and track progress', stats: '100+ Achievements' }
+    { icon: Star, title: "Expert-Crafted Content", desc: "Quizzes designed by subject experts and educators", stats: "500+ Expert Contributors", color: C.gold },
+    { icon: Zap, title: "Instant Feedback", desc: "Get immediate results with detailed explanations", stats: "Real-time Scoring", color: C.amber },
+    { icon: Users, title: "Global Community", desc: "Join thousands of learners worldwide", stats: "25K+ Active Users", color: C.cyan },
+    { icon: Trophy, title: "Gamified Learning", desc: "Earn badges, compete on leaderboards, and track progress", stats: "100+ Achievements", color: C.violet },
   ];
 
   return (
-    <section className="py-20 px-4 bg-white">
+    <section className="py-20 lg:py-32 px-4" style={{ background: C.charcoal }}>
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">
-            Why Choose <span className="text-indigo-600">Our Quiz Platform</span>?
-          </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            We make learning fun, interactive, and rewarding
-          </p>
-        </motion.div>
-
-        <div className="grid md:grid-cols-2 gap-8 mb-16">
-          {reasons.map((reason, idx) => (
+        <FadeIn>
+          <div className="text-center mb-16">
             <motion.div
-              key={idx}
-              initial={{ opacity: 0, x: idx % 2 === 0 ? -30 : 30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-gradient-to-br from-indigo-50 to-purple-50 p-8 rounded-3xl border-2 border-indigo-100 hover:border-indigo-300 transition-all hover:shadow-xl"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+              style={{ background: C.goldDim, border: `1px solid ${C.goldBorder}` }}
             >
-              <div className="flex items-start gap-6">
-                <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-4 rounded-2xl">
-                  <reason.icon className="text-white" size={32} />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-2xl font-bold mb-2 text-gray-900">{reason.title}</h3>
-                  <p className="text-gray-600 mb-4">{reason.desc}</p>
-                  <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full text-sm font-semibold text-indigo-600">
-                    <CheckCircle size={16} />
-                    {reason.stats}
+              <Sparkles size={14} color={C.gold} />
+              <span className="text-xs font-bold" style={{ color: C.gold, fontFamily: "'DM Mono', monospace" }}>WHY CHOOSE US</span>
+            </motion.div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black mb-4" style={{ fontFamily: "'Playfair Display', serif", color: C.white }}>
+              Why Choose Our{" "}
+              <span style={{ color: C.gold }}>Quiz Platform</span>?
+            </h2>
+            <p className="text-base lg:text-lg max-w-3xl mx-auto" style={{ color: C.muted, fontFamily: "'DM Sans', sans-serif" }}>
+              We make learning fun, interactive, and rewarding
+            </p>
+          </div>
+        </FadeIn>
+
+        <div className="grid md:grid-cols-2 gap-6 mb-12">
+          {reasons.map((reason, idx) => (
+            <FadeIn key={idx} delay={idx * 0.1}>
+              <motion.div
+                className="p-6 lg:p-8 rounded-2xl cursor-pointer"
+                style={{ background: C.surface, border: `1px solid ${C.goldBorder}` }}
+                whileHover={{ y: -6, borderColor: C.goldBorderHover, boxShadow: "0 20px 50px rgba(0,0,0,0.3)" }}
+              >
+                <div className="flex items-start gap-5">
+                  <motion.div
+                    className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: `${reason.color}15`, border: `1px solid ${reason.color}30` }}
+                    whileHover={{ rotate: 10, scale: 1.1 }}
+                  >
+                    <reason.icon size={26} color={reason.color} />
+                  </motion.div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold mb-2" style={{ color: C.white, fontFamily: "'Playfair Display', serif" }}>
+                      {reason.title}
+                    </h3>
+                    <p className="text-sm mb-4" style={{ color: C.muted, fontFamily: "'DM Sans', sans-serif" }}>
+                      {reason.desc}
+                    </p>
+                    <div 
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                      style={{ background: C.goldDim, color: C.gold, fontFamily: "'DM Sans', sans-serif" }}
+                    >
+                      <CheckCircle size={14} /> {reason.stats}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </FadeIn>
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-gray-900 text-white rounded-3xl p-12 relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full blur-3xl opacity-20"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-600 rounded-full blur-3xl opacity-20"></div>
-          
-          <div className="relative z-10 grid md:grid-cols-3 gap-8 text-center">
-            <div>
-              <div className="text-5xl font-bold mb-2 text-yellow-400">Free</div>
-              <div className="text-lg">Forever Access</div>
+        <FadeIn delay={0.4}>
+          <motion.div
+            className="relative rounded-3xl p-8 lg:p-12 overflow-hidden"
+            style={{ background: C.surface, border: `1px solid ${C.goldBorder}` }}
+            whileHover={{ scale: 1.01 }}
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl" style={{ background: `${C.gold}10` }} />
+            <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl" style={{ background: `${C.violet}10` }} />
+            
+            <div className="relative z-10 grid sm:grid-cols-3 gap-8 text-center">
+              {[
+                { value: "Free", label: "Forever Access", color: C.green },
+                { value: "24/7", label: "Available Anytime", color: C.cyan },
+                { value: "40+", label: "Quiz Categories", color: C.gold },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <div className="text-4xl lg:text-5xl font-black mb-2" style={{ color: item.color, fontFamily: "'Playfair Display', serif" }}>
+                    {item.value}
+                  </div>
+                  <div className="text-sm" style={{ color: C.muted, fontFamily: "'DM Sans', sans-serif" }}>
+                    {item.label}
+                  </div>
+                </motion.div>
+              ))}
             </div>
-            <div>
-              <div className="text-5xl font-bold mb-2 text-green-400">24/7</div>
-              <div className="text-lg">Available Anytime</div>
-            </div>
-            <div>
-              <div className="text-5xl font-bold mb-2 text-blue-400">40+</div>
-              <div className="text-lg">Quiz Categories</div>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        </FadeIn>
       </div>
     </section>
   );

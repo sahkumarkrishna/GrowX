@@ -4,7 +4,8 @@ import {
   Brain, Briefcase, Settings, LogOut, Menu, X,
   Home, BarChart2, Crown, ChevronRight,
   Edit3, Users, BookOpen, TrendingUp, Building2,
-  Plus, Bookmark, FileText, ClipboardList, UserCheck, PlusCircle, FilePlus, ListChecks, Send, GraduationCap, FileSearch,
+  Plus, FileText, ClipboardList, UserCheck, PlusCircle, FilePlus, ListChecks, Send, GraduationCap, FileSearch, MessageSquare,
+  Video, Calendar, FileQuestion, BarChart, Code, Tags, ArrowLeft, ExternalLink,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useDispatch, useSelector } from 'react-redux';
@@ -12,67 +13,90 @@ import { setUser } from '@/redux/authSlice';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { API } from '@/config/api';
+
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#0D1017",
+  surface: "#151820",
+  surfaceLight: "#1C1F28",
+  card: "#1A1D26",
+  cardHover: "#22252F",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  goldBorderHover: "rgba(212,168,83,0.3)",
+  white: "#F5F0E6",
+  muted: "#7A7F8A",
+  dim: "#2A2E3A",
+};
 
 const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
   const [collapsed, setCollapsed] = useState(false);
-  const navigate  = useNavigate();
-  const location  = useLocation();
-  const dispatch  = useDispatch();
-  const { user }  = useSelector(s => s.auth);
-
-  const USER_API = import.meta.env.VITE_USER_API || 'http://localhost:8000/api/v1/user';
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const { user } = useSelector(s => s.auth);
 
   const menuGroups = [
     {
       label: 'Overview',
       items: [
         { icon: Home,          label: 'Dashboard',     path: '/admin/dashboard',        color: '#60a5fa', glow: 'rgba(96,165,250,0.35)' },
-        { icon: BarChart2,     label: 'Analytics',     path: '/admin/analytics',        color: '#38bdf8', glow: 'rgba(56,189,248,0.35)' },
-        { icon: Users,         label: 'Users',         path: '/admin/users',            color: '#f472b6', glow: 'rgba(244,114,182,0.35)' },
+        { icon: BarChart2,    label: 'Analytics',     path: '/admin/analytics',        color: '#38bdf8', glow: 'rgba(56,189,248,0.35)' },
+        { icon: Users,        label: 'Users',         path: '/admin/users',            color: '#f472b6', glow: 'rgba(244,114,182,0.35)' },
       ],
     },
     {
       label: 'Jobs',
       items: [
-        { icon: Briefcase,     label: 'My Jobs',          path: '/admin/jobs',               color: '#34d399', glow: 'rgba(52,211,153,0.35)' },
-        { icon: TrendingUp,    label: 'All Jobs',          path: '/admin/all-jobs',           color: '#4ade80', glow: 'rgba(74,222,128,0.35)' },
-        { icon: Send,          label: 'Applications',      path: '/admin/job-applications',   color: '#2dd4bf', glow: 'rgba(45,212,191,0.35)' },
+        { icon: PlusCircle,   label: 'Create Job',       path: '/admin/jobs/create',        color: '#4ade80', glow: 'rgba(74,222,128,0.35)' },
+        { icon: Briefcase,     label: 'All Jobs',          path: '/admin/all-jobs',           color: '#34d399', glow: 'rgba(52,211,153,0.35)' },
+        { icon: Send,          label: 'Applications',       path: '/admin/job-applications',   color: '#2dd4bf', glow: 'rgba(45,212,191,0.35)' },
       ],
     },
-
     {
       label: 'Quizzes',
       items: [
-        { icon: BookOpen,      label: 'All Quizzes',       path: '/admin/all-quizzes',        color: '#a78bfa', glow: 'rgba(167,139,250,0.35)' },
-        { icon: ListChecks,    label: 'Quiz Access',       path: '/admin/quiz-access',        color: '#f0abfc', glow: 'rgba(240,171,252,0.35)' },
+        { icon: BookOpen,    label: 'All Quizzes',    path: '/admin/all-quizzes',      color: '#a78bfa', glow: 'rgba(167,139,250,0.35)' },
+        { icon: ListChecks,  label: 'Quiz Access',    path: '/admin/quiz-access',      color: '#f0abfc', glow: 'rgba(240,171,252,0.35)' },
+        { icon: Brain,       label: 'Create Quiz',    path: '/admin/quizzes/create',   color: '#c084fc', glow: 'rgba(192,132,252,0.35)' },
       ],
     },
     {
       label: 'Resumes & ATS',
       items: [
-        { icon: FileText,      label: 'All Resumes',       path: '/admin/resumes',            color: '#67e8f9', glow: 'rgba(103,232,249,0.35)' },
-        { icon: FileSearch,    label: 'ATS Checker',       path: '/admin/ats',                color: '#818cf8', glow: 'rgba(129,140,248,0.35)' },
+        { icon: FileText,    label: 'All Resumes',    path: '/admin/resumes',          color: '#67e8f9', glow: 'rgba(103,232,249,0.35)' },
+        { icon: FileSearch,  label: 'ATS Checker',    path: '/admin/ats',             color: '#818cf8', glow: 'rgba(129,140,248,0.35)' },
       ],
     },
     {
       label: 'Internships',
       items: [
-        { icon: GraduationCap, label: 'Applications',       path: '/admin/internships',        color: '#38bdf8', glow: 'rgba(56,189,248,0.35)' },
+        { icon: GraduationCap,label: 'Applications',   path: '/admin/internships',      color: '#38bdf8', glow: 'rgba(56,189,248,0.35)' },
+        { icon: Tags,        label: 'Categories',       path: '/admin/categories',       color: '#f59e0b', glow: 'rgba(245,158,11,0.35)' },
+        { icon: BookOpen,   label: 'View Internships', path: '/category',               color: '#10b981', glow: 'rgba(16,185,129,0.35)', external: true },
       ],
     },
-
+    {
+      label: 'AI Assistant',
+      items: [
+        { icon: MessageSquare,label: 'Chat History', path: '/admin/ai-chat',          color: '#f59e0b', glow: 'rgba(245,158,11,0.35)' },
+        { icon: BarChart2,   label: 'Analytics',     path: '/admin/analytics',        color: '#60a5fa', glow: 'rgba(96,165,250,0.35)' },
+      ],
+    },
     {
       label: 'Company',
       items: [
-        { icon: Building2,     label: 'Companies',     path: '/admin/companies',        color: '#fb923c', glow: 'rgba(251,146,60,0.35)' },
-        { icon: PlusCircle,    label: 'Add Company',   path: '/admin/companies/create', color: '#fdba74', glow: 'rgba(253,186,116,0.35)' },
+        { icon: Building2,   label: 'Companies',      path: '/admin/companies',       color: '#fb923c', glow: 'rgba(251,146,60,0.35)' },
+        { icon: PlusCircle,  label: 'Add Company',   path: '/admin/companies/create',color: '#fdba74', glow: 'rgba(253,186,116,0.35)' },
       ],
     },
     {
       label: 'Account',
       items: [
-        { icon: Bookmark,      label: 'Saved',         path: '/admin/saved',            color: '#fbbf24', glow: 'rgba(251,191,36,0.35)' },
-        { icon: Settings,      label: 'Settings',      path: '/admin/settings',         color: '#94a3b8', glow: 'rgba(148,163,184,0.35)' },
+        { icon: Settings,   label: 'Settings',       path: '/admin/settings',        color: '#94a3b8', glow: 'rgba(148,163,184,0.35)' },
       ],
     },
   ];
@@ -88,7 +112,7 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const handleLogout = async () => {
     try {
-      const res = await axios.get(`${USER_API}/logout`, { withCredentials: true });
+      const res = await axios.get(`${API.user}/logout`, { withCredentials: true });
       if (res.data.success) {
         dispatch(setUser(null));
         navigate('/');
@@ -101,10 +125,20 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const NavItem = ({ item, onClick }) => {
     const isActive = isItemActive(item);
+    
+    const handleClick = () => {
+      if (item.external) {
+        window.open(item.path, '_blank');
+      } else {
+        navigate(item.path);
+      }
+      onClick?.();
+    };
+    
     return (
       <motion.button
         whileTap={{ scale: 0.96 }}
-        onClick={() => { navigate(item.path); onClick?.(); }}
+        onClick={handleClick}
         title={collapsed ? item.label : undefined}
         className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl transition-all duration-200 group"
         style={{
@@ -156,7 +190,7 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
 
   const SidebarContent = ({ onNav }) => (
     <div className="flex flex-col h-full"
-      style={{ background: 'linear-gradient(180deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)' }}>
+      style={{ background: `linear-gradient(180deg, ${C.obsidian} 0%, ${C.charcoal} 50%, ${C.obsidian} 100%)` }}>
 
       {/* ── Top: Brand + Collapse ── */}
       <div className="flex-shrink-0 flex items-center justify-between px-4 pt-5 pb-4">
@@ -165,19 +199,19 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
             <motion.div key="brand" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0"
-                style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', boxShadow: '0 0 16px rgba(124,58,237,0.5)' }}>
-                <Crown size={14} className="text-white" />
+                style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.goldLight})`, boxShadow: `0 0 16px ${C.goldDim}` }}>
+                <Crown size={14} style={{ color: C.obsidian }} />
               </div>
               <div>
                 <p className="text-sm font-black text-white leading-tight">GrowX</p>
-                <p className="text-[10px] font-medium text-white/50">Admin Panel</p>
+                <p className="text-[10px] font-medium" style={{ color: C.muted }}>Admin Panel</p>
               </div>
             </motion.div>
           ) : (
             <motion.div key="icon" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="w-8 h-8 rounded-xl flex items-center justify-center mx-auto"
-              style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)', boxShadow: '0 0 16px rgba(124,58,237,0.5)' }}>
-              <Crown size={14} className="text-white" />
+              style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.goldLight})`, boxShadow: `0 0 16px ${C.goldDim}` }}>
+              <Crown size={14} style={{ color: C.obsidian }} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -201,14 +235,14 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
 
           {/* Glow blob */}
           <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full blur-xl opacity-30"
-            style={{ background: 'radial-gradient(circle, #7c3aed, transparent)' }} />
+            style={{ background: `radial-gradient(circle, ${C.gold}, transparent)` }} />
 
           <div className={`relative flex items-center ${collapsed ? 'justify-center' : 'gap-3'}`}>
             <div className="relative flex-shrink-0">
-              <Avatar className="w-10 h-10 ring-2 ring-purple-500/30">
+              <Avatar className="w-10 h-10 ring-2" style={{ ringColor: C.goldBorder }}>
                 <AvatarImage src={user?.profile?.profilePhoto} className="object-cover" />
                 <AvatarFallback className="text-white font-black text-base"
-                  style={{ background: 'linear-gradient(135deg, #7c3aed, #2563eb)' }}>
+                  style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.goldLight})` }}>
                   {user?.fullname?.charAt(0)?.toUpperCase() || 'A'}
                 </AvatarFallback>
               </Avatar>
@@ -241,6 +275,28 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
         </motion.div>
       </div>
 
+      {/* ── Back Button ── */}
+      <div className="px-3 mb-3">
+        <motion.button whileTap={{ scale: 0.96 }}
+          onClick={() => { window.open('/', '_blank'); onNav?.(); }}
+          className="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 group border"
+          style={{ background: 'rgba(16,185,129,0.08)', borderColor: 'rgba(16,185,129,0.2)' }}>
+          <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+            style={{ background: 'rgba(16,185,129,0.15)' }}>
+            <ExternalLink size={14} style={{ color: '#10b981' }} />
+          </span>
+          <AnimatePresence>
+            {!collapsed && (
+              <motion.span initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -8 }}
+                className="text-sm font-semibold" style={{ color: '#10b981' }}>
+                View Site
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </motion.button>
+      </div>
+
       {/* ── Divider ── */}
       <div className="mx-4 mb-3 h-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
 
@@ -254,8 +310,8 @@ const AdminSidebar = ({ mobileOpen, setMobileOpen }) => {
               </p>
             )}
             <div className="space-y-0.5">
-              {group.items.map(item => (
-                <NavItem key={item.path} item={item} onClick={onNav} />
+              {group.items.map((item, idx) => (
+                <NavItem key={`${item.path}-${idx}`} item={item} onClick={onNav} />
               ))}
             </div>
           </div>

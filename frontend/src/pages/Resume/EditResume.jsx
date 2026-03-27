@@ -10,20 +10,35 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { IoMdArrowRoundBack } from "react-icons/io";
+import { FaSave, FaPlus, FaTimes } from "react-icons/fa";
+import { API } from "@/config/api";
+
+const T = {
+  obsidian: "#0A0A0F",
+  charcoal: "#121218",
+  surface: "#1A1A24",
+  surfaceLight: "#252532",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDark: "#B8923F",
+  ivory: "#F5F0E6",
+  ivoryMuted: "#A8A099",
+  accent: "#C8884A",
+  accentGlow: "rgba(212,168,83,0.12)",
+};
 
 export default function EditResume() {
-  const API_URL = import.meta.env.VITE_API_URL;
   const { id } = useParams();
   const navigate = useNavigate();
 
   const sections = [
-    "Personal Info",
-    "Education",
-    "Technical Skills",
-    "Experience",
-    "Projects",
-    "Achievements",
-    "Certifications",
+    { name: "Personal Info", icon: "👤" },
+    { name: "Education", icon: "🎓" },
+    { name: "Technical Skills", icon: "💻" },
+    { name: "Experience", icon: "💼" },
+    { name: "Projects", icon: "🚀" },
+    { name: "Achievements", icon: "🏆" },
+    { name: "Certifications", icon: "📜" },
   ];
 
   const [activeSection, setActiveSection] = useState("Personal Info");
@@ -61,7 +76,7 @@ export default function EditResume() {
   useEffect(() => {
     const fetchResume = async () => {
       try {
-        const res = await axios.get(`${API_URL}/${id}`);
+        const res = await axios.get(`${API.resume}/${id}`, { withCredentials: true });
         const data = res.data.data;
 
         setPersonalInfo(data.personalInfo || personalInfo);
@@ -112,7 +127,7 @@ export default function EditResume() {
         achievements,
         certifications,
       };
-      await axios.put(`${API_URL}/update/${id}`, updatedResume);
+      await axios.put(`${API.resume}/update/${id}`, updatedResume, { withCredentials: true });
       toast.success("✅ Resume updated successfully!");
       navigate(`/resume/${id}`);
     } catch (err) {
@@ -121,405 +136,230 @@ export default function EditResume() {
     }
   };
 
-  const currentIndex = sections.indexOf(activeSection);
+  const currentIndex = sections.findIndex(s => s.name === activeSection);
 
   if (!resumeLoaded)
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 flex items-center justify-center -mt-16">
+      <div className="min-h-screen flex items-center justify-center" style={{ background: `linear-gradient(135deg,${T.obsidian} 0%,${T.charcoal} 50%,${T.obsidian} 100%)` }}>
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg font-medium">Loading resume...</p>
+          <div className="w-16 h-16 border-4 rounded-full animate-spin mx-auto mb-4" style={{ borderColor: T.gold, borderTopColor: 'transparent' }}></div>
+          <p style={{ color: T.ivoryMuted }} className="text-lg font-medium">Loading resume...</p>
         </motion.div>
       </div>
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 p-4 md:p-8 lg:p-12 -mt-16">
-      {/* Back Button */}
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        whileHover={{ scale: 1.05, x: -5 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate(-1)}
-        className="mb-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
-      >
-        <IoMdArrowRoundBack size={24} />
-        Back
-      </motion.button>
-
-      {/* HEADER */}
+    <div className="min-h-screen px-4 py-8" style={{ background: `linear-gradient(135deg,${T.obsidian} 0%,${T.charcoal} 50%,${T.obsidian} 100%)` }}>
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-8 flex flex-col md:flex-row justify-between items-center gap-4"
       >
-        <h1 className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Edit Resume</h1>
-        <div className="flex gap-4 flex-wrap">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSaveResume}
-            className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all"
-          >
-            💾 Save Changes
-          </motion.button>
+        <div>
+          <h1 className="text-4xl md:text-5xl font-black mb-2" style={{ fontFamily: "'Playfair Display', serif", color: '#F5F0E6' }}>
+            Edit <span style={{ color: '#D4A853' }}>Resume</span>
+          </h1>
+          <p style={{ color: '#A8A099' }}>Update your professional resume</p>
         </div>
+
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleSaveResume}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold shadow-lg"
+          style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}
+        >
+          <FaSave /> Save Changes
+        </motion.button>
       </motion.div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        {/* SIDEBAR */}
-        <div className="w-full md:w-1/5 flex flex-row md:flex-col gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0">
-          {sections.map((section) => (
-            <Card
-              key={section}
-              className={`p-3 md:p-4 text-center cursor-pointer transition text-sm md:text-base flex-shrink-0 ${activeSection === section
-                  ? "bg-pink-100 border border-pink-300"
-                  : "hover:bg-pink-50"
-                }`}
-              onClick={() => setActiveSection(section)}
+      <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
+        <div className="lg:w-64 flex lg:flex-col gap-3 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+          {sections.map((section, idx) => (
+            <motion.div
+              key={section.name}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: idx * 0.05 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {section}
-            </Card>
+              <Card
+                className={`p-4 cursor-pointer transition-all flex-shrink-0`}
+                style={activeSection === section.name 
+                  ? { background: `linear-gradient(135deg,${T.gold},${T.accent})` }
+                  : { background: T.surface, border: '1px solid rgba(212,168,83,0.15)' }
+                }
+                onClick={() => setActiveSection(section.name)}
+              >
+                <div className="flex items-center gap-2 font-bold">
+                  <span className="text-xl">{section.icon}</span>
+                  <span className="text-sm lg:text-base" style={activeSection === section.name ? { color: T.obsidian } : { color: '#F5F0E6' }}>{section.name}</span>
+                </div>
+              </Card>
+            </motion.div>
           ))}
         </div>
 
-        {/* MAIN CONTENT */}
-        <div className="flex-1 bg-white rounded-lg shadow p-4 md:p-6" ref={resumeRef}>
-          <h2 className="text-lg md:text-xl font-semibold mb-4">{activeSection}</h2>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex-1 rounded-2xl shadow-xl p-6 lg:p-8"
+          style={{ background: T.surface, border: '1px solid rgba(212,168,83,0.15)' }}
+          ref={resumeRef}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <span className="text-4xl">{sections.find(s => s.name === activeSection)?.icon}</span>
+            <h2 className="text-2xl font-bold" style={{ color: '#F5F0E6' }}>{activeSection}</h2>
+          </div>
 
-          {/* ---------- PERSONAL INFO ---------- */}
           {activeSection === "Personal Info" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {Object.keys(personalInfo).map((key) => (
                 <Input
                   key={key}
-                  placeholder={key.replace(/([A-Z])/g, " $1")}
+                  placeholder={key.replace(/([A-Z])/g, " $1").replace(/^./, str => str.toUpperCase())}
                   value={personalInfo[key]}
-                  onChange={(e) =>
-                    setPersonalInfo({ ...personalInfo, [key]: e.target.value })
-                  }
+                  onChange={(e) => setPersonalInfo({ ...personalInfo, [key]: e.target.value })}
+                  style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }}
                 />
               ))}
             </div>
           )}
 
-          {/* ---------- EDUCATION ---------- */}
-          {activeSection === "Education" &&
-            education.map((edu, idx) => (
-              <div
-                key={idx}
-                className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-lg shadow-sm"
-              >
-                <Input
-                  placeholder="Institution"
-                  value={edu.institution}
-                  onChange={(e) => {
-                    const newEd = [...education];
-                    newEd[idx].institution = e.target.value;
-                    setEducation(newEd);
-                  }}
-                />
-                <Input
-                  placeholder="Degree / Board"
-                  value={edu.degree}
-                  onChange={(e) => {
-                    const newEd = [...education];
-                    newEd[idx].degree = e.target.value;
-                    setEducation(newEd);
-                  }}
-                />
-                <Input
-                  placeholder="CGPA / Percentage"
-                  value={edu.cgpa}
-                  onChange={(e) => {
-                    const newEd = [...education];
-                    newEd[idx].cgpa = e.target.value;
-                    setEducation(newEd);
-                  }}
-                />
-                <Input
-                  placeholder="City"
-                  value={edu.city}
-                  onChange={(e) => {
-                    const newEd = [...education];
-                    newEd[idx].city = e.target.value;
-                    setEducation(newEd);
-                  }}
-                />
-                <div className="flex gap-2 col-span-1 md:col-span-2">
-                  <DatePicker
-                    selected={edu.startDate ? new Date(edu.startDate) : null}
-                    onChange={(date) => {
-                      const newEd = [...education];
-                      newEd[idx].startDate = date;
-                      setEducation(newEd);
-                    }}
-                    dateFormat="MMM yyyy"
-                    showMonthYearPicker
-                    placeholderText="Start (Month/Year)"
-                    className="border rounded p-2 w-full"
-                  />
-                  <DatePicker
-                    selected={edu.endDate ? new Date(edu.endDate) : null}
-                    onChange={(date) => {
-                      const newEd = [...education];
-                      newEd[idx].endDate = date;
-                      setEducation(newEd);
-                    }}
-                    dateFormat="MMM yyyy"
-                    showMonthYearPicker
-                    placeholderText="End (Month/Year)"
-                    className="border rounded p-2 w-full"
-                  />
-                </div>
-              </div>
-            ))}
           {activeSection === "Education" && (
-            <Button
-              onClick={() =>
-                setEducation([
-                  ...education,
-                  {
-                    level: "",
-                    institution: "",
-                    degree: "",
-                    cgpa: "",
-                    startDate: null,
-                    endDate: null,
-                    city: "",
-                    description: "",
-                  },
-                ])
-              }
-              className="bg-pink-500 hover:bg-pink-600 text-white font-medium px-5 py-2 rounded-full shadow-md mt-2"
-            >
-              ➕ Add Education
-            </Button>
+            <>
+              {education.map((edu, idx) => (
+                <div key={idx} className="mb-6 p-4 rounded-xl" style={{ background: 'rgba(212,168,83,0.05)', border: '1px solid rgba(212,168,83,0.15)' }}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input placeholder="Institution" value={edu.institution} onChange={(e) => { const newEd = [...education]; newEd[idx].institution = e.target.value; setEducation(newEd); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <Input placeholder="Degree" value={edu.degree} onChange={(e) => { const newEd = [...education]; newEd[idx].degree = e.target.value; setEducation(newEd); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <Input placeholder="CGPA" value={edu.cgpa} onChange={(e) => { const newEd = [...education]; newEd[idx].cgpa = e.target.value; setEducation(newEd); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <Input placeholder="City" value={edu.city} onChange={(e) => { const newEd = [...education]; newEd[idx].city = e.target.value; setEducation(newEd); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <DatePicker selected={edu.startDate ? new Date(edu.startDate) : null} onChange={(date) => { const newEd = [...education]; newEd[idx].startDate = date; setEducation(newEd); }} dateFormat="MMM yyyy" showMonthYearPicker placeholderText="Start Date" className="rounded-lg p-3 w-full" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <DatePicker selected={edu.endDate ? new Date(edu.endDate) : null} onChange={(date) => { const newEd = [...education]; newEd[idx].endDate = date; setEducation(newEd); }} dateFormat="MMM yyyy" showMonthYearPicker placeholderText="End Date" className="rounded-lg p-3 w-full" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                  </div>
+                </div>
+              ))}
+              <Button onClick={() => setEducation([...education, { level: "", institution: "", degree: "", cgpa: "", startDate: null, endDate: null, city: "", description: "" }])}
+                style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}>
+                <FaPlus className="mr-2" /> Add Education
+              </Button>
+            </>
           )}
 
-          {/* ---------- TECHNICAL SKILLS ---------- */}
           {activeSection === "Technical Skills" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {Object.keys(technicalSkills).map((key) => (
-                <div
-                  key={key}
-                  className="flex flex-col bg-white shadow-lg hover:shadow-xl transition rounded-2xl p-5 border border-gray-100"
-                >
-                  <label className="text-sm font-semibold text-gray-700 mb-2">{key}</label>
-                  <div className="flex gap-2 flex-wrap mb-2">
+                <div key={key} className="p-4 rounded-xl" style={{ background: 'rgba(212,168,83,0.05)', border: '1px solid rgba(212,168,83,0.15)' }}>
+                  <label className="font-bold mb-3 block" style={{ color: '#D4A853' }}>{key}</label>
+                  <div className="flex gap-2 flex-wrap mb-3">
                     {technicalSkills[key].map((skill, idx) => (
-                      <span
-                        key={idx}
-                        className="bg-pink-200 text-pink-800 px-3 py-1 rounded-full text-sm flex items-center gap-1"
-                      >
-                        {skill}{" "}
-                        <button onClick={() => handleSkillRemove(key, idx)}>x</button>
+                      <span key={idx} className="px-3 py-1 rounded-full text-sm flex items-center gap-2" style={{ background: T.gold, color: T.obsidian }}>
+                        {skill}
+                        <button onClick={() => handleSkillRemove(key, idx)} className="hover:text-red-300">
+                          <FaTimes size={12} />
+                        </button>
                       </span>
                     ))}
                   </div>
                   <div className="flex gap-2">
-                    <Input
-                      placeholder="Add Skill"
-                      value={skillInput}
-                      onChange={(e) => setSkillInput(e.target.value)}
-                    />
-                    <Button
-                      onClick={() => handleSkillAdd(key)}
-                      className="bg-pink-500 hover:bg-pink-600 text-white"
-                    >
-                      Add
-                    </Button>
+                    <Input placeholder="Add skill" value={skillInput} onChange={(e) => setSkillInput(e.target.value)} className="flex-1" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <Button onClick={() => handleSkillAdd(key)} style={{ background: T.gold, color: T.obsidian }}>Add</Button>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* ---------- EXPERIENCE ---------- */}
-          {activeSection === "Experience" &&
-            experience.map((exp, idx) => (
-              <div
-                key={idx}
-                className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 border p-4 rounded-lg shadow-sm"
-              >
-                <Input
-                  placeholder="Company"
-                  value={exp.company}
-                  onChange={(e) => {
-                    const newExp = [...experience];
-                    newExp[idx].company = e.target.value;
-                    setExperience(newExp);
-                  }}
-                />
-                <Input
-                  placeholder="Role"
-                  value={exp.role}
-                  onChange={(e) => {
-                    const newExp = [...experience];
-                    newExp[idx].role = e.target.value;
-                    setExperience(newExp);
-                  }}
-                />
-                <DatePicker
-                  selected={exp.startDate ? new Date(exp.startDate) : null}
-                  onChange={(date) => {
-                    const newExp = [...experience];
-                    newExp[idx].startDate = date;
-                    setExperience(newExp);
-                  }}
-                  dateFormat="MMM yyyy"
-                  showMonthYearPicker
-                  placeholderText="Start (Month/Year)"
-                  className="border rounded p-2 w-full"
-                />
-                <DatePicker
-                  selected={exp.endDate ? new Date(exp.endDate) : null}
-                  onChange={(date) => {
-                    const newExp = [...experience];
-                    newExp[idx].endDate = date;
-                    setExperience(newExp);
-                  }}
-                  dateFormat="MMM yyyy"
-                  showMonthYearPicker
-                  placeholderText="End (Month/Year)"
-                  className="border rounded p-2 w-full"
-                />
-                <Textarea
-                  placeholder="Description"
-                  value={exp.description}
-                  onChange={(e) => {
-                    const newExp = [...experience];
-                    newExp[idx].description = e.target.value;
-                    setExperience(newExp);
-                  }}
-                  className="col-span-1 md:col-span-2"
-                />
-              </div>
-            ))}
           {activeSection === "Experience" && (
-            <Button
-              onClick={() =>
-                setExperience([
-                  ...experience,
-                  { company: "", role: "", startDate: null, endDate: null, description: "" },
-                ])
-              }
-              className="bg-pink-500 hover:bg-pink-600 text-white font-medium px-5 py-2 rounded-full shadow-md mt-2"
-            >
-              ➕ Add Experience
-            </Button>
+            <>
+              {experience.map((exp, idx) => (
+                <div key={idx} className="mb-6 p-4 rounded-xl" style={{ background: 'rgba(212,168,83,0.05)', border: '1px solid rgba(212,168,83,0.15)' }}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input placeholder="Company" value={exp.company} onChange={(e) => { const newExp = [...experience]; newExp[idx].company = e.target.value; setExperience(newExp); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <Input placeholder="Role" value={exp.role} onChange={(e) => { const newExp = [...experience]; newExp[idx].role = e.target.value; setExperience(newExp); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <DatePicker selected={exp.startDate ? new Date(exp.startDate) : null} onChange={(date) => { const newExp = [...experience]; newExp[idx].startDate = date; setExperience(newExp); }} dateFormat="MMM yyyy" showMonthYearPicker placeholderText="Start Date" className="rounded-lg p-3 w-full" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <DatePicker selected={exp.endDate ? new Date(exp.endDate) : null} onChange={(date) => { const newExp = [...experience]; newExp[idx].endDate = date; setExperience(newExp); }} dateFormat="MMM yyyy" showMonthYearPicker placeholderText="End Date" className="rounded-lg p-3 w-full" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <Textarea placeholder="Description" value={exp.description || ""} onChange={(e) => { const newExp = [...experience]; newExp[idx].description = e.target.value; setExperience(newExp); }} className="col-span-1 md:col-span-2" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                  </div>
+                </div>
+              ))}
+              <Button onClick={() => setExperience([...experience, { company: "", role: "", startDate: null, endDate: null, description: "" }])} style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}>
+                <FaPlus className="mr-2" /> Add Experience
+              </Button>
+            </>
           )}
 
-          {/* ---------- PROJECTS ---------- */}
-          {activeSection === "Projects" &&
-            projects.map((proj, idx) => (
-              <div
-                key={idx}
-                className="mb-6 border p-4 rounded-lg shadow-sm"
-              >
-                <Input
-                  placeholder="Project Name"
-                  value={proj.name}
-                  onChange={(e) => {
-                    const newProj = [...projects];
-                    newProj[idx].name = e.target.value;
-                    setProjects(newProj);
-                  }}
-                />
-                <Textarea
-                  placeholder="Description"
-                  value={proj.description}
-                  onChange={(e) => {
-                    const newProj = [...projects];
-                    newProj[idx].description = e.target.value;
-                    setProjects(newProj);
-                  }}
-                  className="mt-2"
-                />
-              </div>
-            ))}
           {activeSection === "Projects" && (
-            <Button
-              onClick={() =>
-                setProjects([...projects, { name: "", description: "" }])
-              }
-              className="bg-pink-500 hover:bg-pink-600 text-white font-medium px-5 py-2 rounded-full shadow-md mt-2"
-            >
-              ➕ Add Project
-            </Button>
+            <>
+              {projects.map((proj, idx) => (
+                <div key={idx} className="mb-6 p-4 rounded-xl" style={{ background: 'rgba(212,168,83,0.05)', border: '1px solid rgba(212,168,83,0.15)' }}>
+                  <div className="grid grid-cols-1 gap-4">
+                    <Input placeholder="Project Name" value={proj.name || ""} onChange={(e) => { const newProj = [...projects]; newProj[idx].name = e.target.value; setProjects(newProj); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                    <Textarea placeholder="Description" value={proj.description || ""} onChange={(e) => { const newProj = [...projects]; newProj[idx].description = e.target.value; setProjects(newProj); }} style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                  </div>
+                </div>
+              ))}
+              <Button onClick={() => setProjects([...projects, { name: "", description: "" }])} style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}>
+                <FaPlus className="mr-2" /> Add Project
+              </Button>
+            </>
           )}
 
-          {/* ---------- ACHIEVEMENTS ---------- */}
-          {activeSection === "Achievements" &&
-            achievements.map((ach, idx) => (
-              <div key={idx} className="mb-4">
-                <Input
-                  placeholder="Achievement"
-                  value={ach}
-                  onChange={(e) => {
-                    const newAch = [...achievements];
-                    newAch[idx] = e.target.value;
-                    setAchievements(newAch);
-                  }}
-                />
-              </div>
-            ))}
           {activeSection === "Achievements" && (
-            <Button
-              onClick={() => setAchievements([...achievements, ""])}
-              className="bg-pink-500 hover:bg-pink-600 text-white font-medium px-5 py-2 rounded-full shadow-md mt-2"
-            >
-              ➕ Add Achievement
-            </Button>
+            <>
+              {achievements.map((ach, idx) => (
+                <div key={idx} className="flex items-center gap-3 mb-3">
+                  <Input placeholder={`Achievement ${idx + 1}`} value={ach} onChange={(e) => { const newAch = [...achievements]; newAch[idx] = e.target.value; setAchievements(newAch); }} className="flex-1" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                  <button onClick={() => setAchievements(achievements.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600">
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+              ))}
+              <Button onClick={() => setAchievements([...achievements, ""])} style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}>
+                <FaPlus className="mr-2" /> Add Achievement
+              </Button>
+            </>
           )}
 
-          {/* ---------- CERTIFICATIONS ---------- */}
-          {activeSection === "Certifications" &&
-            certifications.map((cert, idx) => (
-              <div key={idx} className="mb-4">
-                <Input
-                  placeholder="Certification"
-                  value={cert}
-                  onChange={(e) => {
-                    const newCert = [...certifications];
-                    newCert[idx] = e.target.value;
-                    setCertifications(newCert);
-                  }}
-                />
-              </div>
-            ))}
           {activeSection === "Certifications" && (
-            <Button
-              onClick={() => setCertifications([...certifications, ""])}
-              className="bg-pink-500 hover:bg-pink-600 text-white font-medium px-5 py-2 rounded-full shadow-md mt-2"
-            >
-              ➕ Add Certification
-            </Button>
+            <>
+              {certifications.map((cert, idx) => (
+                <div key={idx} className="flex items-center gap-3 mb-3">
+                  <Input placeholder={`Certification ${idx + 1}`} value={cert} onChange={(e) => { const newCert = [...certifications]; newCert[idx] = e.target.value; setCertifications(newCert); }} className="flex-1" style={{ background: T.surfaceLight, border: '1px solid rgba(212,168,83,0.2)', color: '#F5F0E6' }} />
+                  <button onClick={() => setCertifications(certifications.filter((_, i) => i !== idx))} className="text-red-400 hover:text-red-600">
+                    <FaTimes size={20} />
+                  </button>
+                </div>
+              ))}
+              <Button onClick={() => setCertifications([...certifications, ""])} style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}>
+                <FaPlus className="mr-2" /> Add Certification
+              </Button>
+            </>
           )}
 
-          {/* ---------- NEXT / PREVIOUS BUTTONS ---------- */}
-          <div className="flex justify-between mt-6">
+          <div className="flex justify-between mt-8 pt-6 border-t" style={{ borderColor: 'rgba(212,168,83,0.2)' }}>
             <Button
-              onClick={() => currentIndex > 0 && setActiveSection(sections[currentIndex - 1])}
+              onClick={() => currentIndex > 0 && setActiveSection(sections[currentIndex - 1].name)}
               disabled={currentIndex === 0}
-              className="bg-gray-200 text-gray-700 hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: 'rgba(212,168,83,0.1)', color: '#F5F0E6' }}
             >
-              ← Previous
+              Previous
             </Button>
             <Button
-              onClick={() => currentIndex < sections.length - 1 && setActiveSection(sections[currentIndex + 1])}
+              onClick={() => currentIndex < sections.length - 1 && setActiveSection(sections[currentIndex + 1].name)}
               disabled={currentIndex === sections.length - 1}
-              className="bg-pink-500 hover:bg-pink-600 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}
             >
-              Next →
+              Next
             </Button>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

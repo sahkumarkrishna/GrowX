@@ -2,34 +2,38 @@ import nodemailer from "nodemailer";
 
 // ── Transporter ────────────────────────────────────────────────────────────────
 const createTransporter = () => {
-  if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-    console.error("❌ MAIL_USER or MAIL_PASS is missing in .env");
+  const mailUser = process.env.MAIL_USER;
+  const mailPass = process.env.MAIL_PASS?.replace(/\s/g, ''); // Remove spaces
+  
+  if (!mailUser || !mailPass) {
+    console.warn("⚠️ MAIL_USER or MAIL_PASS not configured");
     return null;
   }
+  
   return nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS,
+      user: mailUser,
+      pass: mailPass,
     },
-    pool: true,
-    maxConnections: 3,
   });
 };
 
 // ── Verify on startup ──────────────────────────────────────────────────────────
 export const verifyMailer = async () => {
   if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-    console.error("❌ Mailer: MAIL_USER or MAIL_PASS not set");
+    console.warn("⚠️ Mailer: MAIL_USER or MAIL_PASS not set - emails disabled");
     return;
   }
   try {
     const t = createTransporter();
+    if (!t) return;
     await t.verify();
     console.log(`✅ Mailer ready — sending as ${process.env.MAIL_USER}`);
   } catch (err) {
-    console.error("❌ Mailer connection failed:", err.message);
-    console.error("   → Make sure MAIL_PASS is a Gmail App Password (16 chars)");
+    console.warn("⚠️ Mailer connection failed:", err.message);
+    console.warn("   → Emails will be logged but not sent");
+    console.warn("   → Check MAIL_USER and MAIL_PASS in .env");
   }
 };
 
@@ -125,6 +129,17 @@ export const sendVerificationEmail = async (email, fullname, token, expiry, plai
                style="border:3px solid #e5e7eb;border-radius:10px;
                       display:block;margin:0 auto;"/>
         </div>
+
+        <p style="color:#dc2626;font-size:13px;margin:0 0 12px;">
+          Click the link to activate your account. Expires in 5 days.
+        </p>
+
+        <ol style="color:#4b5563;font-size:13px;margin:0 0 24px;padding:0 0 0 18px;line-height:1.8;">
+          <li>Open your email app</li>
+          <li>Find the email from GrowX</li>
+          <li>Click "Verify My Email"</li>
+          <li>Come back and sign in!</li>
+        </ol>
 
         <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 6px;">
           If you have any questions, feel free to contact us at
@@ -463,4 +478,82 @@ export const sendOtpEmail = async (email, fullname, otp) => {
 </html>`;
 
   await sendEmail({ to: email, subject: "🔑 Your GrowX Password Reset OTP", html });
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 6.  CONTACT FORM NOTIFICATION  — sent to admin when user submits contact form
+// ═══════════════════════════════════════════════════════════════════════════════
+export const sendContactNotificationEmail = async (name, email, message) => {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) {
+    console.error("❌ ADMIN_EMAIL not set in .env");
+    return;
+  }
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background:#f0f2f5;
+             font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+  <div style="max-width:520px;margin:40px auto;padding:0 16px;">
+    <div style="background:#ffffff;border-radius:10px;
+                box-shadow:0 2px 12px rgba(0,0,0,0.08);overflow:hidden;">
+
+      <div style="background:linear-gradient(135deg,#D4A853,#C8884A);
+                  padding:28px;text-align:center;">
+        <h2 style="color:#0A0A0F;margin:0;font-size:22px;font-weight:700;">
+          📬 New Contact Form Submission
+        </h2>
+      </div>
+
+      <div style="padding:32px;">
+        <p style="font-size:15px;font-weight:700;margin:0 0 8px;color:#111827;">
+          You received a new message from:
+        </p>
+
+        <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:0 0 20px;">
+          <p style="margin:0 0 8px;font-size:14px;">
+            <strong style="color:#D4A853;">Name:</strong> &nbsp;${name}
+          </p>
+          <p style="margin:0 0 8px;font-size:14px;">
+            <strong style="color:#D4A853;">Email:</strong> &nbsp;<a href="mailto:${email}" style="color:#7c3aed;">${email}</a>
+          </p>
+          <p style="margin:0;font-size:14px;">
+            <strong style="color:#D4A853;">Date:</strong> &nbsp;${new Date().toLocaleString()}
+          </p>
+        </div>
+
+        <p style="font-size:15px;font-weight:700;margin:0 0 10px;color:#111827;">
+          Message:
+        </p>
+        <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:0 0 24px;">
+          <p style="margin:0;color:#374151;font-size:14px;line-height:1.7;white-space:pre-wrap;">${message}</p>
+        </div>
+
+        <div style="text-align:center;margin:0 0 24px;">
+          <a href="mailto:${email}?subject=Re: GrowX Contact Form Submission"
+             style="display:inline-block;
+                    background:linear-gradient(135deg,#D4A853,#C8884A);
+                    color:#0A0A0F;text-decoration:none;
+                    padding:12px 32px;border-radius:8px;
+                    font-size:14px;font-weight:700;">
+            Reply to ${name}
+          </a>
+        </div>
+
+        <hr style="border:none;border-top:1px solid #f0f0f0;margin-bottom:18px;"/>
+        <p style="color:#6b7280;font-size:13px;margin:0;">
+          <strong>GrowX</strong> — Career Growth Platform
+        </p>
+      </div>
+    </div>
+    <p style="text-align:center;color:#9ca3af;font-size:12px;margin-top:16px;">
+      © ${new Date().getFullYear()} GrowX &nbsp;·&nbsp; Your Career Growth Platform
+    </p>
+  </div>
+</body>
+</html>`;
+
+  await sendEmail({ to: adminEmail, subject: `📬 New Contact: ${name} <${email}>`, html });
 };

@@ -1,214 +1,394 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import axios from 'axios';
+import { motion, AnimatePresence } from 'framer-motion';
+import { API } from '@/config/api';
+import AdminLayout from './AdminLayout';
+import {
+  ArrowLeft, Building2, MapPin, DollarSign, Clock, Users,
+  Briefcase, Calendar, Eye, Edit, Trash2, CheckCircle, XCircle, Loader2,
+  X, Mail, Phone, MapPinned, Link as LinkIcon, FileText, GraduationCap,
+  Award, CalendarDays, ExternalLink
+} from 'lucide-react';
 
-// ── Auth Pages ────────────────────────────────────────────────────────────────
-const Login          = lazy(() => import('../../components/auth/Login'));
-const Signup         = lazy(() => import('../../components/auth/Signup'));
-const VerifyEmail    = lazy(() => import('../../components/auth/VerifyEmail'));
-const ForgotPassword = lazy(() => import('../../components/auth/ForgotPassword'));  // ← ADDED
-const ResetPassword  = lazy(() => import('../../components/auth/ResetPassword'));   // ← ADDED
-const AdminLogin     = lazy(() => import('../../components/auth/AdminLogin'));
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#0D1017",
+  surface: "#151820",
+  surfaceLight: "#1C1F28",
+  card: "#1A1D26",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  goldBorderHover: "rgba(212,168,83,0.3)",
+  white: "#F5F0E6",
+  muted: "#7A7F8A",
+  green: "#10b981",
+  red: "#ef4444",
+};
 
-// ── Public Pages ──────────────────────────────────────────────────────────────
-const Jobs           = lazy(() => import('../../components/Jobs'));
-const Browse         = lazy(() => import('../../components/Browse'));
-const Profile        = lazy(() => import('../../components/Profile'));
-const JobDescription = lazy(() => import('../../components/JobDescription'));
-const JobHome        = lazy(() => import('../../components/JobHome'));
-const ResumeCheck    = lazy(() => import('../../components/ResumeCheck'));
-const NotFound       = lazy(() => import('../../components/PageNot'));
+const Applicants = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [job, setJob] = useState(null);
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedApplicant, setSelectedApplicant] = useState(null);
 
-// ── Admin Pages ───────────────────────────────────────────────────────────────
-const Companies            = lazy(() => import('../../components/admin/Companies'));
-const CompanyCreate        = lazy(() => import('../../components/admin/CompanyCreate'));
-const CompanySetup         = lazy(() => import('../../components/admin/CompanySetup'));
-const AdminJobs            = lazy(() => import('../../components/admin/AdminJobs'));
-const PostJob              = lazy(() => import('../../components/admin/PostJob'));
-const Applicants           = lazy(() => import('../../components/admin/Applicants'));
-const AdminQuizzes         = lazy(() => import('../../components/admin/AdminQuizzes'));
-const CreateQuiz           = lazy(() => import('../../components/admin/CreateQuiz'));
-const EditQuiz             = lazy(() => import('../../components/admin/EditQuiz'));
-const AdminDashboard       = lazy(() => import('../../components/admin/AdminDashboard'));
-const AdminSettings        = lazy(() => import('../../components/admin/AdminSettings'));
-const AdminSaved           = lazy(() => import('../../components/admin/AdminSaved'));
-const AdminUsers           = lazy(() => import('../../components/admin/AdminUsers'));
-const AdminAllJobs         = lazy(() => import('../../components/admin/AdminAllJobs'));
-const AdminAllQuizzes      = lazy(() => import('../../components/admin/AdminAllQuizzes'));
-const AdminAnalytics       = lazy(() => import('../../components/admin/AdminAnalytics'));
-const AdminATS             = lazy(() => import('../../components/admin/AdminATS'));
-const AdminResumes         = lazy(() => import('../../components/admin/AdminResumes'));
-const AdminQuizAccess      = lazy(() => import('../../components/admin/AdminQuizAccess'));
-const AdminJobApplications = lazy(() => import('../../components/admin/AdminJobApplications'));
-const AdminInternships     = lazy(() => import('../../components/admin/AdminInternships'));
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [jobRes, appRes] = await Promise.all([
+          axios.get(`${API.job}/getadminjobs`, { withCredentials: true }),
+          axios.get(`${API.application}/get`, { withCredentials: true })
+        ]);
 
-// ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
-import ProtectedRoute from '../../components/shared/ProtectedRoute';
-import MainLayout     from '../../Layout/MainLayout';
+        const allJobs = jobRes.data.jobs || [];
+        const foundJob = allJobs.find(j => j._id === id);
+        setJob(foundJob);
 
-// ── Feature Pages ─────────────────────────────────────────────────────────────
-const LearningHome      = lazy(() => import('../../pages/HomeLearning'));
-const LearningDashboard = lazy(() => import('../../pages/HomeLearning'));
+        const allApps = appRes.data?.application || [];
+        const jobApps = allApps.filter(app => app.jobId?._id === id || app.job === id);
+        setApplicants(jobApps);
+      } catch (err) {
+        console.error('Failed to fetch data:', err);
+        toast.error('Failed to load job details');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
 
-const Internship      = lazy(() => import('../../pages/Internship'));
-const ATSChecker      = lazy(() => import('../../pages/ATSChecker'));
-const ResumeReview    = lazy(() => import('../../pages/ATSChecker/ResumeReview'));
-const StudyRoadmap    = lazy(() => import('../../pages/Learning/VideoDashboard'));
-const WatchDemo       = lazy(() => import('../../pages/Learning/WatchDemo'));
-const ProblemSlove    = lazy(() => import('../../pages/ProblemSlove'));
-const Category        = lazy(() => import('../../pages/Internship/Category'));
-const QuizHome        = lazy(() => import('../../pages/QuizHome'));
-const QuizDashboard   = lazy(() => import('../../pages/Quiz/QuizDashboard'));
-const QuizTake        = lazy(() => import('../../pages/Quiz/QuizTake'));
-const ResumeTemplates = lazy(() => import('../../pages/Resume/ResumeTemplates'));
-const ResumeBuilder   = lazy(() => import('../../pages/Resume/ResumeBuilder'));
-const ResumeDetails   = lazy(() => import('../../pages/Resume/ResumeDetails'));
-const AllResumes      = lazy(() => import('../../pages/Resume/AllResumes'));
-const EditResume      = lazy(() => import('../../pages/Resume/EditResume'));
-const ResumeHome      = lazy(() => import('../../pages/ResumeHome'));
-const KanbanBoardHome = lazy(() => import('../../pages/KanbanHero'));
-const CreateTask      = lazy(() => import('../../pages/KanbanBoard/Tasks/CreateTask'));
-const KanbanBoard     = lazy(() => import('../../pages/KanbanBoard/Tasks/KanbanBoard'));
-const GetTask         = lazy(() => import('../../pages/KanbanBoard/Tasks/GetTask'));
-const UpdateTask      = lazy(() => import('../../pages/KanbanBoard/Tasks/UpdateTask'));
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'accepted': return { bg: 'rgba(16,185,129,0.15)', color: '#10b981', border: 'rgba(16,185,129,0.3)' };
+      case 'rejected': return { bg: 'rgba(239,68,68,0.15)', color: '#ef4444', border: 'rgba(239,68,68,0.3)' };
+      default: return { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b', border: 'rgba(245,158,11,0.3)' };
+    }
+  };
 
-// ── User Dashboard ────────────────────────────────────────────────────────────
-const UserDashboard      = lazy(() => import('../../components/user/UserDashboard'));
-const QuizDashboardUser  = lazy(() => import('../../components/QuizDashboardUser'));
-const JobDashboardUser   = lazy(() => import('../../components/JobDashboardUser'));
-const SavedJobsDashboard = lazy(() => import('../../components/SavedJobsDashboard'));
+  const handleStatusUpdate = async (appId, status) => {
+    try {
+      const res = await axios.post(`${API.application}/status/${appId}/update`, { status }, { withCredentials: true });
+      if (res.data.success) {
+        setApplicants(prev => prev.map(app => app._id === appId ? { ...app, status } : app));
+        toast.success(`Application ${status}`);
+      }
+    } catch (err) {
+      toast.error('Failed to update status');
+    }
+  };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Page Loader  (shown while lazy chunks are loading)
-// ─────────────────────────────────────────────────────────────────────────────
-const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-purple-50">
-    <div className="text-center">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500
-                      flex items-center justify-center shadow-xl animate-pulse">
-        <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10"
-                  stroke="currentColor" strokeWidth="4" />
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
-        </svg>
-      </div>
-      <div className="flex gap-1.5 justify-center">
-        {[0, 1, 2].map(i => (
-          <div key={i}
-               className="w-2 h-2 rounded-full bg-purple-500 animate-bounce"
-               style={{ animationDelay: `${i * 0.15}s` }} />
-        ))}
-      </div>
-    </div>
-  </div>
-);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Root redirect — admin goes to /admin/dashboard, others see LearningHome
-// ─────────────────────────────────────────────────────────────────────────────
-const RedirectRoot = () => {
-  const { user } = useSelector((state) => state.auth);
-  if (user?.role === 'recruiter' || user?.role === 'admin') {
-    return <Navigate to="/admin/dashboard" replace />;
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="w-8 h-8 animate-spin" style={{ color: C.gold }} />
+        </div>
+      </AdminLayout>
+    );
   }
+
+  if (!job) {
+    return (
+      <AdminLayout>
+        <div className="text-center py-20">
+          <h2 className="text-2xl font-bold mb-4" style={{ color: C.white }}>Job Not Found</h2>
+          <button onClick={() => navigate('/admin/all-jobs')} className="px-6 py-3 rounded-xl" style={{ background: C.gold, color: C.obsidian }}>
+            Back to Jobs
+          </button>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  const ApplicantDetailModal = ({ applicant, onClose }) => {
+    if (!applicant) return null;
+    
+    const statusStyle = getStatusColor(applicant.status);
+    
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.8)' }}
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border"
+            style={{ background: C.card, borderColor: C.goldBorder }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex items-center justify-between p-6 border-b" style={{ background: C.card, borderColor: C.goldBorder }}>
+              <h2 className="text-xl font-bold" style={{ color: C.white }}>Applicant Details</h2>
+              <button onClick={onClose} className="p-2 rounded-xl transition-all hover:scale-110" style={{ background: C.surface, color: C.muted }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="flex items-center gap-4">
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center font-bold text-3xl" style={{ background: C.gold, color: C.obsidian }}>
+                  {applicant.fullName?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-bold" style={{ color: C.white }}>{applicant.fullName || 'Not Provided'}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ background: statusStyle.bg, color: statusStyle.color, border: `1px solid ${statusStyle.border}` }}>
+                      {applicant.status || 'Pending'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: C.surface }}>
+                  <Mail size={18} style={{ color: C.gold }} />
+                  <div>
+                    <p className="text-xs" style={{ color: C.muted }}>Email</p>
+                    <p className="font-medium" style={{ color: C.white }}>{applicant.email || 'Not Provided'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: C.surface }}>
+                  <Phone size={18} style={{ color: C.gold }} />
+                  <div>
+                    <p className="text-xs" style={{ color: C.muted }}>Phone</p>
+                    <p className="font-medium" style={{ color: C.white }}>{applicant.phone || 'Not Provided'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: C.surface }}>
+                  <MapPinned size={18} style={{ color: C.gold }} />
+                  <div>
+                    <p className="text-xs" style={{ color: C.muted }}>Address</p>
+                    <p className="font-medium" style={{ color: C.white }}>{applicant.address || 'Not Provided'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-4 rounded-xl" style={{ background: C.surface }}>
+                  <CalendarDays size={18} style={{ color: C.gold }} />
+                  <div>
+                    <p className="text-xs" style={{ color: C.muted }}>Applied On</p>
+                    <p className="font-medium" style={{ color: C.white }}>
+                      {applicant.createdAt ? new Date(applicant.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Not Provided'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {applicant.skills && applicant.skills.length > 0 && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-3" style={{ color: C.gold }}>
+                    <Award size={16} /> Skills
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {applicant.skills.map((skill, i) => (
+                      <span key={i} className="px-3 py-1.5 rounded-lg text-sm font-medium" style={{ background: C.goldDim, color: C.gold, border: `1px solid ${C.goldBorder}` }}>
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {applicant.experience && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-3" style={{ color: C.gold }}>
+                    <Briefcase size={16} /> Experience
+                  </h4>
+                  <div className="p-4 rounded-xl" style={{ background: C.surface }}>
+                    <p className="whitespace-pre-wrap" style={{ color: C.white }}>{applicant.experience}</p>
+                  </div>
+                </div>
+              )}
+
+              {applicant.education && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-3" style={{ color: C.gold }}>
+                    <GraduationCap size={16} /> Education
+                  </h4>
+                  <div className="p-4 rounded-xl" style={{ background: C.surface }}>
+                    <p className="whitespace-pre-wrap" style={{ color: C.white }}>{applicant.education}</p>
+                  </div>
+                </div>
+              )}
+
+              {applicant.coverLetter && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-3" style={{ color: C.gold }}>
+                    <FileText size={16} /> Cover Letter
+                  </h4>
+                  <div className="p-4 rounded-xl" style={{ background: C.surface }}>
+                    <p className="whitespace-pre-wrap" style={{ color: C.white }}>{applicant.coverLetter}</p>
+                  </div>
+                </div>
+              )}
+
+              {applicant.portfolio && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-3" style={{ color: C.gold }}>
+                    <LinkIcon size={16} /> Portfolio / LinkedIn
+                  </h4>
+                  <a href={applicant.portfolio} target="_blank" rel="noreferrer" 
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:scale-105"
+                    style={{ background: C.surface, color: C.gold, border: `1px solid ${C.goldBorder}` }}>
+                    <ExternalLink size={16} />
+                    {applicant.portfolio}
+                  </a>
+                </div>
+              )}
+
+              {applicant.resume && (
+                <div>
+                  <h4 className="flex items-center gap-2 text-sm font-semibold mb-3" style={{ color: C.gold }}>
+                    <FileText size={16} /> Resume
+                  </h4>
+                  <a href={applicant.resume} target="_blank" rel="noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl transition-all hover:scale-105"
+                    style={{ background: C.gold, color: C.obsidian }}>
+                    <Eye size={16} />
+                    View Resume
+                  </a>
+                </div>
+              )}
+
+              <div className="flex items-center gap-3 pt-4 border-t" style={{ borderColor: C.goldBorder }}>
+                <span className="text-sm" style={{ color: C.muted }}>Update Status:</span>
+                {['Accepted', 'Rejected', 'Pending'].map((status) => {
+                  const s = getStatusColor(status);
+                  const isActive = applicant.status?.toLowerCase() === status.toLowerCase();
+                  return (
+                    <button
+                      key={status}
+                      onClick={() => {
+                        handleStatusUpdate(applicant._id, status);
+                        setSelectedApplicant(prev => ({ ...prev, status }));
+                      }}
+                      className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:scale-105"
+                      style={{
+                        background: isActive ? s.bg : C.surface,
+                        color: isActive ? s.color : C.muted,
+                        border: `1px solid ${isActive ? s.border : C.goldBorder}`,
+                        opacity: isActive ? 1 : 0.7
+                      }}
+                    >
+                      {status}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  };
+
   return (
-    <Suspense fallback={<PageLoader />}>
-      <LearningHome />
-    </Suspense>
+    <AdminLayout>
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <button onClick={() => navigate('/admin/all-jobs')} className="flex items-center gap-2 mb-4 px-4 py-2 rounded-xl transition-all" style={{ background: C.surface, color: C.muted, border: `1px solid ${C.goldBorder}` }}>
+            <ArrowLeft size={16} />
+            Back to Jobs
+          </button>
+
+          <div className="rounded-3xl p-6 border" style={{ background: C.card, borderColor: C.goldBorder }}>
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div className="flex items-center gap-4">
+                {job.company?.logo ? (
+                  <img src={job.company.logo} alt={job.company.name} className="w-16 h-16 rounded-2xl object-cover" />
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: C.gold }}>
+                    <Building2 size={24} className="text-white" />
+                  </div>
+                )}
+                <div>
+                  <h1 className="text-2xl font-bold" style={{ color: C.white }}>{job.title}</h1>
+                  <p className="text-sm" style={{ color: C.muted }}>{job.company?.name}</p>
+                  <div className="flex items-center gap-4 mt-2 text-xs" style={{ color: C.muted }}>
+                    <span className="flex items-center gap-1"><MapPin size={12} /> {job.location}</span>
+                    <span className="flex items-center gap-1"><DollarSign size={12} /> {job.salary}</span>
+                    <span className="flex items-center gap-1"><Briefcase size={12} /> {job.jobType}</span>
+                    <span className="flex items-center gap-1"><Users size={12} /> {job.positionsOpen} positions</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ background: job.status === 'active' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)', color: job.status === 'active' ? C.green : C.red }}>
+                  {job.status?.toUpperCase()}
+                </span>
+                <p className="text-xs mt-2" style={{ color: C.muted }}>{applicants.length} applicants</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Applicants List */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+          <h2 className="text-xl font-bold mb-4" style={{ color: C.white }}>Applicants ({applicants.length})</h2>
+
+          {applicants.length === 0 ? (
+            <div className="text-center py-16 rounded-3xl border" style={{ background: C.card, borderColor: C.goldBorder }}>
+              <Users size={48} className="mx-auto mb-4" style={{ color: C.muted }} />
+              <p style={{ color: C.muted }}>No applicants yet for this job</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {applicants.map((app, index) => {
+                const statusStyle = getStatusColor(app.status);
+                return (
+                  <motion.div key={app._id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}
+                    className="rounded-2xl p-5 border" style={{ background: C.card, borderColor: C.goldBorder }}>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg" style={{ background: C.gold, color: C.obsidian }}>
+                          {app.fullName?.charAt(0)?.toUpperCase() || '?'}
+                        </div>
+                        <div>
+                          <h3 className="font-bold" style={{ color: C.white }}>{app.fullName || 'Unknown'}</h3>
+                          <p className="text-sm" style={{ color: C.muted }}>{app.email}</p>
+                          <p className="text-xs" style={{ color: C.muted }}>{app.phone}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ background: statusStyle.bg, color: statusStyle.color, border: `1px solid ${statusStyle.border}` }}>
+                          {app.status || 'Pending'}
+                        </span>
+                        <button onClick={() => setSelectedApplicant(app)} className="p-2 rounded-lg transition-all hover:scale-110" style={{ background: C.goldDim, color: C.gold, border: `1px solid ${C.goldBorder}` }} title="View Details">
+                          <Eye size={16} />
+                        </button>
+                        {app.status?.toLowerCase() === 'pending' && (
+                          <>
+                            <button onClick={() => handleStatusUpdate(app._id, 'Accepted')} className="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105" style={{ background: C.green, color: 'white' }}>
+                              <CheckCircle size={14} className="inline mr-1" />Accept
+                            </button>
+                            <button onClick={() => handleStatusUpdate(app._id, 'Rejected')} className="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:scale-105" style={{ background: C.red, color: 'white' }}>
+                              <XCircle size={14} className="inline mr-1" />Reject
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+        </motion.div>
+      </div>
+
+      <ApplicantDetailModal applicant={selectedApplicant} onClose={() => setSelectedApplicant(null)} />
+    </AdminLayout>
   );
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Wrap helper — keeps route definitions concise
-// ─────────────────────────────────────────────────────────────────────────────
-const W = ({ children }) => <Suspense fallback={<PageLoader />}>{children}</Suspense>;
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Router
-// ─────────────────────────────────────────────────────────────────────────────
-const router = createBrowserRouter([
-
-  // ── Auth / Public (no layout) ──────────────────────────────────────────────
-  { path: '/login',                    element: <W><Login /></W> },
-  { path: '/signup',                   element: <W><Signup /></W> },
-  { path: '/verify-email/:token',      element: <W><VerifyEmail /></W> },      // ← :token param
-  { path: '/forgot-password',          element: <W><ForgotPassword /></W> },   // ← NEW
-  { path: '/reset-password/:token',    element: <W><ResetPassword /></W> },    // ← NEW
-  { path: '/admin/login',              element: <W><AdminLogin /></W> },
-  { path: '*',                         element: <W><NotFound /></W> },
-
-  // ── Main Layout (Navbar + footer) ─────────────────────────────────────────
-  {
-    path: '/',
-    element: <W><MainLayout /></W>,
-    children: [
-      { index: true,              element: <RedirectRoot /> },
-      { path: 'job',              element: <W><JobHome /></W> },
-      { path: 'joball',           element: <W><Jobs /></W> },
-      { path: 'description/:id', element: <W><JobDescription /></W> },
-      { path: 'browse',           element: <W><Browse /></W> },
-      { path: 'resumeCheck',      element: <W><ResumeCheck /></W> },
-      { path: 'learning',         element: <W><LearningHome /></W> },
-      { path: 'internship',       element: <W><Internship /></W> },
-      { path: 'watchDemo',        element: <W><WatchDemo /></W> },
-      { path: 'quiz',             element: <W><QuizHome /></W> },
-      { path: 'atschecker',       element: <W><ATSChecker /></W> },
-      { path: 'resume',           element: <W><ResumeHome /></W> },
-      { path: 'resume-templates', element: <W><ResumeTemplates /></W> },
-      { path: 'KanbanBoard',      element: <W><KanbanBoardHome /></W> },
-
-      // Protected
-      { path: 'profile',          element: <W><ProtectedRoute><Profile /></ProtectedRoute></W> },
-      { path: 'dashboard',        element: <W><ProtectedRoute><UserDashboard /></ProtectedRoute></W> },
-      { path: 'dashboard/quiz',   element: <W><ProtectedRoute><QuizDashboardUser /></ProtectedRoute></W> },
-      { path: 'dashboard/jobs',   element: <W><ProtectedRoute><JobDashboardUser /></ProtectedRoute></W> },
-      { path: 'dashboard/saved-jobs', element: <W><ProtectedRoute><SavedJobsDashboard /></ProtectedRoute></W> },
-      { path: 'onlineCoding',     element: <W><ProtectedRoute><ProblemSlove /></ProtectedRoute></W> },
-      { path: 'learningVideo',    element: <W><ProtectedRoute><StudyRoadmap /></ProtectedRoute></W> },
-      { path: 'category',         element: <W><ProtectedRoute><Category /></ProtectedRoute></W> },
-      { path: 'quizCategory',     element: <W><ProtectedRoute><QuizDashboard /></ProtectedRoute></W> },
-      { path: 'quiz-dashboard',   element: <W><ProtectedRoute><QuizDashboard /></ProtectedRoute></W> },
-      { path: 'quiz/:id',         element: <W><ProtectedRoute><QuizTake /></ProtectedRoute></W> },
-      { path: 'atschecker/review',element: <W><ProtectedRoute><ResumeReview /></ProtectedRoute></W> },
-      { path: 'resume-builder',   element: <W><ProtectedRoute><ResumeBuilder /></ProtectedRoute></W> },
-      { path: 'resume/:id',       element: <W><ProtectedRoute><ResumeDetails /></ProtectedRoute></W> },
-      { path: 'all-resumes',      element: <W><ProtectedRoute><AllResumes /></ProtectedRoute></W> },
-      { path: 'edit-resume/:id',  element: <W><ProtectedRoute><EditResume /></ProtectedRoute></W> },
-      { path: 'taskForm',         element: <W><ProtectedRoute><CreateTask /></ProtectedRoute></W> },
-      { path: 'Taskkanbanboard',  element: <W><ProtectedRoute><KanbanBoard /></ProtectedRoute></W> },
-      { path: 'getTask/:id?',     element: <W><ProtectedRoute><GetTask /></ProtectedRoute></W> },
-      { path: 'updateTask/:id?',  element: <W><ProtectedRoute><UpdateTask /></ProtectedRoute></W> },
-
-      // Learning Dashboard
-      { path: 'learning-dashboard', element: <W><ProtectedRoute><LearningDashboard /></ProtectedRoute></W> },
-    ],
-  },
-
-  // ── Admin Routes (NO MainLayout — no navbar, no padding) ──────────────────
-  { path: '/admin/dashboard',           element: <W><ProtectedRoute adminOnly><AdminDashboard /></ProtectedRoute></W> },
-  { path: '/admin/companies',           element: <W><ProtectedRoute adminOnly><Companies /></ProtectedRoute></W> },
-  { path: '/admin/companies/create',    element: <W><ProtectedRoute adminOnly><CompanyCreate /></ProtectedRoute></W> },
-  { path: '/admin/companies/:id',       element: <W><ProtectedRoute adminOnly><CompanySetup /></ProtectedRoute></W> },
-  { path: '/admin/jobs',                element: <W><ProtectedRoute adminOnly><AdminJobs /></ProtectedRoute></W> },
-  { path: '/admin/jobs/create',         element: <W><ProtectedRoute adminOnly><PostJob /></ProtectedRoute></W> },
-  { path: '/admin/jobs/:id/applicants', element: <W><ProtectedRoute adminOnly><Applicants /></ProtectedRoute></W> },
-  { path: '/admin/quizzes',             element: <W><ProtectedRoute adminOnly><AdminQuizzes /></ProtectedRoute></W> },
-  { path: '/admin/quizzes/create',      element: <W><ProtectedRoute adminOnly><CreateQuiz /></ProtectedRoute></W> },
-  { path: '/admin/quizzes/edit/:id',    element: <W><ProtectedRoute adminOnly><EditQuiz /></ProtectedRoute></W> },
-  { path: '/admin/settings',            element: <W><ProtectedRoute adminOnly><AdminSettings /></ProtectedRoute></W> },
-  { path: '/admin/saved',               element: <W><ProtectedRoute adminOnly><AdminSaved /></ProtectedRoute></W> },
-  { path: '/admin/users',               element: <W><ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute></W> },
-  { path: '/admin/all-jobs',            element: <W><ProtectedRoute adminOnly><AdminAllJobs /></ProtectedRoute></W> },
-  { path: '/admin/all-quizzes',         element: <W><ProtectedRoute adminOnly><AdminAllQuizzes /></ProtectedRoute></W> },
-  { path: '/admin/analytics',           element: <W><ProtectedRoute adminOnly><AdminAnalytics /></ProtectedRoute></W> },
-  { path: '/admin/ats',                 element: <W><ProtectedRoute adminOnly><AdminATS /></ProtectedRoute></W> },
-  { path: '/admin/resumes',             element: <W><ProtectedRoute adminOnly><AdminResumes /></ProtectedRoute></W> },
-  { path: '/admin/quiz-access',         element: <W><ProtectedRoute adminOnly><AdminQuizAccess /></ProtectedRoute></W> },
-  { path: '/admin/job-applications',    element: <W><ProtectedRoute adminOnly><AdminJobApplications /></ProtectedRoute></W> },
-  { path: '/admin/internships',         element: <W><ProtectedRoute adminOnly><AdminInternships /></ProtectedRoute></W> },
-]);
-
-// ─────────────────────────────────────────────────────────────────────────────
-export default function App() {
-  return <RouterProvider router={router} />;
-}
+export default Applicants;

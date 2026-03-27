@@ -36,8 +36,11 @@ const CertificationSchema = new Schema({
 
 const ResumeSchema = new Schema(
   {
+    title: String,
+    fileUrl: String,
+    fileName: String,
     personalInfo: {
-      fullName: { type: String, required: true },
+      fullName: { type: String },
       title: String,
       email: String,
       phone: String,

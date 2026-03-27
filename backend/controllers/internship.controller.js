@@ -5,7 +5,10 @@ import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
-  auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
+  auth: { 
+    user: process.env.MAIL_USER, 
+    pass: process.env.MAIL_PASS?.replace(/\s/g, '') || '' 
+  },
 });
 
 const uploadToCloudinary = (buffer) =>
@@ -34,10 +37,10 @@ const sendConfirmationEmail = async (to, data) => {
   ].filter(([,,v]) => v);
 
   const steps = [
-    { icon:'✅', num:'01', title:'Application Received',  desc:'Your application is safely stored in our system.',        dot:'#22c55e', bar:'#bbf7d0' },
-    { icon:'🔍', num:'02', title:'Profile Under Review',  desc:'Our team reviews your profile within 1–2 business days.', dot:'#f59e0b', bar:'#fde68a' },
-    { icon:'📞', num:'03', title:'Interview & Selection', desc:'Shortlisted candidates will be contacted for an interview.',dot:'#8b5cf6', bar:'#ddd6fe' },
-    { icon:'🎉', num:'04', title:'Onboarding',            desc:'Selected interns receive their official offer letter.',    dot:'#3b82f6', bar:'#bfdbfe' },
+    { icon:'✅', num:'01', title:'Application Received',  desc:'Your application is safely stored in our system.',        dot:'#D4A853', bar:'rgba(212,168,83,0.2)' },
+    { icon:'🔍', num:'02', title:'Profile Under Review',  desc:'Our team reviews your profile within 1–2 business days.', dot:'#E8C17A', bar:'rgba(232,193,122,0.2)' },
+    { icon:'📞', num:'03', title:'Interview & Selection', desc:'Shortlisted candidates will be contacted for an interview.',dot:'#C8884A', bar:'rgba(200,136,74,0.2)' },
+    { icon:'🎉', num:'04', title:'Onboarding',            desc:'Selected interns receive their official offer letter.',    dot:'#34D399', bar:'rgba(52,211,153,0.2)' },
   ];
 
   const html = `<!DOCTYPE html>
@@ -47,25 +50,25 @@ const sendConfirmationEmail = async (to, data) => {
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Application Confirmed – GrowX</title>
 </head>
-<body style="margin:0;padding:0;background:#0f0f1a;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#0A0A0F;font-family:'Segoe UI',Helvetica,Arial,sans-serif;">
 
 <!-- Outer wrapper -->
-<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0f0f1a;padding:48px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0A0A0F;padding:48px 16px;">
 <tr><td align="center">
 
   <!-- Card -->
   <table width="600" cellpadding="0" cellspacing="0" border="0"
-    style="max-width:600px;width:100%;background:#ffffff;border-radius:24px;overflow:hidden;
-           box-shadow:0 32px 80px rgba(0,0,0,0.5);">
+    style="max-width:600px;width:100%;background:#121218;border-radius:24px;overflow:hidden;
+           box-shadow:0 32px 80px rgba(0,0,0,0.5);border:1px solid rgba(212,168,83,0.15);">
 
     <!-- ═══ HERO HEADER ═══ -->
     <tr>
-      <td style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 40%,#4c1d95 70%,#1e3a8a 100%);
+      <td style="background:linear-gradient(135deg,#1A1A24 0%,#121218 40%,#0A0A0F 100%);
                  padding:0;position:relative;overflow:hidden;">
 
         <!-- top accent line -->
         <table width="100%" cellpadding="0" cellspacing="0"><tr>
-          <td style="height:4px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899,#f59e0b,#22c55e);"></td>
+          <td style="height:4px;background:linear-gradient(90deg,#D4A853,#C8884A,#E8C17A,#B8923F);"></td>
         </tr></table>
 
         <!-- hero content -->
@@ -74,30 +77,30 @@ const sendConfirmationEmail = async (to, data) => {
 
             <!-- logo badge -->
             <table cellpadding="0" cellspacing="0" align="center" style="margin-bottom:28px;">
-              <tr><td style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);
+              <tr><td style="background:rgba(212,168,83,0.1);border:1px solid rgba(212,168,83,0.3);
                             border-radius:16px;padding:12px 24px;">
-                <span style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">Grow<span style="color:#818cf8;">X</span></span>
+                <span style="font-size:22px;font-weight:900;color:#F5F0E6;letter-spacing:-0.5px;">Grow<span style="color:#D4A853;">X</span></span>
               </td></tr>
             </table>
 
             <!-- rocket icon -->
             <div style="font-size:56px;line-height:1;margin-bottom:20px;">🚀</div>
 
-            <h1 style="margin:0 0 12px;font-size:32px;font-weight:900;color:#ffffff;
+            <h1 style="margin:0 0 12px;font-size:32px;font-weight:900;color:#F5F0E6;
                        letter-spacing:-1px;line-height:1.2;">Application Confirmed!</h1>
-            <p style="margin:0 0 24px;font-size:16px;color:#a5b4fc;line-height:1.6;">
-              Your journey to <strong style="color:#e0e7ff;">${data.category}</strong> starts here.
+            <p style="margin:0 0 24px;font-size:16px;color:#A8A099;line-height:1.6;">
+              Your journey to <strong style="color:#D4A853;">${data.category}</strong> starts here.
             </p>
 
             <!-- status pill -->
             <table cellpadding="0" cellspacing="0" align="center">
-              <tr><td style="background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50px;
+              <tr><td style="background:linear-gradient(135deg,#D4A853,#C8884A);border-radius:50px;
                             padding:10px 28px;">
-                <span style="font-size:13px;font-weight:700;color:#ffffff;letter-spacing:0.5px;">✓ &nbsp;UNDER REVIEW</span>
+                <span style="font-size:13px;font-weight:700;color:#0A0A0F;letter-spacing:0.5px;">✓ &nbsp;UNDER REVIEW</span>
               </td></tr>
             </table>
 
-            <p style="margin:20px 0 0;font-size:12px;color:#6366f1;">${date}</p>
+            <p style="margin:20px 0 0;font-size:12px;color:#D4A853;">${date}</p>
           </td>
         </tr></table>
       </td>
@@ -106,10 +109,10 @@ const sendConfirmationEmail = async (to, data) => {
     <!-- ═══ GREETING ═══ -->
     <tr>
       <td style="padding:40px 48px 0;">
-        <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#111827;">Hi ${data.fullName} 👋</p>
-        <p style="margin:0;font-size:15px;color:#6b7280;line-height:1.8;">
+        <p style="margin:0 0 6px;font-size:22px;font-weight:800;color:#F5F0E6;">Hi ${data.fullName} 👋</p>
+        <p style="margin:0;font-size:15px;color:#A8A099;line-height:1.8;">
           Congratulations on taking the first step! We've successfully received your application for the
-          <strong style="color:#4f46e5;"> ${data.category}</strong> internship program at GrowX.
+          <strong style="color:#D4A853;"> ${data.category}</strong> internship program at GrowX.
           Our team will carefully review your profile and get back to you soon.
         </p>
       </td>
@@ -118,7 +121,7 @@ const sendConfirmationEmail = async (to, data) => {
     <!-- ═══ DIVIDER ═══ -->
     <tr><td style="padding:32px 48px 0;">
       <table width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td style="height:1px;background:linear-gradient(90deg,transparent,#e5e7eb,transparent);"></td>
+        <td style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,83,0.3),transparent);"></td>
       </tr></table>
     </td></tr>
 
@@ -129,9 +132,9 @@ const sendConfirmationEmail = async (to, data) => {
         <!-- section label -->
         <table cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
           <tr>
-            <td style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:8px;
+            <td style="background:linear-gradient(135deg,rgba(212,168,83,0.15),rgba(200,136,74,0.15));border:1px solid rgba(212,168,83,0.3);border-radius:8px;
                        padding:6px 14px;">
-              <span style="font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;
+              <span style="font-size:11px;font-weight:700;color:#D4A853;text-transform:uppercase;
                            letter-spacing:1.5px;">📋 Application Summary</span>
             </td>
           </tr>
@@ -139,15 +142,15 @@ const sendConfirmationEmail = async (to, data) => {
 
         <!-- summary table -->
         <table width="100%" cellpadding="0" cellspacing="0"
-          style="border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;">
+          style="border:1px solid rgba(212,168,83,0.15);border-radius:16px;overflow:hidden;">
           ${rows.map(([emoji, label, value], i) => `
-          <tr style="background:${i % 2 === 0 ? '#fafafa' : '#ffffff'};">
-            <td style="padding:14px 20px;width:44%;border-bottom:1px solid #f3f4f6;">
+          <tr style="background:${i % 2 === 0 ? 'rgba(26,26,36,0.5)' : '#121218'};">
+            <td style="padding:14px 20px;width:44%;border-bottom:1px solid rgba(212,168,83,0.1);">
               <span style="font-size:14px;">${emoji}</span>
-              <span style="font-size:13px;font-weight:600;color:#6b7280;margin-left:8px;">${label}</span>
+              <span style="font-size:13px;font-weight:600;color:#A8A099;margin-left:8px;">${label}</span>
             </td>
-            <td style="padding:14px 20px;border-bottom:1px solid #f3f4f6;">
-              <span style="font-size:13px;font-weight:700;color:#111827;">${value}</span>
+            <td style="padding:14px 20px;border-bottom:1px solid rgba(212,168,83,0.1);">
+              <span style="font-size:13px;font-weight:700;color:#F5F0E6;">${value}</span>
             </td>
           </tr>`).join('')}
         </table>
@@ -157,7 +160,7 @@ const sendConfirmationEmail = async (to, data) => {
     <!-- ═══ DIVIDER ═══ -->
     <tr><td style="padding:32px 48px 0;">
       <table width="100%" cellpadding="0" cellspacing="0"><tr>
-        <td style="height:1px;background:linear-gradient(90deg,transparent,#e5e7eb,transparent);"></td>
+        <td style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,83,0.3),transparent);"></td>
       </tr></table>
     </td></tr>
 
@@ -167,9 +170,9 @@ const sendConfirmationEmail = async (to, data) => {
 
         <table cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
           <tr>
-            <td style="background:linear-gradient(135deg,#0ea5e9,#2563eb);border-radius:8px;
+            <td style="background:linear-gradient(135deg,rgba(212,168,83,0.2),rgba(200,136,74,0.2));border:1px solid rgba(212,168,83,0.3);border-radius:8px;
                        padding:6px 14px;">
-              <span style="font-size:11px;font-weight:700;color:#ffffff;text-transform:uppercase;
+              <span style="font-size:11px;font-weight:700;color:#D4A853;text-transform:uppercase;
                            letter-spacing:1.5px;">🗺 What Happens Next?</span>
             </td>
           </tr>
@@ -184,7 +187,7 @@ const sendConfirmationEmail = async (to, data) => {
                 <tr><td align="center">
                   <div style="width:40px;height:40px;border-radius:50%;background:${s.bar};
                               display:inline-block;text-align:center;line-height:40px;
-                              font-size:18px;">${s.icon}</div>
+                              font-size:18px;border:2px solid ${s.dot};">${s.icon}</div>
                 </td></tr>
                 ${i < steps.length-1 ? `<tr><td align="center">
                   <div style="width:2px;height:28px;background:${s.bar};margin:4px auto;"></div>
@@ -194,15 +197,15 @@ const sendConfirmationEmail = async (to, data) => {
             <!-- step content -->
             <td style="padding:8px 0 ${i < steps.length-1 ? '0' : '0'} 16px;vertical-align:top;">
               <table width="100%" cellpadding="0" cellspacing="0"
-                style="background:${i===0 ? 'linear-gradient(135deg,#f0fdf4,#dcfce7)' : '#fafafa'};
-                       border:1px solid ${s.bar};border-radius:12px;overflow:hidden;">
+                style="background:${i===0 ? 'rgba(212,168,83,0.08)' : 'rgba(26,26,36,0.5)'};
+                       border:1px solid rgba(212,168,83,0.2);border-radius:12px;overflow:hidden;">
                 <tr>
                   <td style="padding:14px 18px;">
                     <p style="margin:0 0 3px;font-size:13px;font-weight:800;color:${s.dot};
                                text-transform:uppercase;letter-spacing:0.5px;">
-                      ${s.num} — ${s.title}${i===0 ? ' &nbsp;<span style="background:#22c55e;color:#fff;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;">DONE</span>' : ''}
+                      ${s.num} — ${s.title}${i===0 ? ' &nbsp;<span style="background:#34D399;color:#0A0A0F;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:700;">DONE</span>' : ''}
                     </p>
-                    <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.5;">${s.desc}</p>
+                    <p style="margin:0;font-size:13px;color:#A8A099;line-height:1.5;">${s.desc}</p>
                   </td>
                 </tr>
               </table>
@@ -216,11 +219,11 @@ const sendConfirmationEmail = async (to, data) => {
     <tr>
       <td style="padding:32px 48px 0;">
         <table width="100%" cellpadding="0" cellspacing="0"
-          style="background:linear-gradient(135deg,#fef3c7,#fde68a);border:1px solid #fcd34d;
+          style="background:linear-gradient(135deg,rgba(212,168,83,0.1),rgba(200,136,74,0.1));border:1px solid rgba(212,168,83,0.3);
                  border-radius:16px;overflow:hidden;">
           <tr>
             <td style="padding:20px 24px;">
-              <p style="margin:0 0 8px;font-size:13px;font-weight:800;color:#92400e;
+              <p style="margin:0 0 8px;font-size:13px;font-weight:800;color:#D4A853;
                          text-transform:uppercase;letter-spacing:0.5px;">💡 Pro Tips While You Wait</p>
               <table cellpadding="0" cellspacing="0">
                 ${[
@@ -228,8 +231,8 @@ const sendConfirmationEmail = async (to, data) => {
                   'Work on a small project related to your chosen category.',
                   'Prepare for common interview questions in your domain.',
                   'Check your email regularly — we may reach out anytime!',
-                ].map(tip => `<tr><td style="padding:3px 0;font-size:13px;color:#78350f;line-height:1.5;">
-                  <span style="color:#d97706;font-weight:700;">→</span> &nbsp;${tip}
+                ].map(tip => `<tr><td style="padding:3px 0;font-size:13px;color:#A8A099;line-height:1.5;">
+                  <span style="color:#D4A853;font-weight:700;">→</span> &nbsp;${tip}
                 </td></tr>`).join('')}
               </table>
             </td>
@@ -243,17 +246,17 @@ const sendConfirmationEmail = async (to, data) => {
       <td style="padding:32px 48px 0;text-align:center;">
         <table cellpadding="0" cellspacing="0" align="center">
           <tr>
-            <td style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:14px;
-                       box-shadow:0 8px 24px rgba(79,70,229,0.35);">
+            <td style="background:linear-gradient(135deg,#D4A853,#C8884A);border-radius:14px;
+                       box-shadow:0 8px 24px rgba(212,168,83,0.3);">
               <a href="https://growx.onrender.com" target="_blank"
                 style="display:inline-block;padding:16px 40px;font-size:15px;font-weight:800;
-                       color:#ffffff;text-decoration:none;letter-spacing:0.3px;">
+                       color:#0A0A0F;text-decoration:none;letter-spacing:0.3px;">
                 🌐 &nbsp;Visit GrowX Platform
               </a>
             </td>
           </tr>
         </table>
-        <p style="margin:16px 0 0;font-size:13px;color:#9ca3af;">Explore more opportunities while you wait</p>
+        <p style="margin:16px 0 0;font-size:13px;color:#A8A099;">Explore more opportunities while you wait</p>
       </td>
     </tr>
 
@@ -261,15 +264,15 @@ const sendConfirmationEmail = async (to, data) => {
     <tr>
       <td style="padding:32px 48px 0;">
         <table width="100%" cellpadding="0" cellspacing="0"
-          style="background:#f8faff;border:1px solid #e0e7ff;border-radius:16px;">
+          style="background:rgba(26,26,36,0.8);border:1px solid rgba(212,168,83,0.15);border-radius:16px;">
           <tr>
             <td style="padding:20px 24px;">
-              <p style="margin:0 0 6px;font-size:13px;font-weight:800;color:#4f46e5;
+              <p style="margin:0 0 6px;font-size:13px;font-weight:800;color:#D4A853;
                          text-transform:uppercase;letter-spacing:0.5px;">📬 Need Help?</p>
-              <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.7;">
+              <p style="margin:0;font-size:13px;color:#A8A099;line-height:1.7;">
                 Have questions about your application? Reach out to us at
                 <a href="mailto:${process.env.MAIL_USER}"
-                  style="color:#4f46e5;font-weight:700;text-decoration:none;">
+                  style="color:#D4A853;font-weight:700;text-decoration:none;">
                   ${process.env.MAIL_USER}
                 </a>.
                 We typically respond within 24 hours.
@@ -286,7 +289,7 @@ const sendConfirmationEmail = async (to, data) => {
 
         <!-- divider -->
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;"><tr>
-          <td style="height:1px;background:linear-gradient(90deg,transparent,#e5e7eb,transparent);"></td>
+          <td style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,168,83,0.3),transparent);"></td>
         </tr></table>
 
         <!-- footer content -->
@@ -294,21 +297,21 @@ const sendConfirmationEmail = async (to, data) => {
           <tr>
             <td style="text-align:center;">
               <!-- logo -->
-              <p style="margin:0 0 12px;font-size:20px;font-weight:900;color:#111827;">
-                Grow<span style="color:#4f46e5;">X</span>
+              <p style="margin:0 0 12px;font-size:20px;font-weight:900;color:#F5F0E6;">
+                Grow<span style="color:#D4A853;">X</span>
               </p>
               <!-- tagline -->
-              <p style="margin:0 0 16px;font-size:13px;color:#9ca3af;">Empowering the next generation of tech talent</p>
+              <p style="margin:0 0 16px;font-size:13px;color:#A8A099;">Empowering the next generation of tech talent</p>
               <!-- bottom accent -->
               <table cellpadding="0" cellspacing="0" align="center" style="margin-bottom:16px;">
                 <tr>
-                  <td style="height:3px;width:60px;background:linear-gradient(90deg,#6366f1,#8b5cf6);border-radius:2px;"></td>
+                  <td style="height:3px;width:60px;background:linear-gradient(90deg,#D4A853,#C8884A);border-radius:2px;"></td>
                 </tr>
               </table>
-              <p style="margin:0 0 4px;font-size:12px;color:#d1d5db;">
+              <p style="margin:0 0 4px;font-size:12px;color:#A8A099;">
                 © ${year} GrowX · All rights reserved
               </p>
-              <p style="margin:0;font-size:11px;color:#e5e7eb;">
+              <p style="margin:0;font-size:11px;color:#6b7280;">
                 This is an automated email. Please do not reply directly to this message.
               </p>
             </td>
@@ -319,7 +322,7 @@ const sendConfirmationEmail = async (to, data) => {
 
     <!-- bottom accent line -->
     <tr>
-      <td style="height:5px;background:linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899,#f59e0b,#22c55e);"></td>
+      <td style="height:5px;background:linear-gradient(90deg,#D4A853,#C8884A,#E8C17A,#B8923F);"></td>
     </tr>
 
   </table>
@@ -365,6 +368,7 @@ export const applyInternship = async (req, res) => {
     }
 
     const application = await Internship.create({
+      applicant: req.id,
       fullName, email, phone, gender,
       college, course, year, city, state,
       category, experience, duration,

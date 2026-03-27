@@ -3,6 +3,7 @@ import {
     login,
     logout,
     register,
+    googleAuth,
     verifyEmail,
     resendVerificationEmail,
     forgotPassword,
@@ -13,6 +14,8 @@ import {
     getUserById,
     deleteUser,
     toggleUserStatus,
+    testEmail,
+    verifyUser,
 } from "../controllers/user.controller.js";
 import isAuthenticated from "../middlewares/isAuthenticated.js";
 import multer from "multer";
@@ -25,12 +28,17 @@ const multiUpload = multer({ storage: multer.memoryStorage() }).fields([
 
 const router = express.Router();
 
+// ── Test Email (for debugging) ─────────────────────────────────────────────────
+router.post("/test-email", testEmail);
+
 // ── Auth ───────────────────────────────────────────────────────────────────────
 router.post("/register",                  singleUpload, register);
 router.post("/login",                     login);
+router.post("/google",                    googleAuth);
 router.get ("/verify-email",              verifyEmail);
 router.post("/resend-verification-email", resendVerificationEmail);
 router.get ("/logout",                    logout);
+router.get ("/verify-user", isAuthenticated, verifyUser);
 
 // ── Password Reset (OTP flow) ──────────────────────────────────────────────────
 router.post("/forgot-password",           forgotPassword);  // step 1: send OTP
@@ -42,8 +50,8 @@ router.post("/profile/update", isAuthenticated, multiUpload, updateProfile);
 
 // ── Admin — User Management ────────────────────────────────────────────────────
 router.get   ("/all",                isAuthenticated, getAllUsers);
-router.get   ("/:id",                isAuthenticated, getUserById);
 router.delete("/delete/:id",         isAuthenticated, deleteUser);
 router.patch ("/toggle-status/:id",  isAuthenticated, toggleUserStatus);
+router.get   ("/:id",                isAuthenticated, getUserById);
 
 export default router;

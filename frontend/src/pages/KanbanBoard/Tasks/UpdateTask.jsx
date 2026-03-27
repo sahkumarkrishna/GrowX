@@ -8,10 +8,10 @@ import { IoMdArrowRoundBack } from "react-icons/io";
 const API_URL = import.meta.env.VITE_KANBAN_BOARD_API;
 
 const statusOptions = [
-  { value: "todo", label: "To Do", gradient: "from-blue-500 to-cyan-500", icon: "📋" },
-  { value: "thisweek", label: "This Week", gradient: "from-purple-500 to-pink-500", icon: "📅" },
-  { value: "inprocess", label: "In Process", gradient: "from-orange-500 to-yellow-500", icon: "⚡" },
-  { value: "done", label: "Done", gradient: "from-green-500 to-emerald-500", icon: "✅" },
+  { value: "todo", label: "To Do", gradient: "from-[#D4A853] to-[#C8884A]", icon: "📋" },
+  { value: "thisweek", label: "This Week", gradient: "from-[#C8884A] to-[#E8C17A]", icon: "📅" },
+  { value: "inprocess", label: "In Process", gradient: "from-[#E8C17A] to-[#D4A853]", icon: "⚡" },
+  { value: "done", label: "Done", gradient: "from-[#D4A853] to-[#C8884A]", icon: "✅" },
 ];
 
 export default function UpdateTask() {
@@ -58,23 +58,22 @@ export default function UpdateTask() {
 
   if (!task)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500 text-xl">Loading task...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#0A0A0F]">
+        <p className="text-[#A8A099] text-xl">Loading task...</p>
       </div>
     );
 
   const currentStatus = statusOptions.find(s => s.value === status);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 px-4 py-10 flex justify-center items-center -mt-16 ">
-      {/* Back Button - Absolute Position */}
+    <div className="min-h-screen bg-[#0A0A0F] px-4 py-10 flex justify-center items-center">
       <motion.button
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         whileHover={{ scale: 1.05, x: -5 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => navigate(-1)}
-        className="absolute top-10 left-4 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md z-10 mt-20"
+        className="absolute top-10 left-4 flex items-center gap-2 bg-[#121218] text-[#F5F0E6] px-4 py-2 rounded-xl font-bold hover:bg-[#252532] transition-all shadow-md z-10 border border-[#252532]"
       >
         <IoMdArrowRoundBack size={24} />
         Back
@@ -85,14 +84,13 @@ export default function UpdateTask() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-2xl"
       >
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/50">
-          {/* Header */}
-          <div className={`bg-gradient-to-r ${currentStatus.gradient} p-6 text-white`}>
+        <div className="bg-[#121218] rounded-3xl shadow-2xl overflow-hidden border border-[#252532]">
+          <div className={`bg-gradient-to-r ${currentStatus.gradient} p-6 text-[#0A0A0F]`}>
             <div className="flex items-center gap-3">
               <span className="text-4xl">{currentStatus.icon}</span>
               <div>
                 <h2 className="text-3xl font-black">✏️ Update Task</h2>
-                <p className="text-white/80">Modify task details</p>
+                <p className="text-[#0A0A0F]/80">Modify task details</p>
               </div>
             </div>
           </div>
@@ -101,9 +99,9 @@ export default function UpdateTask() {
             {isEditing ? (
               <div className="space-y-6">
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">Title</label>
+                  <label className="block text-[#F5F0E6] font-bold mb-2">Title</label>
                   <input
-                    className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-all"
+                    className="w-full p-4 rounded-xl border-2 border-[#252532] bg-[#0A0A0F] text-[#F5F0E6] focus:border-[#D4A853] focus:outline-none transition-all"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Enter task title"
@@ -111,9 +109,9 @@ export default function UpdateTask() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-bold mb-2">Description</label>
+                  <label className="block text-[#F5F0E6] font-bold mb-2">Description</label>
                   <textarea
-                    className="w-full p-4 rounded-xl border-2 border-gray-200 focus:border-indigo-500 focus:outline-none transition-all h-32 resize-none"
+                    className="w-full p-4 rounded-xl border-2 border-[#252532] bg-[#0A0A0F] text-[#F5F0E6] focus:border-[#D4A853] focus:outline-none transition-all h-32 resize-none"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Enter task description"
@@ -121,7 +119,7 @@ export default function UpdateTask() {
                 </div>
 
                 <div>
-                  <label className="block text-gray-700 font-bold mb-3">Status</label>
+                  <label className="block text-[#F5F0E6] font-bold mb-3">Status</label>
                   <div className="grid grid-cols-2 gap-3">
                     {statusOptions.map((option) => (
                       <motion.button
@@ -132,8 +130,8 @@ export default function UpdateTask() {
                         whileTap={{ scale: 0.98 }}
                         className={`p-4 rounded-xl font-bold transition-all ${
                           status === option.value
-                            ? `bg-gradient-to-r ${option.gradient} text-white shadow-lg`
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            ? `bg-gradient-to-r ${option.gradient} text-[#0A0A0F] shadow-lg`
+                            : "bg-[#0A0A0F] text-[#F5F0E6] hover:bg-[#252532] border-2 border-[#252532]"
                         }`}
                       >
                         <span className="text-xl mr-2">{option.icon}</span>
@@ -147,7 +145,7 @@ export default function UpdateTask() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`flex-1 bg-gradient-to-r ${currentStatus.gradient} text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all`}
+                    className={`flex-1 bg-gradient-to-r ${currentStatus.gradient} text-[#0A0A0F] py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all`}
                     onClick={handleUpdate}
                   >
                     ✅ Save Changes
@@ -155,7 +153,7 @@ export default function UpdateTask() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="px-6 bg-gray-200 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-300 transition-all"
+                    className="px-6 bg-[#252532] text-[#F5F0E6] py-4 rounded-xl font-bold hover:bg-[#D4A853]/20 transition-all"
                     onClick={() => setIsEditing(false)}
                   >
                     ❌ Cancel
@@ -165,29 +163,29 @@ export default function UpdateTask() {
             ) : (
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Title</p>
-                  <p className="text-xl font-bold text-gray-800">{task.title}</p>
+                  <p className="text-sm text-[#A8A099] mb-1">Title</p>
+                  <p className="text-xl font-bold text-[#F5F0E6]">{task.title}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Description</p>
-                  <p className="text-gray-700">{task.description || "No description"}</p>
+                  <p className="text-sm text-[#A8A099] mb-1">Description</p>
+                  <p className="text-[#F5F0E6]">{task.description || "No description"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Status</p>
-                  <span className={`inline-block bg-gradient-to-r ${currentStatus.gradient} text-white px-4 py-2 rounded-lg font-bold`}>
+                  <p className="text-sm text-[#A8A099] mb-1">Status</p>
+                  <span className={`inline-block bg-gradient-to-r ${currentStatus.gradient} text-[#0A0A0F] px-4 py-2 rounded-lg font-bold`}>
                     {currentStatus.icon} {currentStatus.label}
                   </span>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 mb-1">Created On</p>
-                  <p className="text-gray-700">{formatDate(task.createdAt)}</p>
+                  <p className="text-sm text-[#A8A099] mb-1">Created On</p>
+                  <p className="text-[#F5F0E6]">{formatDate(task.createdAt)}</p>
                 </div>
 
                 <div className="flex gap-3 pt-4">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`flex-1 bg-gradient-to-r ${currentStatus.gradient} text-white py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all`}
+                    className={`flex-1 bg-gradient-to-r ${currentStatus.gradient} text-[#0A0A0F] py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all`}
                     onClick={() => setIsEditing(true)}
                   >
                     ✏️ Edit Task
@@ -195,7 +193,7 @@ export default function UpdateTask() {
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="px-6 bg-gray-200 text-gray-700 py-4 rounded-xl font-bold hover:bg-gray-300 transition-all"
+                    className="px-6 bg-[#252532] text-[#F5F0E6] py-4 rounded-xl font-bold hover:bg-[#D4A853]/20 transition-all"
                     onClick={() => navigate("/getTask")}
                   >
                     ← Back

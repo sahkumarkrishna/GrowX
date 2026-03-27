@@ -1,5 +1,6 @@
 import { Interview } from "../models/Interview.model.js";
 import { QuestionBank } from "../models/Questionbank.model.js";
+import { User } from "../models/user.model.js";
 
 import nodemailer from "nodemailer";
 import crypto from "crypto";
@@ -9,7 +10,10 @@ const transporter = nodemailer.createTransport({
   host: process.env.MAIL_HOST || "smtp.gmail.com",
   port: parseInt(process.env.MAIL_PORT || "587"),
   secure: false,
-  auth: { user: process.env.MAIL_USER, pass: process.env.MAIL_PASS },
+  auth: { 
+    user: process.env.MAIL_USER, 
+    pass: process.env.MAIL_PASS?.replace(/\s/g, '') || '' 
+  },
 });
 
 const sendInterviewEmail = async (to, subject, html) => {
@@ -29,6 +33,17 @@ export const scheduleInterview = async (req, res) => {
       scheduledAt, duration, type, timezone,
       questionIds, enableProctoring, enableRecording,
     } = req.body;
+
+    console.log("Schedule interview request:", { title, candidateId, scheduledAt, type });
+
+    if (!candidateId) {
+      return res.status(400).json({ success: false, message: "Candidate ID is required" });
+    }
+
+    const candidate = await User.findById(candidateId);
+    if (!candidate) {
+      return res.status(404).json({ success: false, message: "Candidate not found" });
+    }
 
     const recruiterId = req.id;
     const roomId = crypto.randomBytes(8).toString("hex");
@@ -68,8 +83,6 @@ export const scheduleInterview = async (req, res) => {
       .populate("recruiter", "fullname email")
       .populate("candidate", "fullname email");
 
-    // Send email
-    const candidate = populated.candidate;
     const recruiter = populated.recruiter;
     const emailHtml = `
       <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto">
@@ -79,18 +92,23 @@ export const scheduleInterview = async (req, res) => {
         <table style="width:100%;border-collapse:collapse">
           <tr><td style="padding:8px;font-weight:bold">Title</td><td>${title}</td></tr>
           <tr><td style="padding:8px;font-weight:bold">Date & Time</td><td>${new Date(scheduledAt).toLocaleString("en-IN")}</td></tr>
-          <tr><td style="padding:8px;font-weight:bold">Duration</td><td>${duration} minutes</td></tr>
-          <tr><td style="padding:8px;font-weight:bold">Type</td><td>${type}</td></tr>
-          <tr><td style="padding:8px;font-weight:bold">Interviewer</td><td>${recruiter.fullname}</td></tr>
+          <tr><td style="padding:8px;font-weight:bold">Duration</td><td>${duration || 60} minutes</td></tr>
+          <tr><td style="padding:8px;font-weight:bold">Type</td><td>${type || "video"}</td></tr>
+          <tr><td style="padding:8px;font-weight:bold">Interviewer</td><td>${recruiter?.fullname || "Recruiter"}</td></tr>
         </table>
-        ${type === "video" ? `<p><a href="${interview.meetingLink}" style="background:#7c3aed;color:white;padding:12px 24px;border-radius:6px;text-decoration:none">Join Interview</a></p>` : ""}
-        <p>Good luck! 🚀</p>
+        ${type === "video" || type === "coding" ? `<p><a href="${interview.meetingLink}" style="background:#7c3aed;color:white;padding:12px 24px;border-radius:6px;text-decoration:none">Join Interview</a></p>` : ""}
+        <p>Good luck!</p>
         <p style="color:#6b7280;font-size:12px">GrowX Platform</p>
       </div>`;
 
-    await sendInterviewEmail(candidate.email, `Interview Scheduled: ${title}`, emailHtml);
-    interview.emailSent = true;
-    await interview.save();
+    try {
+      await sendInterviewEmail(candidate.email, `Interview Scheduled: ${title}`, emailHtml);
+      interview.emailSent = true;
+      await interview.save();
+      console.log(`Interview email sent to ${candidate.email}`);
+    } catch (emailErr) {
+      console.error("Failed to send interview email:", emailErr);
+    }
 
     return res.status(201).json({ success: true, message: "Interview scheduled successfully", interview: populated });
   } catch (err) {
@@ -357,5 +375,50 @@ export const deleteQuestion = async (req, res) => {
     return res.status(200).json({ success: true, message: "Question deleted" });
   } catch (err) {
     return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// ─── Send Message to Candidate ─────────────────────────────────────────────────
+export const sendMessageToCandidate = async (req, res) => {
+  try {
+    const { candidateId, subject, message, interviewId } = req.body;
+    console.log("Send message request:", { candidateId, subject, interviewId });
+
+    if (!candidateId) {
+      return res.status(400).json({ success: false, message: "Candidate ID is required" });
+    }
+
+    const candidate = await User.findById(candidateId);
+    console.log("Found candidate:", candidate ? { id: candidate._id, email: candidate.email, name: candidate.fullname } : null);
+    
+    if (!candidate) {
+      return res.status(404).json({ success: false, message: "Candidate not found" });
+    }
+
+    if (!candidate.email) {
+      return res.status(400).json({ success: false, message: "Candidate email not found" });
+    }
+
+    const emailHtml = `
+      <div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;padding:20px">
+        <div style="background:linear-gradient(135deg,#1e1b4b,#0f172a);padding:30px;border-radius:16px">
+          <h2 style="color:#D4A853;margin-bottom:20px">Message from GrowX</h2>
+          <div style="background:rgba(255,255,255,0.1);padding:20px;border-radius:12px">
+            ${subject ? `<h3 style="color:#ffffff;margin-bottom:15px">${subject}</h3>` : ''}
+            <p style="color:#e2e8f0;line-height:1.8">${message}</p>
+          </div>
+          ${interviewId ? `<p style="color:#94a3b8;font-size:12px;margin-top:20px">Reference: Interview ID ${interviewId}</p>` : ''}
+          <hr style="border-color:rgba(212,168,83,0.3);margin:20px 0">
+          <p style="color:#94a3b8;font-size:12px">Best regards,<br>Team GrowX</p>
+        </div>
+      </div>`;
+
+    await sendInterviewEmail(candidate.email, subject || "Message from GrowX", emailHtml);
+    console.log(`Email sent successfully to ${candidate.email}`);
+
+    return res.status(200).json({ success: true, message: "Message sent successfully" });
+  } catch (err) {
+    console.error("Send message error:", err);
+    return res.status(500).json({ success: false, message: err.message || "Failed to send message" });
   }
 };

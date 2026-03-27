@@ -13,16 +13,33 @@ import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
+import { API } from '@/config/api';
 
-const ATS_API = import.meta.env.VITE_USER_API?.replace('/user', '/ats') || 'http://localhost:8000/api/v1/ats';
-const COLORS  = ['#7c3aed','#2563eb','#059669','#d97706','#dc2626','#0891b2','#7c3aed'];
+const COLORS  = ['#D4A853','#2563eb','#059669','#d97706','#dc2626','#0891b2','#7c3aed'];
+
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#0D1017",
+  surface: "#151820",
+  surfaceLight: "#1C1F28",
+  card: "#1A1D26",
+  cardHover: "#22252F",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  goldBorderHover: "rgba(212,168,83,0.3)",
+  white: "#F5F0E6",
+  muted: "#7A7F8A",
+  dim: "#2A2E3A",
+};
 
 const ScoreRing = ({ score }) => {
   const color = score >= 75 ? '#059669' : score >= 50 ? '#d97706' : '#dc2626';
   return (
     <div className="relative w-14 h-14 flex-shrink-0">
       <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-        <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f1f5f9" strokeWidth="3" />
+        <circle cx="18" cy="18" r="15.9" fill="none" stroke={C.dim} strokeWidth="3" />
         <circle cx="18" cy="18" r="15.9" fill="none" stroke={color} strokeWidth="3"
           strokeDasharray={`${score} 100`} strokeLinecap="round" />
       </svg>
@@ -35,8 +52,8 @@ const ScoreRing = ({ score }) => {
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-3 text-xs">
-      {label && <p className="font-bold text-gray-700 mb-1">{label}</p>}
+    <div className="rounded-2xl shadow-xl p-3 text-xs" style={{ background: C.card, border: `1px solid ${C.goldBorder}` }}>
+      {label && <p className="font-bold mb-1" style={{ color: C.white }}>{label}</p>}
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color }} className="font-semibold">{p.name}: {p.value}</p>
       ))}
@@ -55,7 +72,7 @@ const AdminATS = () => {
 
   const fetchAll = async () => {
     try {
-      const res = await axios.get(`${ATS_API}/all`, { withCredentials: true });
+      const res = await axios.get(`${API.ats}/all`, { withCredentials: true });
       setRecords(res.data.records || []);
     } catch { toast.error('Failed to load ATS records'); }
     finally  { setLoading(false); }
@@ -65,7 +82,7 @@ const AdminATS = () => {
     setDeletingId(id);
     setRecords(prev => prev.filter(r => r._id !== id)); // optimistic
     try {
-      await axios.delete(`${ATS_API}/delete/${id}`, { withCredentials: true });
+      await axios.delete(`${API.ats}/delete/${id}`, { withCredentials: true });
       toast.success('Record deleted');
     } catch {
       toast.error('Delete failed');
@@ -108,8 +125,9 @@ const AdminATS = () => {
   if (loading) return (
     <AdminLayout>
       <div className="flex items-center justify-center h-64">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-blue-500 flex items-center justify-center animate-pulse">
-          <FileSearch className="w-8 h-8 text-white" />
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center animate-pulse"
+          style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.goldLight})` }}>
+          <FileSearch className="w-8 h-8" style={{ color: C.obsidian }} />
         </div>
       </div>
     </AdminLayout>
@@ -122,18 +140,18 @@ const AdminATS = () => {
         {/* ── Hero ── */}
         <motion.div initial={{ opacity:0, y:-16 }} animate={{ opacity:1, y:0 }}>
           <div className="relative overflow-hidden rounded-3xl p-8 shadow-2xl"
-            style={{ background: 'linear-gradient(135deg,#4f46e5 0%,#7c3aed 50%,#2563eb 100%)' }}>
-            <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10"
-              style={{ background:'radial-gradient(circle,#fff,transparent)', transform:'translate(30%,-30%)' }} />
+            style={{ background: `linear-gradient(135deg, ${C.gold}, #C8884A)`, border: `1px solid ${C.goldBorder}` }}>
+            <div className="absolute top-0 right-0 w-72 h-72 rounded-full blur-3xl opacity-20"
+              style={{ background: `radial-gradient(circle, ${C.obsidian}, transparent)`, transform: 'translate(30%,-30%)' }} />
             <div className="relative flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-5">
                 <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-xl"
-                  style={{ background:'rgba(255,255,255,0.2)' }}>
+                  style={{ background:'rgba(255,255,255,0.15)', backdropFilter:'blur(10px)' }}>
                   <FileSearch className="w-9 h-9 text-white" />
                 </div>
                 <div>
                   <h1 className="text-3xl font-black text-white mb-1">ATS Checker Analytics</h1>
-                  <p className="text-indigo-200 text-sm">All user resume analysis records</p>
+                  <p className="text-white/80 text-sm">All user resume analysis records</p>
                   <div className="flex flex-wrap gap-2 mt-3">
                     <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background:'rgba(255,255,255,0.2)', color:'#fff' }}>{records.length} Total Checks</span>
                     <span className="text-xs font-bold px-3 py-1 rounded-full" style={{ background:'rgba(52,211,153,0.25)', color:'#6ee7b7' }}>Avg Score: {avgScore}</span>
@@ -149,20 +167,20 @@ const AdminATS = () => {
         <motion.div initial={{ opacity:0, y:16 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.08 }}
           className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
-            { label:'Total Checks',  value: records.length, icon: FileSearch, g:'from-violet-500 to-indigo-600', bg:'from-violet-50 to-indigo-50', border:'border-violet-100' },
-            { label:'Avg ATS Score', value: avgScore+'%',   icon: TrendingUp, g:'from-blue-500 to-cyan-500',    bg:'from-blue-50 to-cyan-50',    border:'border-blue-100'   },
-            { label:'High Scores',   value: highScores,     icon: Award,      g:'from-emerald-500 to-green-500',bg:'from-emerald-50 to-green-50', border:'border-emerald-100'},
-            { label:'Need Work',     value: lowScores,      icon: Target,     g:'from-rose-500 to-pink-500',    bg:'from-rose-50 to-pink-50',    border:'border-rose-100'   },
+            { label:'Total Checks',  value: records.length, icon: FileSearch, color: C.gold },
+            { label:'Avg ATS Score', value: avgScore+'%',   icon: TrendingUp, color: '#3b82f6' },
+            { label:'High Scores',   value: highScores,     icon: Award,      color: '#10b981' },
+            { label:'Need Work',     value: lowScores,      icon: Target,     color: '#ef4444' },
           ].map((c, i) => (
             <motion.div key={c.label} initial={{ opacity:0, scale:0.9 }} animate={{ opacity:1, scale:1 }}
               transition={{ delay:0.05*i }} whileHover={{ y:-4 }}>
-              <Card className={`border ${c.border} shadow-lg bg-gradient-to-br ${c.bg}`}>
+              <Card className="border shadow-lg" style={{ background: C.card, borderColor: C.goldBorder }}>
                 <CardContent className="p-4">
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${c.g} flex items-center justify-center shadow-md mb-3`}>
-                    <c.icon className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md mb-3" style={{ background: `${c.color}15` }}>
+                    <c.icon className="w-5 h-5" style={{ color: c.color }} />
                   </div>
-                  <p className="text-xs text-gray-500 font-medium mb-1">{c.label}</p>
-                  <p className="text-2xl font-black text-gray-800">{c.value}</p>
+                  <p className="text-xs font-medium mb-1" style={{ color: C.muted }}>{c.label}</p>
+                  <p className="text-2xl font-black" style={{ color: C.white }}>{c.value}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -174,10 +192,10 @@ const AdminATS = () => {
           className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
           {/* Area — monthly */}
-          <Card className="lg:col-span-2 border-0 shadow-xl rounded-3xl overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-violet-50 to-indigo-50 border-b border-violet-100 px-6 py-4">
-              <CardTitle className="flex items-center gap-2 text-sm text-gray-800">
-                <TrendingUp className="w-4 h-4 text-violet-600" /> Monthly ATS Checks
+          <Card className="lg:col-span-2 border-0 shadow-xl rounded-3xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.goldBorder}` }}>
+            <CardHeader className="px-6 py-4 border-b" style={{ background: C.surface, borderColor: C.goldBorder }}>
+              <CardTitle className="flex items-center gap-2 text-sm" style={{ color: C.white }}>
+                <TrendingUp className="w-4 h-4" style={{ color: C.gold }} /> Monthly ATS Checks
               </CardTitle>
             </CardHeader>
             <CardContent className="p-5">
@@ -185,16 +203,16 @@ const AdminATS = () => {
                 <AreaChart data={monthlyData}>
                   <defs>
                     <linearGradient id="atsGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%"  stopColor="#7c3aed" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}    />
+                      <stop offset="5%"  stopColor={C.gold} stopOpacity={0.25} />
+                      <stop offset="95%" stopColor={C.gold} stopOpacity={0}    />
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis dataKey="month" tick={{ fontSize:11, fill:'#9ca3af' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize:11, fill:'#9ca3af' }} axisLine={false} tickLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.dim} />
+                  <XAxis dataKey="month" tick={{ fontSize:11, fill:C.muted }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize:11, fill:C.muted }} axisLine={false} tickLine={false} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="count" stroke="#7c3aed" strokeWidth={3}
-                    fill="url(#atsGrad)" dot={{ fill:'#7c3aed', r:4, stroke:'#fff', strokeWidth:2 }}
+                  <Area type="monotone" dataKey="count" stroke={C.gold} strokeWidth={3}
+                    fill="url(#atsGrad)" dot={{ fill:C.gold, r:4, stroke:C.card, strokeWidth:2 }}
                     activeDot={{ r:7 }} name="Checks" />
                 </AreaChart>
               </ResponsiveContainer>
@@ -202,10 +220,10 @@ const AdminATS = () => {
           </Card>
 
           {/* Pie — score ranges */}
-          <Card className="border-0 shadow-xl rounded-3xl overflow-hidden">
-            <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100 px-6 py-4">
-              <CardTitle className="flex items-center gap-2 text-sm text-gray-800">
-                <BarChart2 className="w-4 h-4 text-emerald-600" /> Score Distribution
+          <Card className="border-0 shadow-xl rounded-3xl overflow-hidden" style={{ background: C.card, border: `1px solid ${C.goldBorder}` }}>
+            <CardHeader className="px-6 py-4 border-b" style={{ background: C.surface, borderColor: C.goldBorder }}>
+              <CardTitle className="flex items-center gap-2 text-sm" style={{ color: C.white }}>
+                <BarChart2 className="w-4 h-4" style={{ color: C.gold }} /> Score Distribution
               </CardTitle>
             </CardHeader>
             <CardContent className="p-5">
@@ -357,22 +375,22 @@ const AdminATS = () => {
                           <motion.div initial={{ height:0, opacity:0 }} animate={{ height:'auto', opacity:1 }}
                             exit={{ height:0, opacity:0 }} transition={{ duration:0.2 }}
                             className="overflow-hidden">
-                            <div className="px-6 pb-5 pt-2 bg-gradient-to-br from-violet-50/50 to-indigo-50/50 border-t border-violet-100">
+                            <div className="px-6 pb-5 pt-2 border-t" style={{ background: C.surface, borderColor: C.goldBorder }}>
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
                                 {/* Sub-scores */}
                                 <div className="space-y-2">
-                                  <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">Sub Scores</p>
+                                  <p className="text-xs font-black uppercase tracking-wider mb-3" style={{ color: C.muted }}>Sub Scores</p>
                                   {[
-                                    ['Formatting',   record.detailedAnalysis?.formatting?.score,   '#7c3aed'],
+                                    ['Formatting',   record.detailedAnalysis?.formatting?.score,   '#D4A853'],
                                     ['Content',      record.detailedAnalysis?.content?.score,      '#2563eb'],
                                     ['Keywords',     record.detailedAnalysis?.keywords?.score,     '#059669'],
                                     ['Readability',  record.detailedAnalysis?.readability?.score,  '#d97706'],
                                     ['Optimization', record.detailedAnalysis?.optimization?.score, '#dc2626'],
                                   ].map(([label, val, color]) => (
                                     <div key={label} className="flex items-center gap-2">
-                                      <span className="text-xs text-gray-500 w-24 flex-shrink-0">{label}</span>
-                                      <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                      <span className="text-xs w-24 flex-shrink-0" style={{ color: C.muted }}>{label}</span>
+                                      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: C.dim }}>
                                         <div className="h-full rounded-full transition-all"
                                           style={{ width:`${val || 0}%`, background: color }} />
                                       </div>

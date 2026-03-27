@@ -1,60 +1,160 @@
-import React, { useState } from 'react'
-import { Label } from '../ui/label'
-import { Input } from '../ui/input'
-import { Button } from '../ui/button'
-import { useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { toast } from 'sonner'
-import { useDispatch } from 'react-redux'
-import { setSingleCompany } from '@/redux/companySlice'
-import { Building2, Sparkles, ArrowRight, Loader2 } from 'lucide-react'
-import { motion } from 'framer-motion'
-import AdminLayout from './AdminLayout'
+import React, { useState, useRef } from 'react';
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'sonner';
+import {
+  Building2, Sparkles, Loader2, Upload, X, Image, Check
+} from 'lucide-react';
+import { motion } from 'framer-motion';
+import AdminLayout from './AdminLayout';
+import { API } from '@/config/api';
 
-const COMPANY_API = import.meta.env.VITE_COMPANY_API;
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#121218",
+  surface: "#1A1A24",
+  surfaceLight: "#252532",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  accent: "#C8884A",
+  goldDim: "rgba(212,168,83,0.08)",
+  goldBorder: "rgba(212,168,83,0.15)",
+  ivory: "#F5F0E6",
+  muted: "#A8A099",
+};
 
 const CompanyCreate = () => {
   const navigate = useNavigate();
-  const [companyName, setCompanyName] = useState('');
+  const fileInputRef = useRef(null);
   const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
+  const [uploading, setUploading] = useState(false);
+  const [formData, setFormData] = useState({
+    companyName: '',
+    logo: ''
+  });
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [dragging, setDragging] = useState(false);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleLogoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await uploadLogo(file);
+    }
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      await uploadLogo(file);
+    }
+  };
+
+  const uploadLogo = async (file) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploading(true);
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = () => {
+      setLogoPreview(reader.result);
+    };
+
+    reader.onerror = () => {
+      toast.error('Failed to read file');
+      setUploading(false);
+      return;
+    };
+
+    try {
+      handleChange('logo', reader.result);
+      toast.success('Logo added successfully');
+    } catch (err) {
+      console.error('Upload error:', err);
+      toast.error('Failed to add logo');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeLogo = () => {
+    setLogoPreview(null);
+    handleChange('logo', '');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const registerNewCompany = async () => {
-    if (!companyName.trim()) return toast.error('Please enter a company name');
+    if (!formData.companyName.trim()) {
+      return toast.error('Please enter a company name');
+    }
+
     try {
       setLoading(true);
-      const res = await axios.post(`${COMPANY_API}/register`, { companyName: companyName.trim() }, { headers: { 'Content-Type': 'application/json' }, withCredentials: true });
+      const payload = {
+        companyName: formData.companyName.trim(),
+        logo: formData.logo || undefined
+      };
+
+      const res = await axios.post(`${API.company}/register`, payload, {
+        headers: { 'Content-Type': 'application/json' },
+        withCredentials: true
+      });
+
       if (res?.data?.success) {
-        dispatch(setSingleCompany(res.data.company));
         toast.success(res.data.message);
-        navigate(`/admin/companies/${res.data.company._id}`);
+        navigate('/admin/jobs/create');
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create company');
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <AdminLayout>
-      <div className="max-w-2xl mx-auto">
-
+      <div className="max-w-3xl mx-auto">
         {/* Hero Banner */}
         <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 shadow-2xl">
-            <div className="absolute top-0 right-0 w-56 h-56 bg-white opacity-5 rounded-full -mr-16 -mt-16" />
-            <div className="absolute bottom-0 left-0 w-40 h-40 bg-white opacity-5 rounded-full -ml-12 -mb-12" />
+          <div className="relative overflow-hidden rounded-3xl p-8 shadow-2xl"
+            style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.accent})`, border: `1px solid ${C.goldBorder}` }}>
+            <div className="absolute top-0 right-0 w-72 h-72 rounded-full blur-3xl opacity-20"
+              style={{ background: `radial-gradient(circle, ${C.obsidian}, transparent)`, transform: 'translate(30%,-30%)' }} />
+            <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full blur-2xl opacity-10"
+              style={{ background: `radial-gradient(circle, ${C.obsidian}, transparent)`, transform: 'translate(-30%,30%)' }} />
             <div className="relative flex items-center gap-5">
-              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-xl flex-shrink-0">
-                <Building2 className="h-9 w-9 text-white" />
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-2xl"
+                style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(10px)' }}>
+                <Building2 className="h-10 w-10 text-white" />
               </div>
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">Admin Panel</span>
+                <div className="flex items-center gap-2 mb-2">
                   <span className="bg-white/20 text-white text-xs px-3 py-1 rounded-full font-medium">New Company</span>
                 </div>
-                <h1 className="text-3xl font-black text-white mb-1">Create Company</h1>
-                <p className="text-purple-200 text-sm flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" />Register your company to start posting jobs
+                <h1 className="text-4xl font-black text-white mb-1">Create Company</h1>
+                <p className="text-white/80 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Add your company to start posting jobs
                 </p>
               </div>
             </div>
@@ -63,50 +163,135 @@ const CompanyCreate = () => {
 
         {/* Form Card */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
+          className="rounded-3xl shadow-2xl border overflow-hidden" style={{ background: C.charcoal, borderColor: C.goldBorder }}>
 
-          <div className="px-8 py-5 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-indigo-50 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
-              <Building2 className="w-4 h-4 text-white" />
+          {/* Logo Upload Section */}
+          <div className="p-8 border-b" style={{ borderColor: C.goldBorder }}>
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${C.gold}, ${C.accent})` }}>
+                <Image className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-bold text-lg" style={{ color: C.ivory }}>Company Logo</p>
+                <p className="text-sm" style={{ color: C.muted }}>Upload your company logo (optional)</p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-gray-800 text-sm">Company Information</p>
-              <p className="text-xs text-gray-500">You can update more details after creation</p>
+
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={handleDrop}
+              className={`relative rounded-3xl border-2 border-dashed transition-all ${
+                dragging ? 'scale-[1.02]' : ''
+              }`}
+              style={{
+                borderColor: dragging ? C.gold : C.goldBorder,
+                background: dragging ? `${C.gold}08` : 'transparent'
+              }}
+            >
+              {logoPreview ? (
+                <div className="relative p-8 flex flex-col items-center">
+                  <div className="relative group">
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      className="w-32 h-32 rounded-2xl object-cover shadow-2xl border-4"
+                      style={{ borderColor: C.gold }}
+                    />
+                    <button
+                      onClick={removeLogo}
+                      className="absolute -top-3 -right-3 w-8 h-8 rounded-full flex items-center justify-center shadow-lg"
+                      style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}
+                    >
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                    {uploading && (
+                      <div className="absolute inset-0 rounded-2xl flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.6)' }}>
+                        <Loader2 className="w-8 h-8 animate-spin" style={{ color: C.gold }} />
+                      </div>
+                    )}
+                  </div>
+                  <p className="mt-4 text-sm" style={{ color: C.muted }}>Click or drag to change</p>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-12 flex flex-col items-center cursor-pointer"
+                >
+                  <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-4" style={{ background: `${C.gold}15` }}>
+                    {uploading ? (
+                      <Loader2 className="w-10 h-10 animate-spin" style={{ color: C.gold }} />
+                    ) : (
+                      <Upload className="w-10 h-10" style={{ color: C.gold }} />
+                    )}
+                  </div>
+                  <p className="font-bold text-lg mb-1" style={{ color: C.ivory }}>
+                    {uploading ? 'Uploading...' : 'Drop your logo here'}
+                  </p>
+                  <p className="text-sm mb-4" style={{ color: C.muted }}>
+                    or click to browse (max 5MB)
+                  </p>
+                  <div className="flex items-center gap-2 text-xs px-4 py-2 rounded-full" style={{ background: C.surface }}>
+                    <Image className="w-4 h-4" style={{ color: C.muted }} />
+                    <span style={{ color: C.muted }}>PNG, JPG, WEBP supported</span>
+                  </div>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="hidden"
+              />
             </div>
           </div>
 
-          <div className="p-8">
-            <div className="space-y-3 mb-8">
-              <Label htmlFor="companyName" className="text-gray-700 font-bold text-sm flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-indigo-50 flex items-center justify-center">
-                  <Building2 className="w-3.5 h-3.5 text-indigo-600" />
-                </span>
-                Company Name
+          {/* Form Fields */}
+          <div className="p-8 space-y-6">
+            {/* Company Name */}
+            <div>
+              <Label className="font-bold text-sm flex items-center gap-2 mb-3" style={{ color: C.ivory }}>
+                <Building2 className="w-5 h-5" style={{ color: C.gold }} />
+                Company Name <span className="text-red-500">*</span>
               </Label>
-              <Input id="companyName" type="text"
-                className="h-14 border-2 border-gray-200 focus:border-indigo-500 rounded-2xl bg-gray-50 focus:bg-white transition-all text-base"
+              <Input
+                value={formData.companyName}
+                onChange={(e) => handleChange('companyName', e.target.value)}
                 placeholder="e.g. Microsoft, Google, Amazon"
-                value={companyName}
-                onChange={e => setCompanyName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && registerNewCompany()}
+                className="h-14 px-5 rounded-2xl border-2 text-base font-semibold"
+                style={{ borderColor: C.goldBorder, background: C.obsidian, color: C.ivory }}
               />
-              <p className="text-xs text-gray-400 flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3" />You can change the name and add more details later
-              </p>
             </div>
+          </div>
 
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => navigate('/admin/companies')}
-                className="flex-1 h-12 rounded-2xl border-2 border-gray-200 hover:border-gray-300 font-semibold text-gray-600">
-                Cancel
-              </Button>
-              <Button onClick={registerNewCompany} disabled={loading}
-                className="flex-1 h-12 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:to-pink-700 font-bold shadow-lg hover:shadow-xl transition-all">
-                {loading
-                  ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating...</>
-                  : <><ArrowRight className="mr-2 h-4 w-4" />Continue</>}
-              </Button>
-            </div>
+          {/* Actions */}
+          <div className="px-8 py-6 border-t flex items-center gap-4" style={{ background: C.obsidian, borderColor: C.goldBorder }}>
+            <Button
+              variant="outline"
+              onClick={() => navigate('/admin/companies')}
+              className="flex-1 h-14 rounded-2xl border-2 font-bold"
+              style={{ borderColor: C.goldBorder, color: C.muted }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={registerNewCompany}
+              disabled={loading || !formData.companyName.trim()}
+              className="flex-1 h-14 rounded-2xl font-bold shadow-lg transition-all"
+              style={{
+                background: `linear-gradient(135deg, ${C.gold}, ${C.accent})`,
+                color: C.obsidian,
+                opacity: loading || !formData.companyName.trim() ? 0.5 : 1
+              }}
+            >
+              {loading ? (
+                <><Loader2 className="mr-2 h-5 w-5 animate-spin" />Creating...</>
+              ) : (
+                <><Check className="mr-2 h-5 w-5" />Create Company</>
+              )}
+            </Button>
           </div>
         </motion.div>
       </div>

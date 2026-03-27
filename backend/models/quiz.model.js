@@ -17,21 +17,15 @@ const quizSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
-        "HTML", "CSS", "JavaScript", "TypeScript", "React", "Angular", "Vue",
-        "Node.js", "Express", "Django", "Spring Boot", "Flask",
-        "MongoDB", "MySQL", "PostgreSQL", "Firebase",
-        "Python", "Java", "C", "C++", "Go", "Rust",
-        "React Native", "Flutter", "Swift", "Kotlin",
-        "Git", "GitHub", "Docker", "Kubernetes",
-        "AWS", "Azure", "GCP",
-        "DSA", "System Design", "OOP", "Database Design",
-        "Other"
+        "Software Development", "Web Development", "Android Development", "Cybersecurity",
+        "UI/UX Design", "Cloud Computing", "Data Science", "Machine Learning",
+        "Java Full Stack Developer", "Python Full Stack Developer", "JS Full Stack Developer",
+        "DevOps", "AI/ML with Python", "Blockchain Developer", "Game Development",
       ],
     },
 
     categoryImage: {
       type: String,
-      required: true,
       default: "",
     },
 

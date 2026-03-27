@@ -1,4 +1,6 @@
 import Resume from "../models/ResumeModel.js";
+import cloudinary from "cloudinary";
+import getDataUri from "../utils/dataUri.js";
 
 // ---------------- CREATE RESUME ----------------
 export const createResume = async (req, res) => {
@@ -8,6 +10,38 @@ export const createResume = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Resume created successfully",
+      data: resume,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ---------------- UPLOAD RESUME ----------------
+export const uploadResume = async (req, res) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    const fileUri = getDataUri(file);
+    const result = await cloudinary.v2.uploader.upload(fileUri.content, {
+      resource_type: "raw",
+      folder: "resumes",
+    });
+
+    const resume = new Resume({
+      user: req.id,
+      title: req.body.title || file.originalname,
+      fileUrl: result.secure_url,
+      fileName: file.originalname,
+    });
+    await resume.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Resume uploaded successfully",
       data: resume,
     });
   } catch (error) {

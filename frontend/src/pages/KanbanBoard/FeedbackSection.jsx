@@ -47,7 +47,7 @@ const testimonials = [
 
 export default function FeedbackSection() {
   return (
-    <section className="py-20 px-6 bg-white">
+    <section className="py-20 px-6 bg-[#0A0A0F]">
       <div className="max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -56,13 +56,10 @@ export default function FeedbackSection() {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <div className="inline-block px-4 py-2 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-full text-indigo-700 font-semibold text-sm mb-4">
-            Testimonials
-          </div>
-          <h2 className="text-4xl md:text-5xl font-black text-gray-800 mb-4">
-            🌟 What Our Users Say
+          <h2 className="text-4xl md:text-5xl font-black text-[#F5F0E6] mb-4">
+            What Our Users Say
           </h2>
-          <p className="text-gray-600 text-lg">Real feedback from real users</p>
+          <p className="text-[#A8A099] text-lg">Real feedback from real users</p>
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -73,31 +70,28 @@ export default function FeedbackSection() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
               viewport={{ once: true }}
-              whileHover={{ y: -8, shadow: "2xl" }}
-              className="bg-gradient-to-br from-white to-gray-50 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all border border-gray-100"
+              whileHover={{ y: -8 }}
+              className="bg-[#121218] rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all border border-[#252532] hover:border-[#D4A853]/50"
             >
-              {/* User Info */}
               <div className="flex items-center gap-4 mb-4">
                 <motion.img
                   src={t.img}
                   alt={t.name}
-                  className="w-14 h-14 rounded-full object-cover border-4 border-indigo-100"
+                  className="w-14 h-14 rounded-full object-cover border-2 border-[#D4A853]/50"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 />
                 <div>
-                  <h3 className="font-bold text-gray-900">{t.name}</h3>
-                  <p className="text-gray-500 text-sm">{t.role}</p>
+                  <h3 className="font-bold text-[#F5F0E6]">{t.name}</h3>
+                  <p className="text-[#A8A099] text-sm">{t.role}</p>
                 </div>
               </div>
 
-              {/* Feedback */}
-              <p className="text-gray-700 mb-4 leading-relaxed italic">
-                “{t.text}”
+              <p className="text-[#A8A099] mb-4 leading-relaxed italic">
+                "{t.text}"
               </p>
 
-              {/* Rating */}
-              <div className="flex text-yellow-400 text-xl">
+              <div className="flex text-[#D4A853] text-xl">
                 {Array.from({ length: 5 }).map((_, idx) => (
                   <motion.span
                     key={idx}

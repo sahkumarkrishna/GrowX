@@ -5,15 +5,15 @@ import StatsSection from "./StatsSection";
 import FeaturesSection from "./FeaturesSection";
 import FeedbackSection from "./FeedbackSection";
 import FAQs from "./FAQ";
+import WatchDemo from "./WatchDemo";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 export default function KanbanHome() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+    <div className="min-h-screen bg-[#0A0A0F]">
       <HeroSection />
       
-      {/* Quick Action Buttons */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -21,17 +21,17 @@ export default function KanbanHome() {
         className="flex justify-center gap-4 px-4 pb-16 flex-wrap"
       >
         <Link to="/taskForm">
-          <button className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all">
+          <button className="bg-gradient-to-r from-[#D4A853] to-[#C8884A] text-[#0A0A0F] px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all">
             ➕ Create Task
           </button>
         </Link>
         <Link to="/Taskkanbanboard">
-          <button className="bg-gradient-to-r from-pink-600 to-rose-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all">
+          <button className="bg-gradient-to-r from-[#C8884A] to-[#E8C17A] text-[#0A0A0F] px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all">
             📊 View Board
           </button>
         </Link>
         <Link to="/getTask">
-          <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all">
+          <button className="bg-gradient-to-r from-[#E8C17A] to-[#D4A853] text-[#0A0A0F] px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all">
             📋 All Tasks
           </button>
         </Link>
@@ -41,6 +41,7 @@ export default function KanbanHome() {
       <StatsSection />
       <FeaturesSection />
       <FeedbackSection />
+      <WatchDemo />
       <FAQs />
     </div>
   );

@@ -117,14 +117,16 @@ export const register = async (req, res) => {
     // the frontend to show the "check your inbox" screen.
     if (existing && !existing.isEmailVerified) {
       const token  = crypto.randomBytes(32).toString("hex");
-      const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const expiry = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
 
       existing.emailVerificationToken  = token;
       existing.emailVerificationExpiry = expiry;
       await existing.save();
 
       console.log(`📧 Re-sending verification to existing unverified user: ${email}`);
-      fireEmail(sendVerificationEmail, email, existing.fullname, token, expiry);
+      if (!isSkipVerification()) {
+        fireEmail(sendVerificationEmail, email, existing.fullname, token, expiry);
+      }
 
       // Return 200 (not 409) so the frontend treats it as success
       // and shows the "check your email" screen
@@ -159,7 +161,7 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const token          = crypto.randomBytes(32).toString("hex");
-    const expiry         = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 h
+    const expiry         = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000); // 24 h
 
     const newUser = await User.create({
       fullname,
@@ -175,8 +177,7 @@ export const register = async (req, res) => {
 
     console.log(`✅ New user registered: ${email} | verified=${newUser.isEmailVerified}`);
 
-    // Always send the email — SKIP_EMAIL_VERIFICATION only allows login without clicking the link
-    // The email is always fired so the user gets a confirmation in their inbox
+    // Always send verification email
     fireEmail(sendVerificationEmail, email, fullname, token, expiry, password);
 
     return res.status(201).json({
@@ -194,6 +195,130 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error("Register Error:", error);
+    return res.status(500).json({ message: "Internal server error.", success: false });
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// GOOGLE AUTH
+// POST /api/v1/user/google
+// ══════════════════════════════════════════════════════════════════════════════
+export const googleAuth = async (req, res) => {
+  try {
+    const { credential, role } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required.", success: false });
+    }
+
+    const FIREBASE_WEB_API_KEY = process.env.FIREBASE_WEB_API_KEY;
+    if (!FIREBASE_WEB_API_KEY) {
+      return res.status(503).json({ message: "Google auth not configured on server.", success: false });
+    }
+
+    let decodedToken;
+    try {
+      const verifyRes = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_WEB_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken: credential }),
+        }
+      );
+      const verifyData = await verifyRes.json();
+      if (!verifyData.users || !verifyData.users[0]) {
+        return res.status(401).json({ message: "Invalid Google credential.", success: false });
+      }
+      const userData = verifyData.users[0];
+      decodedToken = {
+        uid: userData.localId,
+        email: userData.email,
+        name: userData.displayName || userData.email.split("@")[0],
+        picture: userData.photoUrl,
+      };
+    } catch (verifyErr) {
+      console.error("Google token verification failed:", verifyErr.message);
+      return res.status(401).json({ message: "Invalid Google credential.", success: false });
+    }
+
+    const { uid, email, name, picture } = decodedToken;
+    if (!email) {
+      return res.status(400).json({ message: "Google account must have an email.", success: false });
+    }
+
+    let user = await User.findOne({ googleId: uid });
+
+    if (!user) {
+      user = await User.findOne({ email });
+      if (user && user.authProvider === "local") {
+        return res.status(400).json({
+          message: "This email is already registered. Please login with email/password.",
+          success: false,
+        });
+      }
+      if (user && user.authProvider === "google") {
+        user.googleId = uid;
+        await user.save();
+          } else {
+        user = await User.create({
+          fullname: name || email.split("@")[0],
+          email,
+          googleId: uid,
+          authProvider: "google",
+          isEmailVerified: true,
+          role: role || "student",
+          profile: { profilePhoto: picture || "" },
+        });
+        
+        try {
+          await sendWelcomeEmail(user.email, user.fullname);
+          console.log(`📧 Welcome email sent to ${user.email}`);
+        } catch (emailErr) {
+          console.error("Welcome email failed:", emailErr.message);
+        }
+      }
+    }
+
+    // Send welcome email for returning Google users
+    try {
+      await sendWelcomeEmail(user.email, user.fullname);
+      console.log(`📧 Welcome email sent to ${user.email}`);
+    } catch (emailErr) {
+      console.error("Welcome email failed:", emailErr.message);
+    }
+
+    if (role && user.role !== role) {
+      return res.status(400).json({
+        message: `This account is registered as ${user.role}.`,
+        success: false,
+      });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.SECRET_KEY, { expiresIn: "1d" });
+
+    return res
+      .status(200)
+      .cookie("token", token, {
+        maxAge: 5 * 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+        secure: process.env.NODE_ENV === "production",
+      })
+      .json({
+        success: true,
+        message: `Welcome back, ${user.fullname}!`,
+        user: {
+          _id: user._id,
+          fullname: user.fullname,
+          email: user.email,
+          phoneNumber: user.phoneNumber,
+          role: user.role,
+          profile: user.profile,
+          isEmailVerified: user.isEmailVerified,
+        },
+      });
+  } catch (error) {
+    console.error("Google Auth Error:", error);
     return res.status(500).json({ message: "Internal server error.", success: false });
   }
 };
@@ -219,7 +344,9 @@ export const login = async (req, res) => {
     }
 
     // ── Block unverified users — but tell frontend so it can show resend ───────
-    if (!user.isEmailVerified && !isSkipVerification()) {
+    // Skip for admin users
+    const skipVerification = isSkipVerification() || user.role === "admin";
+    if (!user.isEmailVerified && !skipVerification) {
       return res.status(403).json({
         success:     false,
         notVerified: true,          // ← frontend detects this
@@ -242,7 +369,7 @@ export const login = async (req, res) => {
     return res
       .status(200)
       .cookie("token", token, {
-        maxAge:   24 * 60 * 60 * 1000,
+        maxAge:   5 * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
         secure:   process.env.NODE_ENV === "production",
@@ -370,19 +497,21 @@ export const resendVerificationEmail = async (req, res) => {
     }
 
     const token  = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const expiry = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
 
     user.emailVerificationToken  = token;
     user.emailVerificationExpiry = expiry;
     await user.save();
 
-    console.log(`📧 Resending verification to: ${email}`);
-    await sendVerificationEmail(email, user.fullname, token, expiry);
+    if (!isSkipVerification()) {
+      console.log(`📧 Resending verification to: ${email}`);
+      await sendVerificationEmail(email, user.fullname, token, expiry);
+    }
 
     return res.status(200).json({
       success: true,
       email:   user.email,
-      message: "Verification email sent! Check your inbox (and spam folder).",
+      message: "Verification is disabled.",
     });
   } catch (error) {
     console.error("Resend Verification Error:", error);
@@ -636,6 +765,25 @@ export const logout = async (req, res) => {
 };
 
 // ══════════════════════════════════════════════════════════════════════════════
+// VERIFY USER (Check if user is still valid)
+// ══════════════════════════════════════════════════════════════════════════════
+export const verifyUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.id).select("-password");
+    if (!user) {
+      return res.status(401).json({ 
+        message: "User not found or deleted", 
+        success: false 
+      });
+    }
+    return res.status(200).json({ user, success: true });
+  } catch (error) {
+    console.error("Verify User Error:", error);
+    return res.status(500).json({ message: "Internal server error.", success: false });
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
 // GET ALL USERS  (Admin)
 // ══════════════════════════════════════════════════════════════════════════════
 export const getAllUsers = async (req, res) => {
@@ -667,6 +815,11 @@ export const getUserById = async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 export const deleteUser = async (req, res) => {
   try {
+    const adminUser = await User.findById(req.id);
+    if (!adminUser || adminUser.role !== "admin") {
+      return res.status(403).json({ message: "Only admins can delete users.", success: false });
+    }
+
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found.", success: false });
 
@@ -675,11 +828,20 @@ export const deleteUser = async (req, res) => {
     }
 
     if (user.profile?.profilePhoto) {
-      const publicId = user.profile.profilePhoto.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(publicId).catch(() => {});
+      try {
+        const publicId = user.profile.profilePhoto.split("/").pop().split(".")[0];
+        await cloudinary.uploader.destroy(publicId);
+      } catch (cloudErr) {
+        console.error("Cloudinary delete error:", cloudErr.message);
+      }
     }
 
-    await Application.deleteMany({ applicant: user._id });
+    try {
+      await Application.deleteMany({ applicant: user._id });
+    } catch (appErr) {
+      console.error("Application delete error:", appErr.message);
+    }
+
     await User.findByIdAndDelete(req.params.id);
 
     return res.status(200).json({ success: true, message: "User deleted successfully." });
@@ -716,21 +878,28 @@ export const toggleUserStatus = async (req, res) => {
 // ══════════════════════════════════════════════════════════════════════════════
 export const updateProfile = async (req, res) => {
   try {
-    const { fullname, email, phoneNumber, bio, skills } = req.body;
+    const { fullname, email, phoneNumber, bio, skills, role } = req.body;
     const user = await User.findById(req.id);
     if (!user) return res.status(404).json({ message: "User not found.", success: false });
+
+    console.log("Update profile - user role:", user.role, "req.id:", req.id);
+    console.log("Update profile - body:", req.body);
 
     if (fullname)    user.fullname       = fullname;
     if (email)       user.email          = email;
     if (phoneNumber) user.phoneNumber    = phoneNumber;
     if (bio)         user.profile.bio    = bio;
-    if (skills)      user.profile.skills = skills.split(",").map((s) => s.trim());
+    if (skills)      user.profile.skills = typeof skills === 'string' ? skills.split(",").map((s) => s.trim()) : skills;
 
     const photoFile = req.files?.file?.[0];
     if (photoFile) {
       if (user.profile?.profilePhoto) {
-        const oldId = user.profile.profilePhoto.split("/").pop().split(".")[0];
-        await cloudinary.uploader.destroy(oldId).catch(() => {});
+        try {
+          const oldId = user.profile.profilePhoto.split("/").pop().split(".")[0];
+          await cloudinary.uploader.destroy(oldId);
+        } catch (cloudErr) {
+          console.error("Cloudinary photo delete error:", cloudErr.message);
+        }
       }
       const fileUri = getDataUri(photoFile);
       const cloud   = await cloudinary.uploader.upload(fileUri.content, { folder: "profile_photos" });
@@ -763,6 +932,48 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Update Profile Error:", error);
-    return res.status(500).json({ message: "Internal server error.", success: false });
+    return res.status(500).json({ message: error.message || "Internal server error.", success: false });
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════════════════
+// TEST EMAIL  (for debugging)
+// POST /api/v1/user/test-email
+// ══════════════════════════════════════════════════════════════════════════════
+export const testEmail = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required.", success: false });
+    }
+
+    const { sendEmail } = await import("../utils/mailer.js");
+    
+    const testHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h2 style="color: #7c3aed;">🧪 GrowX Email Test</h2>
+        <p>This is a test email to verify your email configuration is working correctly.</p>
+        <p><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
+        <p>If you received this email, your email system is configured correctly! ✅</p>
+      </div>
+    `;
+
+    await sendEmail({
+      to: email,
+      subject: "🧪 GrowX Email Configuration Test",
+      html: testHtml,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Test email sent to ${email}. Check your inbox!`,
+    });
+  } catch (error) {
+    console.error("Test Email Error:", error);
+    return res.status(500).json({ 
+      success: false,
+      message: "Failed to send test email. Check your MAIL_USER and MAIL_PASS configuration.",
+      error: error.message 
+    });
   }
 };

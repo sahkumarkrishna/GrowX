@@ -1,6 +1,9 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { lazy, Suspense } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { verifyUser } from './redux/authSlice';
+import ProtectedRoute from './components/shared/ProtectedRoute';
+import MainLayout from './Layout/MainLayout';
 
 // ── Auth Pages ────────────────────────────────────────────────────────────────
 const Login = lazy(() => import('./components/auth/Login'));
@@ -11,7 +14,6 @@ const AdminLogin = lazy(() => import('./components/auth/AdminLogin'));
 
 // ── Public Pages ──────────────────────────────────────────────────────────────
 const Jobs = lazy(() => import('./components/Jobs'));
-const Browse = lazy(() => import('./components/Browse'));
 const Profile = lazy(() => import('./components/Profile'));
 const JobDescription = lazy(() => import('./components/JobDescription'));
 const JobHome = lazy(() => import('./components/JobHome'));
@@ -22,7 +24,6 @@ const NotFound = lazy(() => import('./components/PageNot'));
 const Companies = lazy(() => import('./components/admin/Companies'));
 const CompanyCreate = lazy(() => import('./components/admin/CompanyCreate'));
 const CompanySetup = lazy(() => import('./components/admin/CompanySetup'));
-const AdminJobs = lazy(() => import('./components/admin/AdminJobs'));
 const PostJob = lazy(() => import('./components/admin/PostJob'));
 const Applicants = lazy(() => import('./components/admin/Applicants'));
 const AdminQuizzes = lazy(() => import('./components/admin/AdminQuizzes'));
@@ -33,36 +34,37 @@ const AdminSettings = lazy(() => import('./components/admin/AdminSettings'));
 const AdminSaved = lazy(() => import('./components/admin/AdminSaved'));
 const AdminUsers = lazy(() => import('./components/admin/AdminUsers'));
 const AdminAllJobs = lazy(() => import('./components/admin/AdminAllJobs'));
+const EditJob = lazy(() => import('./components/admin/EditJob'));
 const AdminAllQuizzes = lazy(() => import('./components/admin/AdminAllQuizzes'));
 const AdminAnalytics = lazy(() => import('./components/admin/AdminAnalytics'));
+const PostInternship = lazy(() => import('./components/admin/PostInternship'));
+const EditInternship = lazy(() => import('./components/admin/EditInternship'));
+const AdminCategories = lazy(() => import('./components/admin/AdminCategories'));
+
+// ── User Pages ───────────────────────────────────────────────────────────────
+const SavedJobsPage = lazy(() => import('./pages/User/SavedJobs'));
 const AdminATS = lazy(() => import('./components/admin/AdminATS'));
 const AdminResumes = lazy(() => import('./components/admin/AdminResumes'));
 const AdminQuizAccess = lazy(() => import('./components/admin/AdminQuizAccess'));
 const AdminJobApplications = lazy(() => import('./components/admin/AdminJobApplications'));
 const AdminInternships = lazy(() => import('./components/admin/AdminInternships'));
+const AdminAIChatHistory = lazy(() => import('./components/admin/AdminAIChatHistory'));
 
-// ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
-import ProtectedRoute from './components/shared/ProtectedRoute';
-import MainLayout from './Layout/MainLayout';
-import InterviewDashboard from './pages/Interview/Interviewdashboard';
-import EvaluateInterview from './pages/Interview/Evaluateinterview';
-import InterviewSchedule from './pages/Interview/Interviewschedule';
-import InterviewPreCheck from './pages/Interview/Interviewprecheck';
-import QuestionBank from './pages/Interview/Questionbank';
-import MyInterviews from './pages/Interview/Myinterviews';
-import InterviewRoom from './pages/Interview/Interviewroom';
+// // ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────
+// import ProtectedRoute from './components/shared/ProtectedRoute';
+// import MainLayout from './Layout/MainLayout';
 
 // ── Feature Pages ─────────────────────────────────────────────────────────────
 const LearningHome = lazy(() => import('./pages/HomeLearning'));
-const LearningDashboard = lazy(() => import('./pages/HomeLearning'));
+
 
 const Internship = lazy(() => import('./pages/Internship'));
 const ATSChecker = lazy(() => import('./pages/ATSChecker'));
 const ResumeReview = lazy(() => import('./pages/ATSChecker/ResumeReview'));
 const StudyRoadmap = lazy(() => import('./pages/Learning/VideoDashboard'));
 const WatchDemo = lazy(() => import('./pages/Learning/WatchDemo'));
-const ProblemSlove = lazy(() => import('./pages/ProblemSlove'));
 const Category = lazy(() => import('./pages/Internship/Category'));
+const InternshipApply = lazy(() => import('./pages/Internship/InternshipApply'));
 const QuizHome = lazy(() => import('./pages/QuizHome'));
 const QuizDashboard = lazy(() => import('./pages/Quiz/QuizDashboard'));
 const QuizTake = lazy(() => import('./pages/Quiz/QuizTake'));
@@ -71,13 +73,13 @@ const ResumeBuilder = lazy(() => import('./pages/Resume/ResumeBuilder'));
 const ResumeDetails = lazy(() => import('./pages/Resume/ResumeDetails'));
 const AllResumes = lazy(() => import('./pages/Resume/AllResumes'));
 const EditResume = lazy(() => import('./pages/Resume/EditResume'));
+
 const ResumeHome = lazy(() => import('./pages/ResumeHome'));
 const KanbanBoardHome = lazy(() => import('./pages/KanbanHero'));
 const CreateTask = lazy(() => import('./pages/KanbanBoard/Tasks/CreateTask'));
 const KanbanBoard = lazy(() => import('./pages/KanbanBoard/Tasks/KanbanBoard'));
 const GetTask = lazy(() => import('./pages/KanbanBoard/Tasks/GetTask'));
 const UpdateTask = lazy(() => import('./pages/KanbanBoard/Tasks/UpdateTask'));
-const InterviewPath = lazy(() => import('./pages/Interviewpath'));
 
 // ── User Dashboard (with sidebar layout) ─────────────────────────────────────
 const UserLayout = lazy(() => import('./components/user/UserLayout'));
@@ -88,16 +90,14 @@ const QuizPage = lazy(() => import('./components/user/QuizPage'));
 const ResumePage = lazy(() => import('./components/user/ResumePage'));
 const InternshipPage = lazy(() => import('./components/user/InternshipPage'));
 const ATSPage = lazy(() => import('./components/user/ATSPage'));
+const JobLanding = lazy(() => import('./pages/Job'));
+const AllJobs = lazy(() => import('./pages/Job/AllJobs'));
 
 
 const UserProfilePage = lazy(() => import('./components/user/UserProfilePage'));
-// Analytics pages
-const InternshipAnalytics = lazy(() => import('./components/user/analytics/Internshipanalytic'));
-const ATSAnalytics = lazy(() => import('./components/user/analytics/Atsanalytics'));
-const QuizAnalytics = lazy(() => import('./components/user/analytics/Quizanalytics'));
-const ResumeAnalytics = lazy(() => import('./components/user/analytics/Resumeanalytics'));
-const DashboardAnalytics = lazy(() => import('./components/user/analytics/Dashboardanalytics'));
-const JobAnalytics = lazy(() => import('./components/user/analytics/Jobanalytics'));
+const KanbanPage = lazy(() => import('./components/user/KanbanPage'));
+const LearningPage = lazy(() => import('./components/user/LearningPage'));
+const CreateInterviewSchedule = lazy(() => import('./pages/KanbanBoard/Tasks/CreateInterviewSchedule'));
 // keep old ones for backward compat
 const QuizDashboardUser = lazy(() => import('./components/QuizDashboardUser'));
 const JobDashboardUser = lazy(() => import('./components/JobDashboardUser'));
@@ -128,8 +128,21 @@ const PageLoader = () => (
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Root redirect — admin goes to /admin/dashboard, others see LearningHome
+// ── Auth Init ────────────────────────────────────────────────────────────────────
+const AuthInit = ({ children }) => {
+  const dispatch = useDispatch();
+  const { user, loading, verified } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (!verified) {
+      dispatch(verifyUser());
+    }
+  }, [dispatch, verified]);
+
+  return children;
+};
+
+// ── Root redirect — admin goes to /admin/dashboard, others see LearningHome
 // ─────────────────────────────────────────────────────────────────────────────
 const RedirectRoot = () => {
   const { user } = useSelector((state) => state.auth);
@@ -167,10 +180,10 @@ const router = createBrowserRouter([
     element: <W><MainLayout /></W>,
     children: [
       { index: true, element: <RedirectRoot /> },
-      { path: 'job', element: <W><JobHome /></W> },
+      { path: 'job', element: <W><JobLanding /></W> },
+      { path: 'jobs', element: <W><AllJobs /></W> },
       { path: 'joball', element: <W><Jobs /></W> },
       { path: 'description/:id', element: <W><JobDescription /></W> },
-      { path: 'browse', element: <W><Browse /></W> },
       { path: 'resumeCheck', element: <W><ResumeCheck /></W> },
       { path: 'learning', element: <W><LearningHome /></W> },
       { path: 'internship', element: <W><Internship /></W> },
@@ -180,17 +193,18 @@ const router = createBrowserRouter([
       { path: 'resume', element: <W><ResumeHome /></W> },
       { path: 'resume-templates', element: <W><ResumeTemplates /></W> },
       { path: 'KanbanBoard', element: <W><KanbanBoardHome /></W> },
-      { path: 'interview', element: <W><InterviewPath /></W> },
 
       // Protected
       { path: 'profile', element: <W><ProtectedRoute><Profile /></ProtectedRoute></W> },
+      { path: 'profile/edit', element: <W><ProtectedRoute><Profile editMode /></ProtectedRoute></W> },
       { path: 'dashboard', element: <W><ProtectedRoute><Navigate to="/user/dashboard" replace /></ProtectedRoute></W> },
       { path: 'dashboard/quiz', element: <W><ProtectedRoute><QuizDashboardUser /></ProtectedRoute></W> },
       { path: 'dashboard/jobs', element: <W><ProtectedRoute><JobDashboardUser /></ProtectedRoute></W> },
-      { path: 'dashboard/saved-jobs', element: <W><ProtectedRoute><SavedJobsDashboard /></ProtectedRoute></W> },
-      { path: 'onlineCoding', element: <W><ProtectedRoute><ProblemSlove /></ProtectedRoute></W> },
+      { path: 'dashboard/saved-jobs', element: <W><ProtectedRoute><SavedJobsPage /></ProtectedRoute></W> },
+      { path: 'saved-jobs', element: <W><ProtectedRoute><SavedJobsPage /></ProtectedRoute></W> },
       { path: 'learningVideo', element: <W><ProtectedRoute><StudyRoadmap /></ProtectedRoute></W> },
       { path: 'category', element: <W><ProtectedRoute><Category /></ProtectedRoute></W> },
+      { path: 'internships/apply', element: <W><ProtectedRoute><InternshipApply /></ProtectedRoute></W> },
       { path: 'quizCategory', element: <W><ProtectedRoute><QuizDashboard /></ProtectedRoute></W> },
       { path: 'quiz-dashboard', element: <W><ProtectedRoute><QuizDashboard /></ProtectedRoute></W> },
       { path: 'quiz/:id', element: <W><ProtectedRoute><QuizTake /></ProtectedRoute></W> },
@@ -203,42 +217,25 @@ const router = createBrowserRouter([
       { path: 'Taskkanbanboard', element: <W><ProtectedRoute><KanbanBoard /></ProtectedRoute></W> },
       { path: 'getTask/:id?', element: <W><ProtectedRoute><GetTask /></ProtectedRoute></W> },
       { path: 'updateTask/:id?', element: <W><ProtectedRoute><UpdateTask /></ProtectedRoute></W> },
-
-      {path: '/interview/dashboard', element: <W><ProtectedRoute><InterviewDashboard /></ProtectedRoute></W> },
-      {path: '/interview/evaluate/:id', element: <W><ProtectedRoute><EvaluateInterview /></ProtectedRoute></W> },
-      {path: '/interview/schedule', element: <W><ProtectedRoute><InterviewSchedule /></ProtectedRoute></W> },
-      {path: '/interview/precheck', element: <W><ProtectedRoute><InterviewPreCheck /></ProtectedRoute></W> },
-      {path:'/interview/questions', element: <W><ProtectedRoute><QuestionBank /></ProtectedRoute></W> },
-      {path:'/interview/my', element: <W><ProtectedRoute><MyInterviews /></ProtectedRoute></W> },
-      {path:'/interview/room/:id', element: <W><ProtectedRoute><InterviewRoom /></ProtectedRoute></W> },
-      {path:'/interview/room', element: <W><ProtectedRoute><InterviewRoom /></ProtectedRoute></W> },
-      {path:'/interview/schedule/:id', element: <W><ProtectedRoute><InterviewSchedule /></ProtectedRoute></W> },
-
-
-
-
     ],
   },
 
   // ── User Dashboard Routes (sidebar layout) ───────────────────────────────────
   {
     path: '/user',
-    element: <W><ProtectedRoute><UserLayout /></ProtectedRoute></W>,
+    element: <W><ProtectedRoute adminOnly={false}><UserLayout /></ProtectedRoute></W>,
     children: [
       { path: 'dashboard', element: <W><UserDashboard /></W> },
       { path: 'quiz', element: <W><QuizPage /></W> },
       { path: 'jobs', element: <W><JobPage /></W> },
+      { path: 'saved-jobs', element: <W><SavedJobsPage /></W> },
       { path: 'resume', element: <W><ResumePage /></W> },
       { path: 'internship', element: <W><InternshipPage /></W> },
       { path: 'ats', element: <W><ATSPage /></W> },
       { path: 'profile', element: <W><UserProfilePage /></W> },
-      // Analytics
-      { path: 'analytics/dashboard', element: <W><DashboardAnalytics /></W> },
-      { path: 'analytics/internship', element: <W><InternshipAnalytics /></W> },
-      { path: 'analytics/ats', element: <W><ATSAnalytics /></W> },
-      { path: 'analytics/quiz', element: <W><QuizAnalytics /></W> },
-      { path: 'analytics/resume', element: <W><ResumeAnalytics /></W> },
-      { path: 'analytics/jobs', element: <W><JobAnalytics /></W> },
+      { path: 'profile/edit', element: <W><Profile editMode /></W> },
+      { path: 'kanban', element: <W><KanbanPage /></W> },
+      { path: 'learning', element: <W><LearningPage /></W> },
     ],
   },
 
@@ -247,19 +244,18 @@ const router = createBrowserRouter([
   { path: '/admin/companies', element: <W><ProtectedRoute adminOnly><Companies /></ProtectedRoute></W> },
   { path: '/admin/companies/create', element: <W><ProtectedRoute adminOnly><CompanyCreate /></ProtectedRoute></W> },
   { path: '/admin/companies/:id', element: <W><ProtectedRoute adminOnly><CompanySetup /></ProtectedRoute></W> },
-  { path: '/admin/jobs', element: <W><ProtectedRoute adminOnly><AdminJobs /></ProtectedRoute></W> },
   { path: '/admin/jobs/create', element: <W><ProtectedRoute adminOnly><PostJob /></ProtectedRoute></W> },
-  {
-    path: "/admin/jobs/:id/applicants",
-    element: <ProtectedRoute adminOnly={true}><Applicants /></ProtectedRoute>
-  },
+  { path: '/admin/all-jobs', element: <W><ProtectedRoute adminOnly><AdminAllJobs /></ProtectedRoute></W> },
+  { path: '/admin/jobs', element: <W><ProtectedRoute adminOnly><AdminAllJobs /></ProtectedRoute></W> },
+  { path: '/admin/jobs/edit/:id', element: <W><ProtectedRoute adminOnly><EditJob /></ProtectedRoute></W> },
+  { path: '/admin/internships/edit/:id', element: <W><ProtectedRoute adminOnly><EditInternship /></ProtectedRoute></W> },
+  { path: '/admin/jobs/:id/applicants', element: <W><ProtectedRoute adminOnly><Applicants /></ProtectedRoute></W> },
   { path: '/admin/quizzes', element: <W><ProtectedRoute adminOnly><AdminQuizzes /></ProtectedRoute></W> },
   { path: '/admin/quizzes/create', element: <W><ProtectedRoute adminOnly><CreateQuiz /></ProtectedRoute></W> },
   { path: '/admin/quizzes/edit/:id', element: <W><ProtectedRoute adminOnly><EditQuiz /></ProtectedRoute></W> },
   { path: '/admin/settings', element: <W><ProtectedRoute adminOnly><AdminSettings /></ProtectedRoute></W> },
   { path: '/admin/saved', element: <W><ProtectedRoute adminOnly><AdminSaved /></ProtectedRoute></W> },
   { path: '/admin/users', element: <W><ProtectedRoute adminOnly><AdminUsers /></ProtectedRoute></W> },
-  { path: '/admin/all-jobs', element: <W><ProtectedRoute adminOnly><AdminAllJobs /></ProtectedRoute></W> },
   { path: '/admin/all-quizzes', element: <W><ProtectedRoute adminOnly><AdminAllQuizzes /></ProtectedRoute></W> },
   { path: '/admin/analytics', element: <W><ProtectedRoute adminOnly><AdminAnalytics /></ProtectedRoute></W> },
   { path: '/admin/ats', element: <W><ProtectedRoute adminOnly><AdminATS /></ProtectedRoute></W> },
@@ -267,9 +263,25 @@ const router = createBrowserRouter([
   { path: '/admin/quiz-access', element: <W><ProtectedRoute adminOnly><AdminQuizAccess /></ProtectedRoute></W> },
   { path: '/admin/job-applications', element: <W><ProtectedRoute adminOnly><AdminJobApplications /></ProtectedRoute></W> },
   { path: '/admin/internships', element: <W><ProtectedRoute adminOnly><AdminInternships /></ProtectedRoute></W> },
+  { path: '/admin/categories', element: <W><ProtectedRoute adminOnly><AdminCategories /></ProtectedRoute></W> },
+  { path: '/admin/ai-chat', element: <W><ProtectedRoute adminOnly><AdminAIChatHistory /></ProtectedRoute></W> },
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <AuthInit>
+      <Suspense fallback={
+        <div className="min-h-screen flex items-center justify-center" style={{ background: '#0A0A0F' }}>
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full border-4 border-transparent animate-spin"
+              style={{ borderBottomColor: '#D4A853', borderTopColor: 'transparent' }} />
+            <p style={{ color: '#F5F0E6' }}>Loading...</p>
+          </div>
+        </div>
+      }>
+        <RouterProvider router={router} />
+      </Suspense>
+    </AuthInit>
+  );
 }

@@ -37,6 +37,7 @@ const seedAdmin = async () => {
       password: hashedPassword,
       role: "admin",
       isActive: true,
+      isEmailVerified: true,
     });
 
     console.log("🔥 Admin created successfully");

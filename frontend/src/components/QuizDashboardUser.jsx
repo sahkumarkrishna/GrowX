@@ -6,13 +6,23 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import axios from 'axios';
+import { API } from '@/config/api';
+
+const C = {
+  obsidian: "#0A0A0F",
+  charcoal: "#0D1017",
+  surface: "#151820",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldBorder: "rgba(212,168,83,0.15)",
+  white: "#F5F0E6",
+  muted: "#7A7F8A",
+};
 
 const QuizDashboardUser = () => {
   const navigate = useNavigate();
   const [quizResults, setQuizResults] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  const RESULT_API = `${import.meta.env.VITE_USER_API?.replace('/user', '/quiz-result') || 'http://localhost:8000/api/v1/quiz-result'}`;
 
   useEffect(() => {
     fetchQuizResults();
@@ -20,7 +30,7 @@ const QuizDashboardUser = () => {
 
   const fetchQuizResults = async () => {
     try {
-      const res = await axios.get(`${RESULT_API}/user`, { withCredentials: true });
+      const res = await axios.get(`${API.quizResult}/user`, { withCredentials: true });
       setQuizResults(res.data.results || []);
     } catch (error) {
       console.error('Failed to fetch quiz results');
@@ -51,19 +61,24 @@ const QuizDashboardUser = () => {
 
   const categoryStats = getCategoryStats();
 
+  const getScoreColor = (percentage) => {
+    if (percentage >= 70) return "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+    if (percentage >= 40) return "bg-amber-500/20 text-amber-400 border border-amber-500/30";
+    return "bg-red-500/20 text-red-400 border border-red-500/30";
+  };
+
   return (
     <div className="space-y-8">
-      {/* Category Performance Section */}
       {categoryStats.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <Card className="shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-t-lg">
-              <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                <Award className="w-6 h-6" />
+          <Card className="shadow-lg" style={{ background: C.charcoal, border: `1px solid ${C.goldBorder}` }}>
+            <CardHeader className="rounded-t-lg" style={{ background: `linear-gradient(135deg, ${C.obsidian} 0%, ${C.surface} 100%)`, borderBottom: `1px solid ${C.goldBorder}` }}>
+              <CardTitle className="text-2xl font-bold flex items-center gap-2" style={{ color: C.white }}>
+                <Award className="w-6 h-6" style={{ color: C.gold }} />
                 Performance by Category
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6" style={{ background: C.charcoal }}>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {categoryStats.map((stat, idx) => (
                   <motion.div
@@ -71,23 +86,25 @@ const QuizDashboardUser = () => {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="border-2 border-indigo-100 rounded-lg p-4 bg-gradient-to-br from-indigo-50 to-purple-50 hover:shadow-lg transition-all"
+                    whileHover={{ scale: 1.02 }}
+                    className="rounded-xl p-4 transition-all"
+                    style={{ background: C.surface, border: `1px solid ${C.goldBorder}` }}
                   >
-                    <h3 className="font-bold text-lg mb-3 text-indigo-900">{stat.category}</h3>
+                    <h3 className="font-bold text-lg mb-3" style={{ color: C.white }}>{stat.category}</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Average:</span>
-                        <Badge className={stat.average >= 70 ? 'bg-green-100 text-green-800' : stat.average >= 50 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}>
+                        <span className="text-sm" style={{ color: C.muted }}>Average:</span>
+                        <Badge className={getScoreColor(stat.average)}>
                           {stat.average}%
                         </Badge>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Best Score:</span>
-                        <span className="font-bold text-indigo-600">{stat.best}%</span>
+                        <span className="text-sm" style={{ color: C.muted }}>Best Score:</span>
+                        <span className="font-bold" style={{ color: C.gold }}>{stat.best}%</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Attempts:</span>
-                        <span className="font-semibold text-gray-700">{stat.attempts}</span>
+                        <span className="text-sm" style={{ color: C.muted }}>Attempts:</span>
+                        <span className="font-semibold" style={{ color: C.white }}>{stat.attempts}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -98,57 +115,60 @@ const QuizDashboardUser = () => {
         </motion.div>
       )}
 
-      {/* Quiz Results Section */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <Card className="shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-t-lg">
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Brain className="w-6 h-6" />
+        <Card className="shadow-lg" style={{ background: C.charcoal, border: `1px solid ${C.goldBorder}` }}>
+          <CardHeader className="rounded-t-lg" style={{ background: `linear-gradient(135deg, ${C.obsidian} 0%, ${C.surface} 100%)`, borderBottom: `1px solid ${C.goldBorder}` }}>
+            <CardTitle className="text-2xl font-bold flex items-center gap-2" style={{ color: C.white }}>
+              <Brain className="w-6 h-6" style={{ color: C.gold }} />
               Quiz Results ({quizResults?.length || 0})
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6" style={{ background: C.charcoal }}>
             {loading ? (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: C.gold }}></div>
               </div>
             ) : !quizResults || quizResults.length === 0 ? (
               <div className="text-center py-12">
-                <Brain className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No quiz attempts yet</p>
-                <Button onClick={() => navigate('/quiz-dashboard')} className="mt-4 bg-purple-600">
+                <Brain className="w-16 h-16 mx-auto mb-4" style={{ color: C.muted }} />
+                <p className="text-lg" style={{ color: C.muted }}>No quiz attempts yet</p>
+                <Button onClick={() => navigate('/quiz-dashboard')} className="mt-4" style={{ background: C.gold, color: C.obsidian }}>
                   Take a Quiz
                 </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {quizResults.map((result) => (
+                {quizResults.map((result, idx) => (
                   <motion.div
                     key={result._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.1 }}
                     whileHover={{ scale: 1.02 }}
-                    className="border-2 border-purple-100 rounded-lg p-4 hover:shadow-lg transition-all bg-gradient-to-br from-purple-50 to-pink-50"
+                    className="rounded-xl p-4 transition-all"
+                    style={{ background: C.surface, border: `1px solid ${C.goldBorder}` }}
                   >
-                    <h3 className="font-bold text-lg mb-2">{result?.quiz?.title}</h3>
+                    <h3 className="font-bold text-lg mb-2" style={{ color: C.white }}>{result?.quiz?.title}</h3>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Score:</span>
-                        <span className="font-bold text-purple-600 text-xl">{result.score}/{result.totalMarks}</span>
+                        <span className="text-sm" style={{ color: C.muted }}>Score:</span>
+                        <span className="font-bold text-xl" style={{ color: C.gold }}>{result.score}/{result.totalMarks}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Percentage:</span>
-                        <Badge className={result.percentage >= 70 ? 'bg-green-100 text-green-800' : result.percentage >= 40 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}>
+                        <span className="text-sm" style={{ color: C.muted }}>Percentage:</span>
+                        <Badge className={getScoreColor(result.percentage)}>
                           {result.percentage}%
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm" style={{ color: C.muted }}>
                         <Clock className="w-4 h-4" />
                         {Math.floor(result.timeTaken / 60)}m {result.timeTaken % 60}s
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm" style={{ color: C.muted }}>
                         <Calendar className="w-4 h-4" />
                         {new Date(result.createdAt).toLocaleDateString()}
                       </div>
-                      <Badge variant="outline" className="mt-2">{result?.quiz?.category}</Badge>
+                      <Badge style={{ borderColor: C.gold, color: C.gold, background: 'transparent' }} variant="outline" className="mt-2">{result?.quiz?.category}</Badge>
                     </div>
                   </motion.div>
                 ))}

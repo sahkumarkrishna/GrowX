@@ -3,6 +3,22 @@ import { Job } from "../models/job.model.js";
 import getDataUri from "../utils/datauri.js";
 import cloudinary from "../utils/cloudinary.js";
 
+export const getAllCompanies = async (req, res) => {
+    try {
+        const companies = await Company.find().sort({ createdAt: -1 });
+        return res.status(200).json({
+            companies,
+            success: true
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            message: "Internal server error",
+            success: false
+        });
+    }
+};
+
 export const registerCompany = async (req, res) => {
     try {
         const { companyName } = req.body;

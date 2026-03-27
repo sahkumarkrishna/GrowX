@@ -1,37 +1,33 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { IoMdArrowRoundBack } from "react-icons/io";
-import { useNavigate } from "react-router-dom";
 import HeroSection from "./HeroSection";
 import About from "./About";
 import StatsSection from "./StatsSection";
-import Features from "./Features";
-import WhyChoose from "./WhyChoose";
 import FeedbackSection from "./FeedbackSection";
-import FAQ from "./Frequently Asked Questions";
+import FAQSection from "./FAQSection";
+
+const T = {
+  obsidian: "#0A0A0F",
+  charcoal: "#121218",
+  surface: "#1A1A24",
+  surfaceLight: "#252532",
+  gold: "#D4A853",
+  goldLight: "#E8C17A",
+  goldDark: "#B8923F",
+  ivory: "#F5F0E6",
+  ivoryMuted: "#A8A099",
+  accent: "#C8884A",
+  accentGlow: "rgba(212,168,83,0.12)",
+  gradient1: "#667eea",
+  gradient2: "#764ba2",
+};
 
 export default function ResumeHome() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 -mt-16">
-      {/* Back Button */}
-      <motion.button
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        whileHover={{ scale: 1.05, x: -5 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => navigate(-1)}
-        className="ml-6 mt-6 flex items-center gap-2 bg-white text-gray-800 px-4 py-2 rounded-xl font-bold hover:bg-gray-100 transition-all shadow-md"
-      >
-        <IoMdArrowRoundBack size={24} />
-        Back
-      </motion.button>
-
+    <div className="min-h-screen" style={{ background: `linear-gradient(135deg,${T.obsidian} 0%,${T.charcoal} 50%,${T.obsidian} 100%)` }}>
       <HeroSection />
       
-      {/* Quick Action Buttons */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -40,39 +36,40 @@ export default function ResumeHome() {
       >
         <Link to="/resume-builder">
           <motion.button 
-            whileHover={{ scale: 1.05, y: -2 }}
+            whileHover={{ scale: 1.05, y: -2, boxShadow: "0 10px 40px rgba(212,168,83,0.3)" }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all"
+            className="px-8 py-4 rounded-xl font-bold shadow-lg transition-all"
+            style={{ background: `linear-gradient(135deg,${T.gold},${T.accent})`, color: T.obsidian }}
           >
-            ✍️ Create Resume
+            Create Resume
           </motion.button>
         </Link>
         <Link to="/all-resumes">
           <motion.button 
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-pink-600 to-orange-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all"
+            className="px-8 py-4 rounded-xl font-bold shadow-lg transition-all"
+            style={{ background: 'rgba(26,26,36,0.9)', color: '#F5F0E6', border: '1px solid rgba(212,168,83,0.3)' }}
           >
-            📄 My Resumes
+            My Resumes
           </motion.button>
         </Link>
         <Link to="/resume-templates">
           <motion.button 
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-orange-600 to-yellow-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-2xl transition-all"
+            className="px-8 py-4 rounded-xl font-bold shadow-lg transition-all"
+            style={{ background: 'rgba(26,26,36,0.9)', color: '#F5F0E6', border: '1px solid rgba(212,168,83,0.3)' }}
           >
-            🎨 Templates
+            Templates
           </motion.button>
         </Link>
       </motion.div>
 
       <About />
       <StatsSection />
-      <Features />
-      <WhyChoose />
       <FeedbackSection />
-      <FAQ />
+      <FAQSection />
     </div>
   );
 }

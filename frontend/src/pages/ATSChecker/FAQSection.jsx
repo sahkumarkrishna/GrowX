@@ -16,21 +16,21 @@ export default function FAQSection() {
   ];
 
   return (
-    <section className="py-20 px-4 bg-white">
+    <section className="py-20 px-4 bg-[#0A0A0F]">
       <div className="max-w-4xl mx-auto">
         <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-gray-900">Frequently Asked <span className="text-blue-600">Questions</span></h2>
-          <p className="text-xl text-gray-600">Everything you need to know about our resume checker</p>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-[#F5F0E6]">Frequently Asked <span className="text-[#D4A853]">Questions</span></h2>
+          <p className="text-xl text-[#A8A099]">Everything you need to know about our resume checker</p>
         </motion.div>
 
         <div className="space-y-4">
           {faqs.map((faq, idx) => (
-            <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl overflow-hidden border-2 border-blue-100 hover:border-blue-300 transition-all hover:shadow-lg">
+            <motion.div key={idx} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: idx * 0.05 }} className="bg-[#121218] rounded-2xl overflow-hidden border border-[#252532] hover:border-[#D4A853]/50 transition-all hover:shadow-lg hover:shadow-[#D4A853]/10">
               <button onClick={() => setOpen(open === idx ? -1 : idx)} className="w-full p-6 flex items-center justify-between text-left">
-                <span className="font-semibold text-lg text-gray-900 pr-4">{faq.q}</span>
-                <ChevronDown className={`text-blue-600 transition-transform flex-shrink-0 ${open === idx ? 'rotate-180' : ''}`} size={24} />
+                <span className="font-semibold text-lg text-[#F5F0E6] pr-4">{faq.q}</span>
+                <ChevronDown className={`text-[#D4A853] transition-transform flex-shrink-0 ${open === idx ? 'rotate-180' : ''}`} size={24} />
               </button>
-              {open === idx && <div className="px-6 pb-6 text-gray-700 leading-relaxed">{faq.a}</div>}
+              {open === idx && <div className="px-6 pb-6 text-[#A8A099] leading-relaxed border-t border-[#252532]">{faq.a}</div>}
             </motion.div>
           ))}
         </div>

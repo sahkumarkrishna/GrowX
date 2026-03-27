@@ -17,7 +17,9 @@ const EVENTS = {
  * @param {object} data - Payload to send
  */
 const emitEvent = (io, eventName, data) => {
-  io.emit(eventName, data);
+  if (io && typeof io.emit === "function") {
+    io.emit(eventName, data);
+  }
 };
 
 export { EVENTS, emitEvent };

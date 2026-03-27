@@ -9,8 +9,12 @@ import { fileURLToPath } from "url";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
+// ── __dirname fix for ES modules ───────────────────────────────────────────────
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
+
 // ── Load env vars FIRST — before any other local imports ──────────────────────
-dotenv.config({ path: "../.env" });
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 import admin from "firebase-admin";
 if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
@@ -46,10 +50,6 @@ import atsAnalysisRoute  from "./routes/atsAnalysis.route.js";
 import internshipRoute   from "./routes/internship.route.js";
 import aiChatRoute      from "./routes/aiChat.route.js";
 import categoryRoute    from "./routes/category.route.js";
-
-// ── __dirname fix for ES modules ───────────────────────────────────────────────
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
 
 const app = express();
 
@@ -173,7 +173,7 @@ app.use((err, req, res, next) => {
 });
 
 // ── Start ──────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 200;
+const PORT = process.env.PORT || 7000;
 
 server.listen(PORT, async () => {
     await connectDB();

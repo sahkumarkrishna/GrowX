@@ -9,12 +9,7 @@
 
 ### Step 1: Push to GitHub
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin <your-github-repo-url>
-git push -u origin main
+git push origin main
 ```
 
 ### Step 2: Deploy on Render
@@ -33,29 +28,35 @@ git push -u origin main
    - **Runtime:** Node
    - **Build Command:** 
      ```
-     npm install --prefix backend && npm install --prefix frontend && npm run build --prefix frontend
+     npm install && npm run build
      ```
    - **Start Command:** 
      ```
-     npm start --prefix backend
+     npm start
      ```
    - **Plan:** Free
 
 5. **Add Environment Variables:**
    Click "Advanced" → "Add Environment Variable"
    
-   Add these variables from your `backend/.env`:
+   Add these variables:
    ```
-   PORT=8000
+   PORT=3000
    NODE_ENV=production
-   MONGO_URI=<your-mongodb-atlas-uri>
-   SECRET_KEY=<your-secret-key>
-   CLOUD_NAME=<your-cloudinary-name>
-   API_KEY=<your-cloudinary-api-key>
-   API_SECRET=<your-cloudinary-api-secret>
-   ADMIN_EMAIL=<your-admin-email>
-   ADMIN_PASSWORD=<your-admin-password>
-   FRONTEND_URL=https://growx.onrender.com
+   SKIP_EMAIL_VERIFICATION=false
+   MONGO_URI=mongodb+srv://kumarkrishna9801552_db_user:krishna%40123@cluster0.qi6qtnh.mongodb.net/GrowX?retryWrites=true&w=majority
+   SECRET_KEY=jvfudshfueh947ry3498rg349r734gbf9gvfgbf80f
+   CLOUD_NAME=dshwzxrf7
+   API_KEY=715755839549288
+   API_SECRET=_1FiTBFQxm4xuVz9Q8f-gLPmFM4
+   MAIL_USER=kumarkrishna9801552@gmail.com
+   MAIL_PASS=vjxuzwutooilzpwm
+   MAIL_HOST=smtp.gmail.com
+   MAIL_PORT=587
+   ADMIN_EMAIL=kumarkrishna9801552@gmail.com
+   ADMIN_PASSWORD=Krishna@123
+   FRONTEND_URL=https://growx-platform.onrender.com
+   FIREBASE_WEB_API_KEY=AIzaSyAVOgOZmr-W4aPugSzOhDC3QuQGiCFhyxI
    ```
 
 6. **Click "Create Web Service"**
@@ -63,22 +64,17 @@ git push -u origin main
 ### Step 3: Wait for Deployment
 - Render will automatically build and deploy your app
 - First deployment takes 5-10 minutes
-- You'll get a URL like: `https://growx.onrender.com`
+- You'll get a URL like: `https://growx-platform.onrender.com`
 
-### Step 4: Update Frontend URLs (if needed)
-If your Render URL is different, update `frontend/.env.production`:
-```env
-VITE_USER_API=https://your-app-name.onrender.com/api/v1/user
-# ... update all other URLs
-```
+### Step 4: Important - Gmail App Password
+For emails to work, you need a Gmail App Password:
+1. Enable 2FA on your Google account
+2. Go to: https://myaccount.google.com/apppasswords
+3. Create a new App Password
+4. Update MAIL_PASS in Render with the 16-character app password
 
-### Step 5: Create Admin User
-After deployment, run the seed script once:
-```bash
-# SSH into Render or use Render Shell
-cd backend
-node seedAdmin.js
-```
+### Step 5: Verify Email Sending
+Test with: `POST /api/v1/user/test-email` with body `{ "email": "test@example.com" }`
 
 ## 📝 Important Notes
 
@@ -92,37 +88,20 @@ node seedAdmin.js
 2. Use connection string with password encoded
 3. Enable "Connect from anywhere" in Network Access
 
-### Custom Domain (Optional)
-1. Go to Settings → Custom Domain
-2. Add your domain
-3. Update DNS records as instructed
+## 🎉 Success!
+Your app should now be live at: `https://growx-platform.onrender.com`
+
+### Test URLs:
+- Frontend: `https://growx-platform.onrender.com`
+- Admin Login: `https://growx-platform.onrender.com/admin/login`
+- API Health: `https://growx-platform.onrender.com/api/health`
 
 ## 🔧 Troubleshooting
 
-### Build Fails
-- Check build logs in Render dashboard
-- Verify all dependencies in package.json
-- Ensure Node version compatibility
-
-### App Not Loading
-- Check if MongoDB connection is successful
-- Verify environment variables are set correctly
-- Check application logs in Render dashboard
+### Emails Not Sending
+1. Check SKIP_EMAIL_VERIFICATION=false
+2. Verify MAIL_PASS is an App Password, not regular password
+3. Check Render logs for email errors
 
 ### CORS Errors
-- Ensure FRONTEND_URL is set correctly
-- Check CORS configuration in backend/index.js
-
-## 🎉 Success!
-Your app should now be live at: `https://growx.onrender.com`
-
-### Test URLs:
-- Frontend: `https://growx.onrender.com`
-- Admin Login: `https://growx.onrender.com/admin/login`
-- API Health: `https://growx.onrender.com/api/v1/user`
-
-## 📞 Support
-For issues, check:
-- Render Logs: Dashboard → Logs
-- MongoDB Atlas: Metrics & Logs
-- Browser Console: Network & Console tabs
+- Ensure FRONTEND_URL matches your actual URL exactly

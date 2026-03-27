@@ -1,24 +1,42 @@
-# Stage 1: Build frontend
-FROM node:20-alpine AS builder
+# Backend - Node.js
+FROM node:20-alpine AS backend
 
-WORKDIR /app
+WORKDIR /app/backend
+
+# Copy and install backend dependencies
+COPY backend/package*.json ./
+RUN npm install
+
+COPY backend/ .
+
+# Frontend build stage
+FROM node:20-alpine AS frontend
+
+WORKDIR /app/frontend
 
 # Copy frontend files
-COPY frontend/package*.json frontend/
+COPY frontend/package*.json ./
 RUN cd frontend && npm install
 
 COPY frontend/ .
 RUN npm run build
 
-# Stage 2: Serve with nginx
-FROM nginx:alpine
+# Final stage - combine both
+FROM node:20-alpine
 
-# Copy built files to nginx
-COPY --from=builder /app/frontend/dist /usr/share/nginx/html
+WORKDIR /app
 
-# Copy nginx config
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy backend
+COPY --from=backend /app/backend ./backend
+COPY --from=frontend /app/frontend/dist ./frontend/dist
 
-EXPOSE 8080
+# Install production dependencies for backend
+WORKDIR /app/backend
+COPY backend/package*.json ./
+RUN npm install --production
 
-CMD ["nginx", "-g", "daemon off;"]
+WORKDIR /app
+
+EXPOSE 7000
+
+CMD ["sh", "-c", "cd backend && node index.js"]

@@ -75,6 +75,8 @@ const allowedOrigins = [
     "http://localhost:7000",
     "https://growx.onrender.com",
     "https://www.growx.onrender.com",
+    "https://growx-platform.onrender.com",
+    "https://www.growx-platform.onrender.com",
     process.env.FRONTEND_URL,
     "https://growx.vercel.app",
     "https://www.growx.vercel.app",

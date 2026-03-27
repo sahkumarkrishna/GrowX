@@ -1,6 +1,6 @@
 import Resume from "../models/ResumeModel.js";
 import cloudinary from "cloudinary";
-import getDataUri from "../utils/dataUri.js";
+import getDataUri from "../utils/datauri.js";
 
 // ---------------- CREATE RESUME ----------------
 export const createResume = async (req, res) => {

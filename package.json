@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "nodemon backend/index.js",
     "dev:frontend": "npm run dev --prefix frontend",
-    "build": "npm install && cd frontend && npm install && npx vite build --mode production",
+    "build": "cd frontend && npm install --include=dev && npx vite build --mode production",
     "start": "node backend/index.js",
     "vercel-build": "npm install && cd frontend && npm install && npx vite build --mode production"
   },

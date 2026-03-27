@@ -1,83 +1,40 @@
 import express from "express";
-import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
 dotenv.config({ path: "./.env" });
 
-import admin from "firebase-admin";
-if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        type: "service_account",
-        project_id: process.env.FIREBASE_PROJECT_ID,
-        private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        client_email: process.env.FIREBASE_CLIENT_EMAIL,
-      }),
-    });
-  } catch (err) {
-    console.error("Firebase Admin init error:", err.message);
-  }
-}
+let app;
 
-import connectDB from "../backend/utils/db.js";
-import { verifyMailer } from "../backend/utils/mailer.js";
-
-import userRoute from "../backend/routes/user.route.js";
-import companyRoute from "../backend/routes/company.route.js";
-import jobRoute from "../backend/routes/job.route.js";
-import applicationRoute from "../backend/routes/application.route.js";
-import contactRoute from "../backend/routes/contactRoutes.js";
-import resumeRoutes from "../backend/routes/ReumeRoutes.js";
-import taskRoutes from "../backend/routes/taskRoutes.js";
-import quizRoute from "../backend/routes/quiz.route.js";
-import quizResultRoute from "../backend/routes/quizResult.route.js";
-import savedJobRoute from "../backend/routes/savedJob.route.js";
-import atsAnalysisRoute from "../backend/routes/atsAnalysis.route.js";
-import internshipRoute from "../backend/routes/internship.route.js";
-import aiChatRoute from "../backend/routes/aiChat.route.js";
-import categoryRoute from "../backend/routes/category.route.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-let dbConnected = false;
-
-async function initDB() {
-  if (!dbConnected) {
-    await connectDB();
-    dbConnected = true;
-    console.log("Connected to DB");
-    if (process.env.VERIFY_EMAIL === "true") {
-      verifyMailer();
-    }
-  }
-}
-
-function createApp() {
-  const app = express();
-
-  app.use(
-    cors({
-      origin: process.env.FRONTEND_URL || "*",
-      credentials: true,
-    })
-  );
+async function getApp() {
+  if (app) return app;
+  
+  app = express();
+  
+  app.use(cors({
+    origin: process.env.FRONTEND_URL || "*",
+    credentials: true,
+  }));
   app.use(helmet());
   app.use(express.json({ limit: "10mb" }));
   app.use(express.urlencoded({ extended: true, limit: "10mb" }));
-  app.use(cookieParser());
-
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 500,
-  });
-  app.use(limiter);
+  
+  const { default: userRoute } = await import("../backend/routes/user.route.js");
+  const { default: companyRoute } = await import("../backend/routes/company.route.js");
+  const { default: jobRoute } = await import("../backend/routes/job.route.js");
+  const { default: applicationRoute } = await import("../backend/routes/application.route.js");
+  const { default: contactRoute } = await import("../backend/routes/contactRoutes.js");
+  const { default: resumeRoutes } = await import("../backend/routes/ReumeRoutes.js");
+  const { default: taskRoutes } = await import("../backend/routes/taskRoutes.js");
+  const { default: quizRoute } = await import("../backend/routes/quiz.route.js");
+  const { default: quizResultRoute } = await import("../backend/routes/quizResult.route.js");
+  const { default: savedJobRoute } = await import("../backend/routes/savedJob.route.js");
+  const { default: atsAnalysisRoute } = await import("../backend/routes/atsAnalysis.route.js");
+  const { default: internshipRoute } = await import("../backend/routes/internship.route.js");
+  const { default: aiChatRoute } = await import("../backend/routes/aiChat.route.js");
+  const { default: categoryRoute } = await import("../backend/routes/category.route.js");
 
   app.use("/api/v1/user", userRoute);
   app.use("/api/v1/company", companyRoute);
@@ -102,21 +59,27 @@ function createApp() {
   return app;
 }
 
-const app = createApp();
+let dbConnected = false;
+async function initDB() {
+  if (!dbConnected) {
+    const { default: connectDB } = await import("../backend/utils/db.js");
+    await connectDB();
+    dbConnected = true;
+    console.log("Connected to DB");
+    const { verifyMailer } = await import("../backend/utils/mailer.js");
+    if (process.env.VERIFY_EMAIL === "true") {
+      verifyMailer();
+    }
+  }
+}
 
-export default app;
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
-export async function handler(req, res) {
+export default async function handler(req, res) {
   try {
     await initDB();
-    await app(req, res);
+    const app = await getApp();
+    return app(req, res);
   } catch (error) {
     console.error("Handler error:", error);
-    res.status(500).json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 }

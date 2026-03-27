@@ -47,7 +47,7 @@ const AdminATS = lazy(() => import('./components/admin/AdminATS'));
 const AdminResumes = lazy(() => import('./components/admin/AdminResumes'));
 const AdminQuizAccess = lazy(() => import('./components/admin/AdminQuizAccess'));
 const AdminJobApplications = lazy(() => import('./components/admin/AdminJobApplications'));
-const AdminInternships = lazy(() => import('./components/admin/AdminInternships'));
+const AdminInternships = lazy(() => import('./components/admin/AdminAllInternships'));
 const AdminAIChatHistory = lazy(() => import('./components/admin/AdminAIChatHistory'));
 
 // // ── Shared (NOT lazy — used as route wrappers) ────────────────────────────────

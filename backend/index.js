@@ -173,7 +173,7 @@ app.use((err, req, res, next) => {
 });
 
 // ── Start ──────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 7000;
+const PORT = process.env.PORT || 8080;
 
 server.listen(PORT, async () => {
     await connectDB();

@@ -1,2 +1,4 @@
 .env
+frontend/.env
+frontend/.env.production
 node_modules

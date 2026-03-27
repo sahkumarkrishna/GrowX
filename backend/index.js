@@ -174,11 +174,12 @@ app.use((err, req, res, next) => {
 
 // ── Start ──────────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
 
-server.listen(PORT, async () => {
+server.listen(PORT, HOST, async () => {
     await connectDB();
     await verifyMailer();
-    console.log(`🚀 GrowX Server running on port ${PORT}`);
+    console.log(`🚀 GrowX Server running on http://${HOST}:${PORT}`);
     console.log(`📧 Mailer configured: ${process.env.MAIL_USER || 'NOT CONFIGURED'}`);
     console.log(`🔗 Allowed CORS origins: ${allowedOrigins.join(', ')}`);
 });

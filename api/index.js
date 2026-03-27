@@ -3,8 +3,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config({ path: "./.env" });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 let app;
 
@@ -14,7 +19,7 @@ async function getApp() {
   app = express();
   
   app.use(cors({
-    origin: process.env.FRONTEND_URL || "*",
+    origin: ["https://grow-x-nine.vercel.app", process.env.FRONTEND_URL, "http://localhost:3000", "http://localhost:5173"],
     credentials: true,
   }));
   app.use(helmet());

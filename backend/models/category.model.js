@@ -37,7 +37,6 @@ const categorySchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-categorySchema.index({ name: 1 });
 categorySchema.index({ isActive: 1 });
 categorySchema.index({ order: 1 });
 

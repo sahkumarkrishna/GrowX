@@ -2,12 +2,16 @@
   "name": "growx",
   "version": "1.0.0",
   "type": "module",
+  "overrides": {
+    "q": "^2.0.0"
+  },
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "nodemon backend/index.js",
     "dev:frontend": "npm run dev --prefix frontend",
-    "build": "npm run build --prefix frontend",
-    "start": "node backend/index.js"
+    "build": "npm install && cd frontend && npm install && npx vite build --mode production",
+    "start": "node backend/index.js",
+    "vercel-build": "npm install && cd frontend && npm install && npx vite build --mode production"
   },
   "dependencies": {
     "@vercel/node": "^5.6.21",
@@ -18,7 +22,10 @@
     "datauri": "^4.1.0",
     "dotenv": "^16.6.1",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.3.1",
     "firebase": "^12.11.0",
+    "firebase-admin": "^13.0.0",
+    "helmet": "^8.1.0",
     "http": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
@@ -28,7 +35,12 @@
     "streamifier": "^0.1.1"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.19",
     "concurrently": "^8.2.2",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "vite": "^5.4.21"
   }
 }

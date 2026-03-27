@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:7000/api';
+const API_BASE = import.meta.env.VITE_API_BASE || '/api';
 
 export const API = {
   user: import.meta.env.VITE_USER_API || `${API_BASE}/v1/user`,

@@ -159,7 +159,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // ── Serve React frontend ───────────────────────────────────────────────────────
-const distPath = path.join(__dirname, "../frontend/dist");
+const distPath = path.resolve(__dirname, "../frontend/dist");
 app.use(express.static(distPath));
 app.get("/{*splat}", (_req, res) => res.sendFile(path.join(distPath, "index.html")));
 

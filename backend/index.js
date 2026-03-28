@@ -112,6 +112,12 @@ app.use("/api/v1/ats", atsAnalysisRoute);
 app.use("/api/v1/ai-chat", aiChatRoute);
 app.use("/api/v1/category", categoryRoute);
 
+// ✅ Serve Frontend Static Files
+app.use(express.static(path.join(__dirname, "../frontend/dist")));
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
+});
+
 // ✅ Health Check
 app.get("/api/health", (req, res) => {
   res.json({ success: true, message: "API running" });

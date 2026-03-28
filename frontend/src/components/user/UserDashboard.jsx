@@ -176,7 +176,7 @@ export default function UserDashboard() {
         axios.get(`${API.resume}/my`, { withCredentials: true }),
         axios.get(`${API.internship}/my`, { withCredentials: true }),
         axios.get(`${API.learning}/all`, { withCredentials: true }),
-        axios.get(`${API.kanban}/all`, { withCredentials: true }),
+        axios.get(`${API.kanban}/get`, { withCredentials: true }),
       ]);
       
       setQuizzes(q.status === 'fulfilled' ? (q.value.data?.quizzes || []) : []);

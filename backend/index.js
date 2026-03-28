@@ -5,18 +5,35 @@ import dotenv from "dotenv";
 import http from "http";
 import { Server } from "socket.io";
 import path from "path";
-import { fileURLToPath } from "url";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
-// ── __dirname fix for ES modules ───────────────────────────────────────────────
-const __filename = fileURLToPath(import.meta.url);
-const __dirname  = path.dirname(__filename);
-
-// ── Load env vars FIRST — before any other local imports ──────────────────────
-dotenv.config({ path: path.join(__dirname, "../.env") });
+// ✅ LOAD ENV VARIABLES FIRST
+dotenv.config();
 
 import admin from "firebase-admin";
+import connectDB from "./utils/db.js";
+import { verifyMailer } from "./utils/mailer.js";
+
+// Routes
+import userRoute from "./routes/user.route.js";
+import companyRoute from "./routes/company.route.js";
+import jobRoute from "./routes/job.route.js";
+import applicationRoute from "./routes/application.route.js";
+import contactRoute from "./routes/contactRoutes.js";
+import resumeRoutes from "./routes/ReumeRoutes.js";
+import taskRoutes from "./routes/taskRoutes.js";
+import quizRoute from "./routes/quiz.route.js";
+import quizResultRoute from "./routes/quizResult.route.js";
+import savedJobRoute from "./routes/savedJob.route.js";
+import atsAnalysisRoute from "./routes/atsAnalysis.route.js";
+import internshipRoute from "./routes/internship.route.js";
+import aiChatRoute from "./routes/aiChat.route.js";
+import categoryRoute from "./routes/category.route.js";
+
+const app = express();
+
+// ✅ Firebase Init (safe)
 if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
   try {
     admin.initializeApp({
@@ -29,162 +46,95 @@ if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
     });
     console.log("🔥 Firebase Admin initialized");
   } catch (err) {
-    console.error("Firebase Admin init error:", err.message);
+    console.error("Firebase Admin error:", err.message);
   }
 }
 
-import connectDB from "./utils/db.js";
-import { verifyMailer } from "./utils/mailer.js";
+// ✅ Security
+app.use(helmet());
 
-import userRoute         from "./routes/user.route.js";
-import companyRoute      from "./routes/company.route.js";
-import jobRoute          from "./routes/job.route.js";
-import applicationRoute  from "./routes/application.route.js";
-import contactRoute      from "./routes/contactRoutes.js";
-import resumeRoutes      from "./routes/ReumeRoutes.js";
-import taskRoutes        from "./routes/taskRoutes.js";
-import quizRoute         from "./routes/quiz.route.js";
-import quizResultRoute   from "./routes/quizResult.route.js";
-import savedJobRoute     from "./routes/savedJob.route.js";
-import atsAnalysisRoute  from "./routes/atsAnalysis.route.js";
-import internshipRoute   from "./routes/internship.route.js";
-import aiChatRoute      from "./routes/aiChat.route.js";
-import categoryRoute    from "./routes/category.route.js";
-
-const app = express();
-
-// ── Security Headers (Helmet) ──────────────────────────────────────────────────
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https://apis.google.com", "https://accounts.google.com", "https://securetoken.googleapis.com"],
-      frameSrc: ["'self'", "https://accounts.google.com", "https://www.googletagmanager.com"],
-      childSrc: ["'self'", "https://accounts.google.com"],
-      connectSrc: ["'self'", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://apis.google.com", "https://securetoken.googleapis.com", "https://identitytoolkit.googleapis.com"],
-      frameAncestors: ["'self'"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
-
-// ── CORS ───────────────────────────────────────────────────────────────────────
+// ✅ CORS
 const allowedOrigins = [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "http://localhost:7000",
-    "https://growx.onrender.com",
-    "https://www.growx.onrender.com",
-    "https://growx-platform.onrender.com",
-    "https://www.growx-platform.onrender.com",
-    process.env.FRONTEND_URL,
-    "https://growx.vercel.app",
-    "https://www.growx.vercel.app",
+  "http://localhost:5173",
+  "https://growx-platform.onrender.com",
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-console.log("🔗 Allowed CORS origins:", allowedOrigins);
-
 app.use(
-    cors({
-        origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) {
-                callback(null, true);
-            } else {
-                callback(new Error("Not allowed by CORS"));
-            }
-        },
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-    })
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
 );
 
-// ── Body Parsers ──────────────────────────────────────────────────────────────
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+// ✅ Body Parser
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ── Rate Limiting ──────────────────────────────────────────────────────────────
-const globalLimiter = rateLimit({
+// ✅ Rate Limit
+const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10000,
-  message: { success: false, message: "Too many requests, please try again later." },
-  skip: (req) => req.method === "OPTIONS",
+  max: 1000,
 });
-app.use(globalLimiter);
+app.use(limiter);
 
-const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 5000,
-  message: { success: false, message: "Too many API requests, please try again later." },
-  skip: (req) => req.method === "OPTIONS",
-});
-
-// ── HTTP server + Socket.io ────────────────────────────────────────────────────
+// ✅ Server + Socket
 const server = http.createServer(app);
-
 const io = new Server(server, {
-    cors: { 
-        origin: allowedOrigins, 
-        credentials: true,
-        methods: ['GET', 'POST'],
-    },
+  cors: { origin: allowedOrigins, credentials: true },
 });
 
-app.use((req, _res, next) => { req.io = io; next(); });
-
-// ── General socket connection log ──────────────────────────────────────────────
-io.on("connection", (socket) => {
-    console.log(`⚡ Socket connected: ${socket.id}`);
-    socket.on("disconnect", () => console.log(`❌ Socket disconnected: ${socket.id}`));
+app.use((req, res, next) => {
+  req.io = io;
+  next();
 });
 
-// ── API Routes ─────────────────────────────────────────────────────────────────
-app.use("/api/v1/user",        userRoute); // No rate limit on auth routes
-app.use("/api/v1/company",     apiLimiter, companyRoute);
-app.use("/api/v1/job",         apiLimiter, jobRoute);
-app.use("/api/v1/application", apiLimiter, applicationRoute);
-app.use("/api/v1/quiz",        apiLimiter, quizRoute);
-app.use("/api/v1/quiz-result", apiLimiter, quizResultRoute);
-app.use("/api/v1/saved-job",   apiLimiter, savedJobRoute);
-app.use("/api/v1/ats",         apiLimiter, atsAnalysisRoute);
-app.use("/api/v1/internship",  apiLimiter, internshipRoute);
-app.use("/api/contact",        apiLimiter, contactRoute);
-app.use("/api/resumes",        apiLimiter, resumeRoutes);
-app.use("/api/tasks",          apiLimiter, taskRoutes);
-app.use("/api/v1/ai-chat",     apiLimiter, aiChatRoute);
-app.use("/api/v1/category",    apiLimiter, categoryRoute);
+// ✅ Routes
+app.use("/api/v1/user", userRoute);
+app.use("/api/v1/company", companyRoute);
+app.use("/api/v1/job", jobRoute);
+app.use("/api/v1/application", applicationRoute);
+app.use("/api/v1/internship", internshipRoute);
+app.use("/api/contact", contactRoute);
+app.use("/api/resumes", resumeRoutes);
+app.use("/api/tasks", taskRoutes);
+app.use("/api/v1/quiz", quizRoute);
+app.use("/api/v1/quiz-result", quizResultRoute);
+app.use("/api/v1/saved-job", savedJobRoute);
+app.use("/api/v1/ats", atsAnalysisRoute);
+app.use("/api/v1/ai-chat", aiChatRoute);
+app.use("/api/v1/category", categoryRoute);
 
-// ── Health Check ───────────────────────────────────────────────────────────────
+// ✅ Health Check
 app.get("/api/health", (req, res) => {
-    res.json({ success: true, message: "GrowX API is running", timestamp: new Date().toISOString() });
+  res.json({ success: true, message: "API running" });
 });
 
-// ── Serve React frontend ───────────────────────────────────────────────────────
-const distPath = path.resolve(__dirname, "../frontend/dist");
-app.use(express.static(distPath));
-app.get("/{*splat}", (_req, res) => res.sendFile(path.join(distPath, "index.html")));
+// ✅ Start Server (FIXED)
+const PORT = process.env.PORT || 5000;
 
-// ── Error Handler ──────────────────────────────────────────────────────────────
-app.use((err, req, res, next) => {
-    console.error("Server Error:", err.message);
-    if (err.message === "Not allowed by CORS") {
-        return res.status(403).json({ success: false, message: "CORS not allowed for this origin" });
-    }
-    res.status(500).json({ success: false, message: "Internal server error" });
-});
+const startServer = async () => {
+  try {
+    console.log("MONGO_URI:", process.env.MONGO_URI); // debug
 
-// ── Start ──────────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+    await connectDB();       // ✅ DB first
+    await verifyMailer();    // ✅ Mail check
 
-server.listen(PORT, HOST, async () => {
-    await connectDB();
-    await verifyMailer();
-    console.log(`🚀 GrowX Server running on http://${HOST}:${PORT}`);
-    console.log(`📧 Mailer configured: ${process.env.MAIL_USER || 'NOT CONFIGURED'}`);
-    console.log(`🔗 Allowed CORS origins: ${allowedOrigins.join(', ')}`);
-});
+    server.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+  } catch (err) {
+    console.error("❌ Server failed:", err.message);
+    process.exit(1);
+  }
+};
+
+startServer();

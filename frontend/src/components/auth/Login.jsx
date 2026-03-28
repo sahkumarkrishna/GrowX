@@ -77,7 +77,7 @@ const Login = () => {
       const res = await axios.post(
         `${API.user}/google`,
         { credential, role: input.role },
-        { withCredentials: true }
+        { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );
       if (res.data.success) {
         dispatch(setUser(res.data.user));

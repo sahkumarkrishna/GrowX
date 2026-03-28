@@ -226,6 +226,10 @@ export const googleAuth = async (req, res) => {
         }
       );
       const verifyData = await verifyRes.json();
+      console.log("Google identity lookup response:", JSON.stringify(verifyData));
+      if (!verifyRes.ok) {
+        return res.status(400).json({ message: `Google verification failed: ${verifyData?.error?.message || verifyData.error || 'Unknown error'}`, success: false, error: verifyData });
+      }
       if (!verifyData.users || !verifyData.users[0]) {
         return res.status(401).json({ message: "Invalid Google credential.", success: false });
       }
@@ -288,6 +292,7 @@ export const googleAuth = async (req, res) => {
     }
 
     if (role && user.role !== role) {
+      console.log(`Role mismatch: request role=${role}, user role=${user.role}`);
       return res.status(400).json({
         message: `This account is registered as ${user.role}.`,
         success: false,

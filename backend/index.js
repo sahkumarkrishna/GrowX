@@ -55,7 +55,22 @@ if (!admin.apps.length && process.env.FIREBASE_PROJECT_ID) {
 }
 
 // ✅ Security
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        "default-src": ["'self'"],
+        "style-src": ["'self'", "'unsafe-inline'"],
+        "script-src": ["'self'", "'unsafe-inline'"],
+        "img-src": ["'self'", "data:", "https:", "blob:"],
+        "connect-src": ["'self'", "https:"],
+        "font-src": ["'self'", "data:"],
+        "object-src": ["'none'"],
+        "media-src": ["'self'", "https:", "blob:"],
+      },
+    },
+  })
+);
 
 // ✅ CORS
 const allowedOrigins = [

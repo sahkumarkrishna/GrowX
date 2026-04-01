@@ -977,7 +977,7 @@ export const testEmail = async (req, res) => {
     console.error("Test Email Error:", error);
     return res.status(500).json({ 
       success: false,
-      message: "Failed to send test email. Check your MAIL_USER and MAIL_PASS configuration.",
+      message: "Failed to send test email. Check your RESEND_API_KEY and FROM_EMAIL configuration.",
       error: error.message 
     });
   }

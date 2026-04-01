@@ -2,24 +2,26 @@ import { Interview } from "../models/Interview.model.js";
 import { QuestionBank } from "../models/Questionbank.model.js";
 import { User } from "../models/user.model.js";
 
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import crypto from "crypto";
 
-// ─── Mailer Setup ────────────────────────────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_HOST || "smtp.gmail.com",
-  port: parseInt(process.env.MAIL_PORT || "587"),
-  secure: false,
-  auth: { 
-    user: process.env.MAIL_USER, 
-    pass: process.env.MAIL_PASS?.replace(/\s/g, '') || '' 
-  },
-});
+// ─── Resend Client Setup ────────────────────────────────────────────────────
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("⚠️ RESEND_API_KEY not configured");
+    return null;
+  }
+  return new Resend(apiKey);
+};
 
 const sendInterviewEmail = async (to, subject, html) => {
   try {
     if (process.env.SKIP_EMAIL_VERIFICATION === "true") return;
-    await transporter.sendMail({ from: process.env.MAIL_USER, to, subject, html });
+    const client = getResendClient();
+    if (!client) return;
+    const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+    await client.emails.send({ from: `GrowX <${fromEmail}>`, to, subject, html });
   } catch (err) {
     console.error("Email send error:", err.message);
   }

@@ -1,56 +1,53 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
-// ── Transporter ────────────────────────────────────────────────────────────────
-const createTransporter = () => {
-  const mailUser = process.env.MAIL_USER;
-  const mailPass = process.env.MAIL_PASS?.replace(/\s/g, ''); // Remove spaces
-  
-  if (!mailUser || !mailPass) {
-    console.warn("⚠️ MAIL_USER or MAIL_PASS not configured");
+// ── Resend Client ──────────────────────────────────────────────────────────────
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("⚠️ RESEND_API_KEY not configured");
     return null;
   }
-  
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: mailUser,
-      pass: mailPass,
-    },
-  });
+  return new Resend(apiKey);
 };
 
 // ── Verify on startup ──────────────────────────────────────────────────────────
 export const verifyMailer = async () => {
-  if (!process.env.MAIL_USER || !process.env.MAIL_PASS) {
-    console.warn("⚠️ Mailer: MAIL_USER or MAIL_PASS not set - emails disabled");
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("⚠️ Mailer: RESEND_API_KEY not set - emails disabled");
     return;
   }
   try {
-    const t = createTransporter();
-    if (!t) return;
-    await t.verify();
-    console.log(`✅ Mailer ready — sending as ${process.env.MAIL_USER}`);
+    const client = getResendClient();
+    if (!client) return;
+    await client.domains.list();
+    console.log(`✅ Resend Mailer ready — sending as ${process.env.FROM_EMAIL || 'onboarding@resend.dev'}`);
   } catch (err) {
-    console.warn("⚠️ Mailer connection failed:", err.message);
+    console.warn("⚠️ Resend connection failed:", err.message);
     console.warn("   → Emails will be logged but not sent");
-    console.warn("   → Check MAIL_USER and MAIL_PASS in .env");
+    console.warn("   → Check RESEND_API_KEY and FROM_EMAIL in .env");
   }
 };
 
 // ── Generic send with retry ────────────────────────────────────────────────────
 export const sendEmail = async ({ to, subject, html }, retries = 2) => {
-  const transporter = createTransporter();
-  if (!transporter) throw new Error("Mail transporter not configured.");
+  const client = getResendClient();
+  if (!client) throw new Error("Resend client not configured.");
+  
+  const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+  
   for (let attempt = 1; attempt <= retries + 1; attempt++) {
     try {
-      const info = await transporter.sendMail({
-        from: `"GrowX" <${process.env.MAIL_USER}>`,
-        to,
+      const { data, error } = await client.emails.send({
+        from: `GrowX <${fromEmail}>`,
+        to: [to],
         subject,
         html,
       });
-      console.log(`✅ Email sent to ${to} | id: ${info.messageId}`);
-      return info;
+      
+      if (error) throw new Error(error.message);
+      
+      console.log(`✅ Email sent to ${to} | id: ${data?.id}`);
+      return data;
     } catch (err) {
       console.error(`❌ Email attempt ${attempt} failed:`, err.message);
       if (attempt > retries) throw err;
@@ -143,8 +140,8 @@ export const sendVerificationEmail = async (email, fullname, token, expiry, plai
 
         <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 6px;">
           If you have any questions, feel free to contact us at
-          <a href="mailto:${process.env.MAIL_USER}"
-             style="color:#7c3aed;">${process.env.MAIL_USER}</a>.
+<a href="mailto:${process.env.FROM_EMAIL || 'support@growx.com'}"
+              style="color:#7c3aed;">${process.env.FROM_EMAIL || 'support@growx.com'}</a>.
         </p>
 
         <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 28px;">
@@ -222,8 +219,8 @@ export const sendWelcomeEmail = async (email, fullname) => {
         </div>
         <p style="color:#4b5563;font-size:14px;line-height:1.7;margin:0 0 6px;">
           If you have any questions, contact us at
-          <a href="mailto:${process.env.MAIL_USER}"
-             style="color:#7c3aed;">${process.env.MAIL_USER}</a>.
+<a href="mailto:${process.env.FROM_EMAIL || 'support@growx.com'}"
+              style="color:#7c3aed;">${process.env.FROM_EMAIL || 'support@growx.com'}</a>.
         </p>
         <p style="color:#4b5563;font-size:14px;margin:0 0 28px;">
           Welcome aboard, and we look forward to seeing you grow!
@@ -297,8 +294,8 @@ export const sendForgotPasswordEmail = async (email, fullname, token) => {
         </p>
         <p style="color:#4b5563;font-size:14px;margin:0 0 6px;">
           Questions? Contact us at
-          <a href="mailto:${process.env.MAIL_USER}"
-             style="color:#7c3aed;">${process.env.MAIL_USER}</a>.
+<a href="mailto:${process.env.FROM_EMAIL || 'support@growx.com'}"
+              style="color:#7c3aed;">${process.env.FROM_EMAIL || 'support@growx.com'}</a>.
         </p>
         <p style="color:#4b5563;font-size:14px;margin:0 0 28px;">
           Welcome aboard, and we look forward to seeing you soon!
@@ -363,8 +360,8 @@ export const sendPasswordResetSuccessEmail = async (email, fullname) => {
         </div>
         <p style="color:#dc2626;font-size:13px;margin:0 0 24px;">
           If you did <strong>not</strong> make this change, contact us at
-          <a href="mailto:${process.env.MAIL_USER}"
-             style="color:#dc2626;">${process.env.MAIL_USER}</a> immediately.
+<a href="mailto:${process.env.FROM_EMAIL || 'support@growx.com'}"
+              style="color:#dc2626;">${process.env.FROM_EMAIL || 'support@growx.com'}</a> immediately.
         </p>
         <p style="color:#4b5563;font-size:14px;margin:0 0 28px;">
           Welcome aboard, and we look forward to seeing you soon!
@@ -453,8 +450,8 @@ export const sendOtpEmail = async (email, fullname, otp) => {
 
         <p style="color:#4b5563;font-size:14px;margin:0 0 6px;">
           If you have any questions, contact us at
-          <a href="mailto:${process.env.MAIL_USER}"
-             style="color:#7c3aed;">${process.env.MAIL_USER}</a>.
+<a href="mailto:${process.env.FROM_EMAIL || 'support@growx.com'}"
+              style="color:#7c3aed;">${process.env.FROM_EMAIL || 'support@growx.com'}</a>.
         </p>
 
         <p style="color:#4b5563;font-size:14px;margin:0 0 28px;">

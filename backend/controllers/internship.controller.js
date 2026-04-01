@@ -1,15 +1,16 @@
 import Internship from "../models/internship.model.js";
 import cloudinary from "../utils/cloudinary.js";
 import streamifier from "streamifier";
-import nodemailer from 'nodemailer';
+import { Resend } from "resend";
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: { 
-    user: process.env.MAIL_USER, 
-    pass: process.env.MAIL_PASS?.replace(/\s/g, '') || '' 
-  },
-});
+const getResendClient = () => {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("⚠️ RESEND_API_KEY not configured");
+    return null;
+  }
+  return new Resend(apiKey);
+};
 
 const uploadToCloudinary = (buffer) =>
   new Promise((resolve, reject) => {
@@ -271,9 +272,9 @@ const sendConfirmationEmail = async (to, data) => {
                          text-transform:uppercase;letter-spacing:0.5px;">📬 Need Help?</p>
               <p style="margin:0;font-size:13px;color:#A8A099;line-height:1.7;">
                 Have questions about your application? Reach out to us at
-                <a href="mailto:${process.env.MAIL_USER}"
+                <a href="mailto:${process.env.FROM_EMAIL || 'support@growx.com'}"
                   style="color:#D4A853;font-weight:700;text-decoration:none;">
-                  ${process.env.MAIL_USER}
+                  ${process.env.FROM_EMAIL || 'support@growx.com'}
                 </a>.
                 We typically respond within 24 hours.
               </p>
@@ -335,8 +336,11 @@ const sendConfirmationEmail = async (to, data) => {
 </body>
 </html>`;
 
-  await transporter.sendMail({
-    from: `"GrowX Internship" <${process.env.MAIL_USER}>`,
+  const client = getResendClient();
+  if (!client) return;
+  const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+  await client.emails.send({
+    from: `GrowX Internship <${fromEmail}>`,
     to,
     subject: `🚀 Application Confirmed — ${data.category} Internship | GrowX`,
     html,
@@ -538,7 +542,7 @@ const sendStatusEmail = async (to, data, status) => {
       <tr><td style="padding:18px 24px;">
         <p style="margin:0 0 4px;font-size:13px;font-weight:800;color:#4f46e5;text-transform:uppercase;letter-spacing:0.5px;">📬 Questions?</p>
         <p style="margin:0;font-size:13px;color:#6b7280;line-height:1.7;">Contact us at
-          <a href="mailto:${process.env.MAIL_USER}" style="color:#4f46e5;font-weight:700;text-decoration:none;">${process.env.MAIL_USER}</a>.
+          <a href="mailto:${process.env.FROM_EMAIL || 'support@growx.com'}" style="color:#4f46e5;font-weight:700;text-decoration:none;">${process.env.FROM_EMAIL || 'support@growx.com'}</a>.
           We respond within 24 hours.
         </p>
       </td></tr>
@@ -567,8 +571,11 @@ const sendStatusEmail = async (to, data, status) => {
 </td></tr></table>
 </body></html>`;
 
-  await transporter.sendMail({
-    from: `"GrowX Internship" <${process.env.MAIL_USER}>`,
+  const client = getResendClient();
+  if (!client) return;
+  const fromEmail = process.env.FROM_EMAIL || "onboarding@resend.dev";
+  await client.emails.send({
+    from: `GrowX Internship <${fromEmail}>`,
     to,
     subject: isAccepted
       ? `🎉 Congratulations! You're Accepted — ${data.category} Internship | GrowX`
